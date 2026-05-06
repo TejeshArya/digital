@@ -1,0 +1,265 @@
+﻿
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----          5/5/2026   4:21 PM                app                                                                  
+d-----          5/5/2026  10:23 AM                assets                                                               
+d-----          5/5/2026   3:54 PM                components                                                           
+d-----          5/5/2026   3:47 PM                hooks                                                                
+d-----          5/5/2026   3:39 PM                pages                                                                
+d-----          5/5/2026   4:10 PM                routes                                                               
+d-----          5/5/2026   3:47 PM                services                                                             
+d-----          5/5/2026   4:21 PM                styles                                                               
+d-----          5/5/2026   4:10 PM                utils                                                                
+-a----          5/5/2026   4:52 PM            183 main.tsx                                                             
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\app
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----          5/5/2026   4:52 PM                components                                                           
+-a----          5/5/2026   4:52 PM          12239 App.tsx                                                              
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\assets
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026  10:22 AM          11202 logo.png                                                             
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\components
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----          5/5/2026   3:54 PM                common                                                               
+d-----          5/5/2026   4:10 PM                layout                                                               
+d-----          5/4/2026   4:08 PM                ui                                                                   
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\components\common
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/4/2026   4:08 PM           7152 ClientSearchDropdown.tsx                                             
+-a----          5/4/2026   4:08 PM           2621 FloatingLabelInput.tsx                                               
+-a----          5/4/2026   4:08 PM           1753 KPICard.tsx                                                          
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\components\ui
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/4/2026   4:08 PM           2060 accordion.tsx                                                        
+-a----          5/4/2026   4:08 PM           3866 alert-dialog.tsx                                                     
+-a----          5/4/2026   4:08 PM           1621 alert.tsx                                                            
+-a----          5/4/2026   4:08 PM            284 aspect-ratio.tsx                                                     
+-a----          5/4/2026   4:08 PM           1104 avatar.tsx                                                           
+-a----          5/4/2026   4:08 PM           1636 badge.tsx                                                            
+-a----          5/4/2026   4:08 PM           2368 breadcrumb.tsx                                                       
+-a----          5/4/2026   4:08 PM           2106 button.tsx                                                           
+-a----          5/4/2026   4:08 PM           2913 calendar.tsx                                                         
+-a----          5/4/2026   4:08 PM           1988 card.tsx                                                             
+-a----          5/4/2026   4:08 PM           5606 carousel.tsx                                                         
+-a----          5/4/2026   4:08 PM           9852 chart.tsx                                                            
+-a----          5/4/2026   4:08 PM           1244 checkbox.tsx                                                         
+-a----          5/4/2026   4:08 PM            806 collapsible.tsx                                                      
+-a----          5/4/2026   4:08 PM           4662 command.tsx                                                          
+-a----          5/4/2026   4:08 PM           8251 context-menu.tsx                                                     
+-a----          5/4/2026   4:08 PM           3828 dialog.tsx                                                           
+-a----          5/4/2026   4:08 PM           4085 drawer.tsx                                                           
+-a----          5/4/2026   4:08 PM           8313 dropdown-menu.tsx                                                    
+-a----          5/4/2026   4:08 PM           3785 form.tsx                                                             
+-a----          5/4/2026   4:08 PM           1537 hover-card.tsx                                                       
+-a----          5/4/2026   4:08 PM           2282 input-otp.tsx                                                        
+-a----          5/4/2026   4:08 PM            963 input.tsx                                                            
+-a----          5/4/2026   4:08 PM            614 label.tsx                                                            
+-a----          5/4/2026   4:08 PM           8426 menubar.tsx                                                          
+-a----          5/4/2026   4:08 PM           6684 navigation-menu.tsx                                                  
+-a----          5/4/2026   4:08 PM           2709 pagination.tsx                                                       
+-a----          5/4/2026   4:08 PM           1641 popover.tsx                                                          
+-a----          5/4/2026   4:08 PM            743 progress.tsx                                                         
+-a----          5/4/2026   4:08 PM           1471 radio-group.tsx                                                      
+-a----          5/4/2026   4:08 PM           2036 resizable.tsx                                                        
+-a----          5/4/2026   4:08 PM           1649 scroll-area.tsx                                                      
+-a----          5/4/2026   4:08 PM           6275 select.tsx                                                           
+-a----          5/4/2026   4:08 PM            707 separator.tsx                                                        
+-a----          5/4/2026   4:08 PM           4105 sheet.tsx                                                            
+-a----          5/4/2026   4:08 PM          21663 sidebar.tsx                                                          
+-a----          5/4/2026   4:08 PM            275 skeleton.tsx                                                         
+-a----          5/4/2026   4:08 PM           2006 slider.tsx                                                           
+-a----          5/4/2026   4:08 PM            571 sonner.tsx                                                           
+-a----          5/4/2026   4:08 PM           1182 switch.tsx                                                           
+-a----          5/4/2026   4:08 PM           2460 table.tsx                                                            
+-a----          5/4/2026   4:08 PM           1945 tabs.tsx                                                             
+-a----          5/4/2026   4:08 PM            767 textarea.tsx                                                         
+-a----          5/4/2026   4:08 PM           1920 toggle-group.tsx                                                     
+-a----          5/4/2026   4:08 PM           1565 toggle.tsx                                                           
+-a----          5/4/2026   4:08 PM           1897 tooltip.tsx                                                          
+-a----          5/4/2026   4:08 PM            585 use-mobile.ts                                                        
+-a----          5/4/2026   4:08 PM            169 utils.ts                                                             
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+d-----          5/5/2026   3:39 PM                accounts                                                             
+d-----          5/5/2026   4:52 PM                admin                                                                
+d-----          5/5/2026   3:39 PM                auth                                                                 
+d-----          5/5/2026   3:39 PM                business                                                             
+d-----          5/5/2026   4:10 PM                dashboard                                                            
+d-----          5/5/2026   4:47 PM                dd-menus                                                             
+d-----          5/5/2026   3:39 PM                hr                                                                   
+d-----          5/5/2026   3:37 PM                it                                                                   
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\accounts
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM           8799 AllPreparedGSTR.tsx                                                  
+-a----          5/5/2026   4:01 PM          11346 InputGST.tsx                                                         
+-a----          5/5/2026   4:01 PM          10794 PrepareGSTR.tsx                                                      
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\auth
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM           4070 LoginScreen.tsx                                                      
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\business
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM           9138 AllCreatedDC.tsx                                                     
+-a----          5/5/2026   4:01 PM           7396 Invoices.tsx                                                         
+-a----          5/5/2026   4:01 PM           7283 ItemConsumption.tsx                                                  
+-a----          5/5/2026   4:01 PM           9995 ManagePurchase.tsx                                                   
+-a----          5/5/2026   4:01 PM          13819 NewQuotation.tsx                                                     
+-a----          5/5/2026   4:01 PM          12712 Projects.tsx                                                         
+-a----          5/5/2026   4:01 PM          19537 Purchase.tsx                                                         
+-a----          5/5/2026   4:01 PM           7334 PurchaseDC.tsx                                                       
+-a----          5/5/2026   4:01 PM          12764 Quotations.tsx                                                       
+-a----          5/5/2026   4:01 PM           9596 SingleItemSelling.tsx                                                
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\dashboard
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM           4725 AddBank.tsx                                                          
+-a----          5/5/2026   4:01 PM           9939 BankDetails.tsx                                                      
+-a----          5/5/2026   4:01 PM          12100 CompanyGST.tsx                                                       
+-a----          5/5/2026   4:01 PM           4667 Dashboard.tsx                                                        
+-a----          5/5/2026   4:01 PM           6880 DeliveryDetails.tsx                                                  
+-a----          5/5/2026   4:01 PM          11283 EmployeePortal.tsx                                                   
+-a----          5/5/2026   4:01 PM          12236 MyDocuments.tsx                                                      
+-a----          5/5/2026   4:01 PM           8996 SubGST.tsx                                                           
+-a----          5/5/2026   4:01 PM           9919 UploadDocuments.tsx                                                  
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\dd-menus
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM           7044 AddCategory.tsx                                                      
+-a----          5/5/2026   4:01 PM           5303 AddPaymentMode.tsx                                                   
+-a----          5/5/2026   4:01 PM           5996 AmountType.tsx                                                       
+-a----          5/5/2026   4:01 PM           6353 Brands.tsx                                                           
+-a----          5/5/2026   4:01 PM           5852 City.tsx                                                             
+-a----          5/5/2026   4:01 PM           5485 ClientDepartment.tsx                                                 
+-a----          5/5/2026   4:01 PM           6085 Denom.tsx                                                            
+-a----          5/5/2026   4:01 PM           5946 Expense.tsx                                                          
+-a----          5/5/2026   4:01 PM           5036 GSTPercent.tsx                                                       
+-a----          5/5/2026   4:01 PM           5967 HSN.tsx                                                              
+-a----          5/5/2026   4:01 PM           6323 State.tsx                                                            
+-a----          5/5/2026   4:01 PM           6802 StateLocation.tsx                                                    
+-a----          5/5/2026   4:01 PM           7716 SubCategory.tsx                                                      
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\hr
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM          18120 AddEmployee.tsx                                                      
+-a----          5/5/2026   4:01 PM          13403 ApplyLeave.tsx                                                       
+-a----          5/5/2026   4:01 PM           8429 Attendance.tsx                                                       
+-a----          5/5/2026   4:01 PM           8331 AttendanceApproval.tsx                                               
+-a----          5/5/2026   4:01 PM          11892 AttendanceView.tsx                                                   
+-a----          5/5/2026   4:01 PM          10178 BulkAttendance.tsx                                                   
+-a----          5/5/2026   4:01 PM           7349 CreateGroupID.tsx                                                    
+-a----          5/5/2026   4:01 PM           8522 CreatePost.tsx                                                       
+-a----          5/5/2026   4:01 PM           9181 DailyAttendance.tsx                                                  
+-a----          5/5/2026   4:10 PM           5665 EmployeeApproval.tsx                                                 
+-a----          5/5/2026   4:01 PM           6495 EmployeeFundTracking.tsx                                             
+-a----          5/5/2026   4:01 PM           8717 EmployeeHolidays.tsx                                                 
+-a----          5/5/2026   4:01 PM           7335 EmployeeOT.tsx                                                       
+-a----          5/5/2026   4:01 PM          11496 Employees.tsx                                                        
+-a----          5/5/2026   4:01 PM           5769 EmployeeSalaries.tsx                                                 
+-a----          5/5/2026   4:01 PM           7740 HolidayCalendar.tsx                                                  
+-a----          5/5/2026   4:01 PM           6204 HolidayList.tsx                                                      
+-a----          5/5/2026   4:01 PM           9209 HRDashboard.tsx                                                      
+-a----          5/5/2026   4:01 PM          10946 LeaveApproval.tsx                                                    
+-a----          5/5/2026   4:01 PM           7755 LeaveAssignments.tsx                                                 
+-a----          5/5/2026   4:01 PM          10336 LeaveManagement.tsx                                                  
+-a----          5/5/2026   4:01 PM           7389 LeaveTypes.tsx                                                       
+-a----          5/5/2026   4:01 PM           6156 LocationHead.tsx                                                     
+-a----          5/5/2026   4:01 PM           4872 LocationManagement.tsx                                               
+-a----          5/5/2026   4:01 PM          12208 ManagerAssignment.tsx                                                
+-a----          5/5/2026   4:01 PM           8116 ManageShifts.tsx                                                     
+-a----          5/5/2026   4:01 PM          13028 ManualAttendance.tsx                                                 
+-a----          5/5/2026   4:01 PM           5921 NewDepartment.tsx                                                    
+-a----          5/5/2026   4:01 PM           6773 OTApprovals.tsx                                                      
+-a----          5/5/2026   4:01 PM          10145 PostGrouping.tsx                                                     
+-a----          5/5/2026   4:01 PM           5192 ProfileUpdates.tsx                                                   
+-a----          5/5/2026   4:01 PM          10230 RoleAssignment.tsx                                                   
+-a----          5/5/2026   4:01 PM          11755 SalaryDraft.tsx                                                      
+-a----          5/5/2026   4:01 PM           5433 SalaryRuns.tsx                                                       
+-a----          5/5/2026   4:01 PM           8301 SalaryTypes.tsx                                                      
+-a----          5/5/2026   4:01 PM           7361 SubLocation.tsx                                                      
+-a----          5/5/2026   4:01 PM           5223 Wings.tsx                                                            
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\pages\it
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/5/2026   4:01 PM          12442 ITDashboard.tsx                                                      
+-a----          5/5/2026   4:01 PM           6659 ITEmployeeApproval.tsx                                               
+-a----          5/5/2026   4:01 PM           7555 ITRoleManagement.tsx                                                 
+-a----          5/5/2026   4:01 PM           8035 ITUserManagement.tsx                                                 
+-a----          5/5/2026   4:01 PM          13144 UpdatePassword.tsx                                                   
+
+
+    Directory: C:\DEE-web\react\SaaS ERP Dashboard UI Design\src\styles
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----          5/4/2026   4:08 PM              0 fonts.css                                                            
+-a----          5/5/2026   4:10 PM             72 global.css                                                           
+-a----          5/4/2026   4:08 PM              0 globals.css                                                          
+-a----          5/4/2026   4:08 PM             98 tailwind.css                                                         
+-a----          5/4/2026   4:08 PM           5448 theme.css                                                            
+
+
