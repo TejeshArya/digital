@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, UserCheck, UserX, Clock, Search, 
   Filter, Eye, GitFork, UserPlus, Layout,
@@ -6,55 +6,38 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+interface Employee {
+  employeeId: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
+  department?: { name: string };
+  location?: { name: string };
+}
+
 export function Employees() {
   const [activeTab, setActiveTab] = useState('all');
-  const [employees] = useState([
-    {
-      id: 'DEE300426132',
-      name: 'TEJESH GUDLA',
-      email: 'tejeshgudla2@gmail.com',
-      location: 'VISAKHAPATNAM',
-      dept: 'P & P',
-      role: 'IT',
-      created: 'Apr 30, 2026'
-    },
-    {
-      id: 'DEE130426131',
-      name: 'GANDIBOINA GOWRI PRASAD',
-      email: 'gowriprasad111@gmail.com',
-      location: 'VISAKHAPATNAM',
-      dept: 'P & P',
-      role: 'ASSISTANT MANAGER',
-      created: 'Apr 13, 2026'
-    },
-    {
-      id: 'DEE040426130',
-      name: 'RAVENDRA SINGH',
-      email: 'ravendrasinghchouhan@gmail.com',
-      location: 'JAMNAGAR',
-      dept: 'CIVIL DEPARTMENT',
-      role: 'SENIOR MANAGER',
-      created: 'Apr 04, 2026'
-    },
-    {
-      id: 'DEE040426129',
-      name: 'SAYAD SARFARAZ',
-      email: 'sarfarazking9978@gmail.com',
-      location: 'VISAKHAPATNAM',
-      dept: 'P & P',
-      role: 'MANAGER',
-      created: 'Apr 04, 2026'
-    },
-    {
-      id: 'DEE030426128',
-      name: 'KANDREGULA KOTESWARA RAO',
-      email: 'gowriprasad199706@gmail.com',
-      location: 'VISAKHAPATNAM',
-      dept: 'P & P',
-      role: 'ASSISTANT MANAGER',
-      created: 'Apr 03, 2026'
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/employees');
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const tabs = [
     { id: 'all', label: 'All Employees', count: 33, icon: Users },
@@ -136,54 +119,61 @@ export function Employees() {
         </div>
 
         <div className="overflow-x-auto min-h-[500px]">
-          <table className="w-full text-[10px] border-collapse">
-            <thead>
-              <tr className="bg-white text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Employee ID</th>
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Name</th>
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Email</th>
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Location</th>
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Department</th>
-                <th className="px-6 py-5 text-left font-black border-r border-gray-100">Role</th>
-                <th className="px-6 py-5 text-center font-black border-r border-gray-100">Status</th>
-                <th className="px-6 py-5 text-center font-black border-r border-gray-100">Created</th>
-                <th className="px-6 py-5 text-center font-black">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {employees.map((emp, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-6 border-r border-gray-50">
-                    <span className="bg-[#0061f2] text-white text-[9px] font-black px-2 py-1 rounded shadow-sm">
-                      {emp.id}
-                    </span>
-                  </td>
-                  <td className="px-6 py-6 border-r border-gray-50">
-                    <span className="font-black text-gray-700 uppercase tracking-tight">{emp.name}</span>
-                  </td>
-                  <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 lowercase">{emp.email}</td>
-                  <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{emp.location}</td>
-                  <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{emp.dept}</td>
-                  <td className="px-6 py-6 border-r border-gray-50 font-black text-gray-500 uppercase tracking-tight">{emp.role}</td>
-                  <td className="px-6 py-6 border-r border-gray-50 text-center">
-                    {/* Status Placeholder */}
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 mx-auto shadow-lg shadow-emerald-100" />
-                  </td>
-                  <td className="px-6 py-6 border-r border-gray-50 text-center font-bold text-gray-400 uppercase">{emp.created}</td>
-                  <td className="px-6 py-6 text-center">
-                    <div className="flex justify-center gap-2">
-                       <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0061f2] text-white text-[9px] font-black rounded shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest">
-                          <Eye className="w-3 h-3" /> View
-                       </button>
-                       <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00cfd5] text-white text-[9px] font-black rounded shadow-md hover:bg-cyan-600 transition-all uppercase tracking-widest">
-                          <GitFork className="w-3 h-3" /> Hierarchy
-                       </button>
-                    </div>
-                  </td>
+          {loading ? (
+            <div className="flex items-center justify-center h-[500px]">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <table className="w-full text-[10px] border-collapse">
+              <thead>
+                <tr className="bg-white text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Employee ID</th>
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Name</th>
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Email</th>
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Location</th>
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Department</th>
+                  <th className="px-6 py-5 text-left font-black border-r border-gray-100">Role</th>
+                  <th className="px-6 py-5 text-center font-black border-r border-gray-100">Status</th>
+                  <th className="px-6 py-5 text-center font-black border-r border-gray-100">Created</th>
+                  <th className="px-6 py-5 text-center font-black">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {employees.map((emp, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-6 border-r border-gray-50">
+                      <span className="bg-[#0061f2] text-white text-[9px] font-black px-2 py-1 rounded shadow-sm">
+                        {emp.employeeId}
+                      </span>
+                    </td>
+                    <td className="px-6 py-6 border-r border-gray-50">
+                      <span className="font-black text-gray-700 uppercase tracking-tight">{emp.name}</span>
+                    </td>
+                    <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 lowercase">{emp.email}</td>
+                    <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{emp.location?.name || 'N/A'}</td>
+                    <td className="px-6 py-6 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{emp.department?.name || 'N/A'}</td>
+                    <td className="px-6 py-6 border-r border-gray-50 font-black text-gray-500 uppercase tracking-tight">{emp.role}</td>
+                    <td className="px-6 py-6 border-r border-gray-50 text-center">
+                      <div className={`w-2 h-2 rounded-full mx-auto shadow-lg ${emp.status === 'Active' ? 'bg-emerald-500 shadow-emerald-100' : 'bg-amber-500 shadow-amber-100'}`} />
+                    </td>
+                    <td className="px-6 py-6 border-r border-gray-50 text-center font-bold text-gray-400 uppercase">
+                      {new Date(emp.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-6 text-center">
+                      <div className="flex justify-center gap-2">
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0061f2] text-white text-[9px] font-black rounded shadow-md hover:bg-blue-700 transition-all uppercase tracking-widest">
+                            <Eye className="w-3 h-3" /> View
+                        </button>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00cfd5] text-white text-[9px] font-black rounded shadow-md hover:bg-cyan-600 transition-all uppercase tracking-widest">
+                            <GitFork className="w-3 h-3" /> Hierarchy
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="p-4 border-t border-gray-100 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50/20">

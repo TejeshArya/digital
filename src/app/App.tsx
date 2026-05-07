@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/WebappliSidebar';
+import { LoginScreen } from '../pages/auth/LoginScreen';
 import { Dashboard } from '../pages/dashboard/Dashboard';
 import { CompanyGST } from '../pages/dashboard/CompanyGST';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -92,12 +93,35 @@ import { SubSubDocumentCategories } from '../pages/dd-menus/SubSubDocumentCatego
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentPath, setCurrentPath] = useState('/dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  const user = {
-    name: 'Admin User',
-    email: 'admin@deenterprises.com',
-    avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff'
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (token && savedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogin = () => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsAuthenticated(true);
+    }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   const renderContent = () => {
     // Dashboards
@@ -222,7 +246,11 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} user={user} />
+      <Navbar 
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        user={user || { name: 'User', email: '', avatar: '' }} 
+        onLogout={handleLogout}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} currentPath={currentPath} onNavigate={setCurrentPath} />

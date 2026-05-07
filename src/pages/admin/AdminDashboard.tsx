@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
    Users, Briefcase, FileText, TrendingUp,
    Clock, CheckCircle, AlertCircle, Calendar,
@@ -7,11 +7,25 @@ import {
 } from 'lucide-react';
 
 export function AdminDashboard() {
+   const [dashboardData, setDashboardData] = useState({
+      totalEmployees: 0,
+      totalProjects: 0,
+      revenue: 0,
+      pending: 0
+   });
+
+   useEffect(() => {
+      fetch('http://localhost:5076/api/dashboard/stats')
+         .then(res => res.json())
+         .then(data => setDashboardData(data))
+         .catch(err => console.error('Error fetching dashboard stats:', err));
+   }, []);
+
    const stats = [
-      { label: 'Total Employees', value: '1,284', change: '+12%', icon: Users, color: 'blue' },
-      { label: 'Active Projects', value: '42', change: '+5%', icon: Briefcase, color: 'emerald' },
-      { label: 'Revenue (MTD)', value: '$428,500', change: '+18%', icon: DollarSign, color: 'indigo' },
-      { label: 'Pending Approvals', value: '18', change: '-4', icon: Clock, color: 'amber' },
+      { label: 'Total Employees', value: dashboardData.totalEmployees.toLocaleString(), change: '+12%', icon: Users, color: 'blue' },
+      { label: 'Active Projects', value: dashboardData.totalProjects.toLocaleString(), change: '+5%', icon: Briefcase, color: 'emerald' },
+      { label: 'Revenue (MTD)', value: `$${dashboardData.revenue.toLocaleString()}`, change: '+18%', icon: DollarSign, color: 'indigo' },
+      { label: 'Pending Approvals', value: dashboardData.pending.toString(), change: '-4', icon: Clock, color: 'amber' },
    ];
 
    return (

@@ -4,6 +4,7 @@ import logo from '@/assets/logo.png';
 
 interface NavbarProps {
   onToggleSidebar: () => void;
+  onLogout?: () => void;
   user: {
     name: string;
     email: string;
@@ -11,7 +12,7 @@ interface NavbarProps {
   };
 }
 
-export function Navbar({ onToggleSidebar, user }: NavbarProps) {
+export function Navbar({ onToggleSidebar, user, onLogout }: NavbarProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
       <div className="flex items-center gap-4">
@@ -23,7 +24,7 @@ export function Navbar({ onToggleSidebar, user }: NavbarProps) {
         </button>
         <div className="flex items-center gap-2">
            <img src={logo} alt="Company Logo" className="h-8 w-auto object-contain" />
-           <span className="font-black text-sm tracking-widest text-gray-800 uppercase">Digital New</span>
+           <span className="font-black text-xs tracking-tighter text-gray-800 uppercase">Digital Engineering Enterprises</span>
         </div>
       </div>
 
@@ -54,10 +55,18 @@ export function Navbar({ onToggleSidebar, user }: NavbarProps) {
             <p className="text-[9px] font-bold text-gray-400">{user.email}</p>
           </div>
           <img 
-            src={user.avatar} 
+            src={user.avatar || 'https://ui-avatars.com/api/?name=' + user.name} 
             alt="Profile" 
             className="w-8 h-8 rounded-full border border-gray-100"
           />
+        </button>
+
+        <button 
+          onClick={onLogout}
+          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
     </header>

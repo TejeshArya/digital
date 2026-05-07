@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Info, RotateCw, Search, ChevronDown, Calendar, Upload, Save, 
   ArrowUpDown, Eye, Edit, Trash2, Plus, X, FileText, Check, AlertCircle,
@@ -12,45 +12,115 @@ import {
   DialogFooter,
 } from "../../components/ui/dialog";
 
+interface Project {
+  projectId: string;
+  name: string;
+  wing: string;
+  department: string;
+  location: string;
+  post: string;
+  createdBy: string;
+  client: string;
+  gst: string;
+  value: string;
+  startDate?: string;
+  endDate?: string;
+  status: string;
+  priority: string;
+  description: string;
+}
+
 export function Projects() {
-  const [projectList, setProjectList] = useState([
-    {
-      id: 'PRJ-2024-01',
-      name: 'OFFICE RENOVATION AND SETUP',
-      wing: 'FACILITIES',
-      dept: 'Engineering',
-      location: 'Headquarters',
-      post: 'PROJECT LEAD',
-      createdBy: 'JOHN DOE',
-      client: 'ACME CORP',
-      gst: '00ABCDE1234...',
-      value: '2,500,000',
-      date: '04/15/2024',
-      startDate: '04/20/2024',
-      endDate: '10/20/2024',
-      status: 'In Progress',
-      priority: 'High',
-      description: 'Complete renovation of the 4th floor office space including new furniture, networking, and interior design.'
-    },
-    {
-      id: 'PRJ-2024-02',
-      name: 'DATA CENTER UPGRADE',
-      wing: 'IT INFRA',
-      dept: 'Technology',
-      location: 'Data Center A',
-      post: 'INFRA LEAD',
-      createdBy: 'JANE SMITH',
-      client: 'GLOBAL TECH',
-      gst: '11FGHIJ5678...',
-      value: '5,000,000',
-      date: '04/10/2024',
-      startDate: '05/01/2024',
-      endDate: '12/31/2024',
-      status: 'Planning',
-      priority: 'Critical',
-      description: 'Upgrading the core server racks and cooling systems in Data Center A.'
+  const [projectList, setProjectList] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  
+  const [formData, setFormData] = useState({
+    projectId: '',
+    name: '',
+    wing: '',
+    department: '',
+    location: '',
+    post: '',
+    createdBy: 'CURRENT USER',
+    client: '',
+    gst: '',
+    value: '',
+    startDate: '',
+    endDate: '',
+    status: 'In Progress',
+    priority: 'Medium',
+    description: ''
+  });
+
+  useEffect(() => {
+    fetchProjects();
+    fetchDropdowns();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/projects');
+      const data = await response.json();
+      setProjectList(data);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const fetchDropdowns = async () => {
+    try {
+      const [deptRes, locRes] = await Promise.all([
+        fetch('http://localhost:5076/api/departments'),
+        fetch('http://localhost:5076/api/locations')
+      ]);
+      setDepartments(await deptRes.json());
+      setLocations(await locRes.json());
+    } catch (error) {
+      console.error('Error fetching dropdowns:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.name || !formData.client || !formData.projectId) {
+      alert('Please fill all required fields (Project ID, Name, Client)');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5076/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('Project saved successfully!');
+        fetchProjects(); // Refresh list
+        // Reset form
+        setFormData({
+          projectId: '', name: '', wing: '', department: '', location: '',
+          post: '', createdBy: 'CURRENT USER', client: '', gst: '', value: '',
+          startDate: '', endDate: '', status: 'In Progress', priority: 'Medium', description: ''
+        });
+      } else {
+        const error = await response.json();
+        alert('Error saving project: ' + (error.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+      alert('Failed to connect to the server.');
+    }
+  };
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isAdditionalModalOpen, setIsAdditionalModalOpen] = useState(false);
@@ -93,38 +163,36 @@ export function Projects() {
       {/* Project Form */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Post/Designation - Full Width in grid row */}
-          <div className="md:col-span-3 space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Select Post/Designation <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <input
-                type="text"
-                placeholder="Type to search your posts..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors placeholder:text-gray-200"
-              />
-            </div>
-            <p className="text-[10px] text-gray-300 italic flex items-center gap-1">
-              <Info className="w-3 h-3" /> You have multiple posts. Please select which post you're creating this project for.
-            </p>
-          </div>
-
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Select Date <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="mm/dd/yyyy"
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors placeholder:text-gray-200"
-              />
-              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Client (Company Name - GST) <span className="text-red-500">*</span></label>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Project ID <span className="text-red-500">*</span></label>
             <input
               type="text"
+              name="projectId"
+              value={formData.projectId}
+              onChange={handleInputChange}
+              placeholder="e.g. PRJ-2024-01"
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Wing</label>
+            <input
+              type="text"
+              name="wing"
+              value={formData.wing}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Client (Company Name) <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="client"
+              value={formData.client}
+              onChange={handleInputChange}
               className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
             />
           </div>
@@ -133,16 +201,41 @@ export function Projects() {
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Value (₹) <span className="text-red-500">*</span></label>
             <input
               type="text"
+              name="value"
+              value={formData.value}
+              onChange={handleInputChange}
               placeholder="Enter project value"
               className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors placeholder:text-gray-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Department - Officer <span className="text-red-500">*</span></label>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Department <span className="text-red-500">*</span></label>
             <div className="relative">
-              <select className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors text-gray-400 appearance-none">
-                <option>Select</option>
+              <select 
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors text-gray-700 appearance-none"
+              >
+                <option value="">Select Department</option>
+                {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Location <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <select 
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors text-gray-700 appearance-none"
+              >
+                <option value="">Select Location</option>
+                {locations.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
@@ -152,6 +245,20 @@ export function Projects() {
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Project Name <span className="text-red-500">*</span></label>
             <input
               type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Post/Designation</label>
+            <input
+              type="text"
+              name="post"
+              value={formData.post}
+              onChange={handleInputChange}
               className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
             />
           </div>
@@ -160,11 +267,12 @@ export function Projects() {
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Start Date <span className="text-red-500">*</span></label>
             <div className="relative">
               <input
-                type="text"
-                placeholder="mm/dd/yyyy"
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors placeholder:text-gray-200"
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
               />
-              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
 
@@ -172,20 +280,24 @@ export function Projects() {
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">End Date <span className="text-red-500">*</span></label>
             <div className="relative">
               <input
-                type="text"
-                placeholder="mm/dd/yyyy"
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors placeholder:text-gray-200"
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
               />
-              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Upload File</label>
-            <div className="flex border border-gray-200 rounded overflow-hidden">
-              <button className="px-4 py-2 bg-gray-50 border-r border-gray-200 text-[11px] font-bold text-gray-600 hover:bg-gray-100 transition-colors">Choose File</button>
-              <div className="px-3 py-2 text-xs text-gray-400 bg-white flex-1 flex items-center">No file chosen</div>
-            </div>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">GST Number</label>
+            <input
+              type="text"
+              name="gst"
+              value={formData.gst}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
           </div>
         </div>
 
@@ -196,7 +308,10 @@ export function Projects() {
           >
             <Plus className="w-3.5 h-3.5" /> Additional Info
           </button>
-          <button className="px-8 py-2.5 bg-[#1cc88a] text-white text-[11px] font-bold rounded shadow-sm hover:bg-[#17a673] transition-all uppercase tracking-widest flex items-center gap-2">
+          <button 
+            onClick={handleSave}
+            className="px-8 py-2.5 bg-[#1cc88a] text-white text-[11px] font-bold rounded shadow-sm hover:bg-[#17a673] transition-all uppercase tracking-widest flex items-center gap-2"
+          >
             <Save className="w-3.5 h-3.5" /> Save Project
           </button>
         </div>
@@ -224,86 +339,92 @@ export function Projects() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-[11px] border-collapse">
-            <thead>
-              <tr className="bg-[#323c4e] text-white uppercase tracking-tighter">
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  <div className="flex items-center justify-between gap-1">
-                    Project No <ArrowUpDown className="w-3 h-3 opacity-30" />
-                  </div>
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  <div className="flex items-center justify-between gap-1">
-                    Project Name <ArrowUpDown className="w-3 h-3 opacity-30" />
-                  </div>
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Wing
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Department
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Location
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Post
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Created By
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  Client
-                </th>
-                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
-                  GST Number
-                </th>
-                <th className="px-4 py-5 text-center font-bold">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {projectList.map((project, index) => (
-                <tr key={index} className="hover:bg-gray-50/80 transition-colors group">
-                  <td className="px-4 py-4 text-blue-500 font-bold border-r border-gray-50 uppercase">{project.id}</td>
-                  <td className="px-4 py-4 text-gray-700 font-bold border-r border-gray-50 uppercase">{project.name}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.wing}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.dept}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.location}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.post}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.createdBy}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase font-bold text-blue-600/80">{project.client}</td>
-                  <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.gst}</td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleView(project)}
-                        className="p-1.5 bg-[#4e73df] text-white rounded hover:bg-[#2e59d9] transition-colors shadow-sm"
-                        title="View Details"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => handleEdit(project)}
-                        className="p-1.5 bg-[#1cc88a] text-white rounded hover:bg-[#17a673] transition-colors shadow-sm"
-                        title="Edit Project"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(project.id)}
-                        className="p-1.5 bg-[#e74a3b] text-white rounded hover:bg-[#be2617] transition-colors shadow-sm"
-                        title="Delete Project"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+          {loading ? (
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="bg-[#323c4e] text-white uppercase tracking-tighter">
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    <div className="flex items-center justify-between gap-1">
+                      Project No <ArrowUpDown className="w-3 h-3 opacity-30" />
                     </div>
-                  </td>
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    <div className="flex items-center justify-between gap-1">
+                      Project Name <ArrowUpDown className="w-3 h-3 opacity-30" />
+                    </div>
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Wing
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Department
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Location
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Post
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Created By
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    Client
+                  </th>
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                    GST Number
+                  </th>
+                  <th className="px-4 py-5 text-center font-bold">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {projectList.map((project, index) => (
+                  <tr key={index} className="hover:bg-gray-50/80 transition-colors group">
+                    <td className="px-4 py-4 text-blue-500 font-bold border-r border-gray-50 uppercase">{project.projectId}</td>
+                    <td className="px-4 py-4 text-gray-700 font-bold border-r border-gray-50 uppercase">{project.name}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.wing}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.department}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.location}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.post}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.createdBy}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase font-bold text-blue-600/80">{project.client}</td>
+                    <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.gst}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleView(project)}
+                          className="p-1.5 bg-[#4e73df] text-white rounded hover:bg-[#2e59d9] transition-colors shadow-sm"
+                          title="View Details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(project)}
+                          className="p-1.5 bg-[#1cc88a] text-white rounded hover:bg-[#17a673] transition-colors shadow-sm"
+                          title="Edit Project"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(project.projectId)}
+                          className="p-1.5 bg-[#e74a3b] text-white rounded hover:bg-[#be2617] transition-colors shadow-sm"
+                          title="Delete Project"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
