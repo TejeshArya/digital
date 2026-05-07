@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, Bell, User, Search, Settings, LogOut, Mail } from 'lucide-react';
-import logo from '../../assets/logo.png';
+import logo from '@/assets/logo.png';
 
 interface NavbarProps {
   onToggleSidebar: () => void;
