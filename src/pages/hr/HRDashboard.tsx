@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { 
   Users, UserCheck, UserX, UserPlus, Eye, 
   GitFork, Clock, CheckCircle2, ShieldCheck, 
@@ -130,7 +130,7 @@ export function HRDashboard() {
 
       {/* Footer */}
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline transition-colors hover:text-gray-600">Privacy Policy</a>
           <span>•</span>

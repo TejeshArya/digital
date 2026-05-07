@@ -1,4 +1,4 @@
-import { Upload, File, FileText, Image, CheckCircle, X, LayoutDashboard, Files, Plus, Lightbulb, ChevronDown } from 'lucide-react';
+﻿import { Upload, File, FileText, Image, CheckCircle, X, LayoutDashboard, Files, Plus, Lightbulb, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 export function UploadDocuments() {
@@ -150,7 +150,7 @@ export function UploadDocuments() {
       </div>
 
       <div className="mt-12 flex justify-between items-center text-[10px] text-gray-400 px-2 uppercase font-bold tracking-widest">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

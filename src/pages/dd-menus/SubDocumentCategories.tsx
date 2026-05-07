@@ -7,8 +7,8 @@ import {
 export function SubDocumentCategories() {
   const [isCreating, setIsCreating] = useState(false);
   const [docs] = useState([
-    { id: 1, category: 'SHREEYAAN ENTERPRISES', name: 'INVOICES', desc: 'MONTHLY INVOICES', status: 'Active', date: '24-04-2026' },
-    { id: 2, category: 'DIGITAL ENGINEERING', name: 'PROJECT PLANS', desc: 'TECHNICAL SPECS', status: 'Active', date: '15-04-2026' },
+    { id: 1, category: 'ACME CORP', name: 'INVOICES', desc: 'MONTHLY INVOICES', status: 'Active', date: '24-04-2024' },
+    { id: 2, category: 'TECH SOLUTIONS INC', name: 'PROJECT PLANS', desc: 'TECHNICAL SPECS', status: 'Active', date: '15-04-2024' },
   ]);
 
   if (isCreating) {

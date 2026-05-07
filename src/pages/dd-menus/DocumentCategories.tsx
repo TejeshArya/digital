@@ -7,9 +7,9 @@ import {
 export function DocumentCategories() {
   const [isCreating, setIsCreating] = useState(false);
   const [docs] = useState([
-    { id: 1, name: 'SHREEYAAN ENTERPRISES', desc: 'N/A', status: 'Active', date: '24-04-2026' },
-    { id: 2, name: 'BIJYAANTEK PRIVATE LIMITED', desc: 'N/A', status: 'Active', date: '24-04-2026' },
-    { id: 3, name: 'DIGITAL ENGINEERING ENTERPRISES', desc: 'desc', status: 'Active', date: '15-04-2026' },
+    { id: 1, name: 'ACME CORP', desc: 'N/A', status: 'Active', date: '24-04-2024' },
+    { id: 2, name: 'TECH SOLUTIONS INC', desc: 'N/A', status: 'Active', date: '24-04-2024' },
+    { id: 3, name: 'GLOBAL ENTERPRISES', desc: 'desc', status: 'Active', date: '15-04-2024' },
   ]);
 
   if (isCreating) {

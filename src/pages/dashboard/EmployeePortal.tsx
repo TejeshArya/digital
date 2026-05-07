@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { 
   Fingerprint, Eye, User, CalendarPlus, ShoppingCart, Banknote, 
   ListTodo, History, CheckCircle, ClipboardList, CalendarDays, 
@@ -31,7 +31,7 @@ export function EmployeePortal() {
             <h1 className="text-xl font-bold text-gray-800 tracking-tight">My Portal</h1>
           </div>
           <p className="text-sm text-gray-400 font-medium">
-            Welcome back, <span className="text-gray-500 font-bold uppercase">Sanjay Kumar Mahato</span>
+            Welcome back, <span className="text-gray-500 font-bold uppercase">John Doe</span>
           </p>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
@@ -95,7 +95,7 @@ export function EmployeePortal() {
           <div>
             <div className="text-[9px] font-extrabold text-cyan-600 uppercase tracking-widest mb-0.5">Employment Status</div>
             <div className="text-lg font-bold text-gray-700 italic">Active</div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase mt-1">DEE251225103</div>
+            <div className="text-[10px] text-gray-400 font-bold uppercase mt-1">EMP-2024-001</div>
           </div>
         </div>
 
@@ -105,8 +105,8 @@ export function EmployeePortal() {
           </div>
           <div>
             <div className="text-[9px] font-extrabold text-amber-600 uppercase tracking-widest mb-0.5">Department</div>
-            <div className="text-lg font-bold text-gray-700">P & P</div>
-            <div className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-wider">JAMNAGAR</div>
+            <div className="text-lg font-bold text-gray-700">Engineering</div>
+            <div className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-wider">Headquarters</div>
           </div>
         </div>
       </div>
@@ -184,7 +184,7 @@ export function EmployeePortal() {
       </div>
 
       <div className="mt-12 flex justify-between items-center text-[10px] text-gray-400 px-2 uppercase font-bold tracking-[0.2em]">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

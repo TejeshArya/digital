@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer, 
   ChevronDown, Eye, Layout, Edit, Download, Trash2, User
@@ -7,26 +7,26 @@ import {
 export function Quotations() {
   const [data] = useState([
     {
-      no: 'Q2627-19',
-      company: 'INS DEGA',
-      date: '16-04-2026',
-      subject: 'SUPPLY AND INSTALLATION OF CABLE TRAY FOR DG SETS ARSR RADAR EQUIPPED AT DOLPIHIN HILLS - PN2627-17',
-      wing: 'CIVIL',
-      dept: 'P & P',
-      post: 'CIVIL HEAD',
-      createdBy: 'SANJAY KUMAR MAHATO',
+      no: 'Q2024-19',
+      company: 'ACME CORP',
+      date: '16-04-2024',
+      subject: 'SUPPLY AND INSTALLATION OF SERVER RACKS FOR MAIN DATA CENTER - PRJ-2024-01',
+      wing: 'FACILITIES',
+      dept: 'Engineering',
+      post: 'PROJECT LEAD',
+      createdBy: 'JOHN DOE',
       amount: '496,500.00',
       status: 'Pending'
     },
     {
-      no: 'Q2627-18',
-      company: 'INS RANVIJAY',
-      date: '15-04-2026',
-      subject: 'INSTALLATION AND COMMISSIONING OF 10 TRAY MARINE GRADE CUSTOMISED COMBI OVEN - PN2627-16',
-      wing: 'CIVIL',
-      dept: 'P & P',
-      post: 'CIVIL HEAD',
-      createdBy: 'SANJAY KUMAR MAHATO',
+      no: 'Q2024-18',
+      company: 'TECH SOLUTIONS',
+      date: '15-04-2024',
+      subject: 'INSTALLATION AND COMMISSIONING OF ENTERPRISE NETWORK HARDWARE - PRJ-2024-02',
+      wing: 'IT OPS',
+      dept: 'Engineering',
+      post: 'NETWORK LEAD',
+      createdBy: 'JOHN DOE',
       amount: '1,498,000.00',
       status: 'Pending'
     }
@@ -210,7 +210,7 @@ export function Quotations() {
 
       {/* Footer */}
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

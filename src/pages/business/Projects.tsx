@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Info, RotateCw, Search, ChevronDown, Calendar, Upload, Save, ArrowUpDown } from 'lucide-react';
 
 export function Projects() {
   const projects = [
     {
-      id: 'PN2627-17',
-      name: 'SUPPLY AND INSTALLATION OF',
-      wing: 'CIVIL',
-      dept: 'P & P',
-      location: 'JAMNAGAR',
-      post: 'CIVIL HEAD',
-      createdBy: 'SANJAY KUMA...',
-      client: 'INS DEGA',
-      gst: '37DEGAB1111...'
+      id: 'PRJ-2024-01',
+      name: 'OFFICE RENOVATION AND SETUP',
+      wing: 'FACILITIES',
+      dept: 'Engineering',
+      location: 'Headquarters',
+      post: 'PROJECT LEAD',
+      createdBy: 'JOHN DOE...',
+      client: 'ACME CORP',
+      gst: '00ABCDE1234...'
     }
   ];
 
@@ -217,7 +217,7 @@ export function Projects() {
       </div>
 
       <div className="mt-12 flex justify-between items-center text-[10px] text-gray-400 px-2 uppercase font-bold tracking-[0.2em]">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

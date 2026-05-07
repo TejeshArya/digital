@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   Building2, Plus, Search, Filter, Eye, Edit3, 
   Pause, Trash2, Users, Calendar, Layout,
@@ -79,7 +79,7 @@ export function NewDepartment() {
 
       {/* Footer */}
       <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase px-4">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline transition-colors hover:text-gray-600">Privacy Policy</a>
           <span>•</span>

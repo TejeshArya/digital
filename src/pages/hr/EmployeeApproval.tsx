@@ -1,4 +1,4 @@
-import { Clock, CheckCircle2, Users, XCircle, LayoutDashboard, Network, UserPlus, CheckCircle } from 'lucide-react';
+﻿import { Clock, CheckCircle2, Users, XCircle, LayoutDashboard, Network, UserPlus, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -87,7 +87,7 @@ export function EmployeeApproval() {
       </Card>
       
       <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <button className="hover:underline">Privacy Policy</button>
           <span>•</span>

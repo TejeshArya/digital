@@ -1,4 +1,4 @@
-import { FileText, Download, Eye, Search, Filter, Trash2, LayoutDashboard, Plus, Info, ChevronDown } from 'lucide-react';
+﻿import { FileText, Download, Eye, Search, Filter, Trash2, LayoutDashboard, Plus, Info, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 export function MyDocuments() {
@@ -7,29 +7,29 @@ export function MyDocuments() {
   const documents = [
     {
       id: 1,
-      name: 'WELDER CERTIFICATE 6G',
-      category: 'DIGITAL ENGINEERING ENTERPRISES',
-      subCategory: 'WELDER CERTIFICATE',
-      subSubCategory: 'ROMAN KUMAR',
+      name: 'SOFTWARE LICENSE AGREEMENT',
+      category: 'ACME CORP',
+      subCategory: 'VENDOR CONTRACTS',
+      subSubCategory: 'JANE DOE',
       fileType: 'PDF',
       fileSize: '233.97 KB',
       remarks: '-',
-      employee: 'RANJAN YADAV',
-      uploadedBy: 'RANJAN YADAV',
-      uploadDate: '30 Apr, 2026 02:35 AM'
+      employee: 'JANE DOE',
+      uploadedBy: 'JANE DOE',
+      uploadDate: '30 Apr, 2024 02:35 AM'
     },
     {
       id: 2,
-      name: 'ATC DOCUMETS',
-      category: 'DIGITAL ENGINEERING ENTERPRISES',
-      subCategory: 'GEM DOCUMENTS',
-      subSubCategory: 'GLM/2026/B/7363332',
+      name: 'NDA DOCUMENT',
+      category: 'ACME CORP',
+      subCategory: 'LEGAL DOCUMENTS',
+      subSubCategory: 'NDA/2024/B/1234567',
       fileType: 'PDF',
       fileSize: '114.13 KB',
-      remarks: 'TESTING',
-      employee: 'BALMIKI GUPTA',
-      uploadedBy: 'BALMIKI GUPTA',
-      uploadDate: '15 Apr, 2026 11:41 AM'
+      remarks: 'CONFIDENTIAL',
+      employee: 'MICHAEL SMITH',
+      uploadedBy: 'MICHAEL SMITH',
+      uploadDate: '15 Apr, 2024 11:41 AM'
     },
     {
       id: 3,
@@ -40,9 +40,9 @@ export function MyDocuments() {
       fileType: 'PNG',
       fileSize: '36.72 KB',
       remarks: 're',
-      employee: 'BALMIKI GUPTA',
-      uploadedBy: 'BALMIKI GUPTA',
-      uploadDate: '03 Apr, 2026 05:23 AM'
+      employee: 'MICHAEL SMITH',
+      uploadedBy: 'MICHAEL SMITH',
+      uploadDate: '03 Apr, 2024 05:23 AM'
     }
   ];
 
@@ -230,7 +230,7 @@ export function MyDocuments() {
       </div>
 
       <div className="mt-12 flex justify-between items-center text-[10px] text-gray-400 px-2 uppercase font-medium">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

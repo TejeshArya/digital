@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Eye, ChevronRight } from 'lucide-react';
 
 export function DeliveryDetails() {
@@ -124,7 +124,7 @@ export function DeliveryDetails() {
       </div>
 
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-medium tracking-wide uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4 mt-2 md:mt-0">
           <a href="#" className="hover:underline hover:text-blue-500 transition-colors">Privacy Policy</a>
           <span>•</span>

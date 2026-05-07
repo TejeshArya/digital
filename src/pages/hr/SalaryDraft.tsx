@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   FileText, Calendar, Filter, ArrowLeft, 
   CheckCircle2, AlertCircle, Clock, 
@@ -151,7 +151,7 @@ export function SalaryDraft() {
 
       {/* Footer */}
       <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase px-4">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
            <button className="flex items-center gap-1 hover:text-gray-600"><Save className="w-3 h-3" /> Save Changes</button>
            <span>•</span>

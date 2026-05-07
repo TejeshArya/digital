@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 
 export function AddBank() {
@@ -78,7 +78,7 @@ export function AddBank() {
 
       {/* Footer */}
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-widest uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4 mt-2 md:mt-0">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

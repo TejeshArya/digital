@@ -332,7 +332,7 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
 
       <div className="p-6 bg-gray-50/50 border-t border-gray-100">
          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Logged in as:</p>
-         <h4 className="text-[12px] font-black text-gray-800 uppercase tracking-tight">Sanjay Kumar Mahato</h4>
+         <h4 className="text-[12px] font-black text-gray-800 uppercase tracking-tight">John Doe</h4>
       </div>
     </aside>
   );
