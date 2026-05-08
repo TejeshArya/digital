@@ -127,9 +127,43 @@ export function Projects() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      setProjectList(prev => prev.filter(p => p.id !== id));
+      try {
+        const response = await fetch(`http://localhost:5076/api/projects/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setProjectList(prev => prev.filter(p => p.projectId !== id));
+          alert('Project deleted successfully!');
+        } else {
+          alert('Failed to delete project.');
+        }
+      } catch (error) {
+        console.error('Error deleting project:', error);
+      }
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedProject) return;
+
+    try {
+      const response = await fetch(`http://localhost:5076/api/projects/${selectedProject.projectId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedProject)
+      });
+
+      if (response.ok) {
+        alert('Project updated successfully!');
+        setIsEditModalOpen(false);
+        fetchProjects();
+      } else {
+        alert('Failed to update project.');
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
     }
   };
 
@@ -451,7 +485,7 @@ export function Projects() {
                 <div className="space-y-3 text-[12px]">
                   <div className="grid grid-cols-[120px_1fr] gap-2">
                     <span className="text-gray-500 font-semibold">Project Number:</span>
-                    <span className="text-gray-700">{selectedProject?.id}</span>
+                    <span className="text-gray-700">{selectedProject?.projectId}</span>
                   </div>
                   <div className="grid grid-cols-[120px_1fr] gap-2">
                     <span className="text-gray-500 font-semibold">Project Name:</span>
@@ -463,7 +497,7 @@ export function Projects() {
                   </div>
                   <div className="grid grid-cols-[120px_1fr] gap-2">
                     <span className="text-gray-500 font-semibold">Department:</span>
-                    <span className="text-gray-700 uppercase">{selectedProject?.dept}</span>
+                    <span className="text-gray-700 uppercase">{selectedProject?.department}</span>
                   </div>
                   <div className="grid grid-cols-[120px_1fr] gap-2">
                     <span className="text-gray-500 font-semibold">Project Value:</span>
@@ -636,7 +670,7 @@ export function Projects() {
               <div className="p-2 bg-white/20 rounded">
                 <Edit className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-bold tracking-tight uppercase">Edit Project: {selectedProject?.id}</h2>
+              <h2 className="text-lg font-bold tracking-tight uppercase">Edit Project: {selectedProject?.projectId}</h2>
             </div>
             <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
               <X className="w-5 h-5" />
@@ -647,16 +681,26 @@ export function Projects() {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-black text-gray-400 uppercase">Project Name</label>
-                <input type="text" defaultValue={selectedProject?.name} className="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:border-emerald-500 outline-none" />
+                <input 
+                  type="text" 
+                  value={selectedProject?.name || ''} 
+                  onChange={(e) => setSelectedProject({...selectedProject, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:border-emerald-500 outline-none" 
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-black text-gray-400 uppercase">Client</label>
-                <input type="text" defaultValue={selectedProject?.client} className="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:border-emerald-500 outline-none" />
+                <input 
+                  type="text" 
+                  value={selectedProject?.client || ''} 
+                  onChange={(e) => setSelectedProject({...selectedProject, client: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:border-emerald-500 outline-none" 
+                />
               </div>
             </div>
             <div className="mt-8 flex justify-end gap-3">
               <button onClick={() => setIsEditModalOpen(false)} className="px-6 py-2 text-gray-400 text-[11px] font-bold uppercase">Discard</button>
-              <button onClick={() => setIsEditModalOpen(false)} className="px-8 py-2.5 bg-emerald-500 text-white text-[11px] font-bold rounded uppercase">Update Project</button>
+              <button onClick={handleUpdate} className="px-8 py-2.5 bg-emerald-500 text-white text-[11px] font-bold rounded uppercase">Update Project</button>
             </div>
           </div>
         </DialogContent>
