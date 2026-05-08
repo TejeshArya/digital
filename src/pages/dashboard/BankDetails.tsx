@@ -1,28 +1,149 @@
-﻿import React from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Edit, Trash2, X, ChevronDown } from 'lucide-react';
+
+interface BankRecord {
+  id?: number;
+  empId: string;
+  companyName: string;
+  bankName: string;
+  accountNo: string;
+  ifscCode: string;
+  swiftCode: string;
+  micrCode: string;
+  branchName: string;
+  accountHolder: string;
+  category: string;
+}
+
+interface Company { companyName: string; }
+interface BankMaster { bankName: string; }
 
 export function BankDetails() {
-  const bankRecords = [
-    {
-      empId: 'DEE010126115',
-      company: 'RANJAN YADAV',
-      bank: 'STATE BANK OF INDIA',
-      accNo: '32698162709',
-      ifsc: 'SBIN0002945',
-      swift: '',
-      micr: '',
-      branch: 'HATHUA',
-      holder: 'RANJAN YADAV',
-      cat: '4'
+  const [records, setRecords] = useState<BankRecord[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [banksMaster, setBanksMaster] = useState<BankMaster[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<BankRecord>({
+    empId: '',
+    companyName: '',
+    bankName: '',
+    accountNo: '',
+    ifscCode: '',
+    swiftCode: '',
+    micrCode: '',
+    branchName: '',
+    accountHolder: '',
+    category: ''
+  });
+
+  useEffect(() => {
+    fetchRecords();
+    fetchCompanies();
+    fetchBanksMaster();
+  }, []);
+
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/bankdetails');
+      const data = await response.json();
+      setRecords(data);
+    } catch (error) {
+      console.error('Error fetching records:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await fetch('http://localhost:5076/api/companygsts');
+      const data = await response.json();
+      setCompanies(data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
+  const fetchBanksMaster = async () => {
+    try {
+      const response = await fetch('http://localhost:5076/api/banks');
+      const data = await response.json();
+      setBanksMaster(data);
+    } catch (error) {
+      console.error('Error fetching banks master:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.empId || !formData.bankName) {
+      alert('Employee ID and Bank Name are required');
+      return;
+    }
+
+    try {
+      const url = isEditing 
+        ? 'http://localhost:5076/api/bankdetails/edit' 
+        : 'http://localhost:5076/api/bankdetails';
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert(isEditing ? 'Bank record updated!' : 'Bank record saved!');
+        fetchRecords();
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+    }
+  };
+
+  const handleEdit = (record: BankRecord) => {
+    setIsEditing(true);
+    setFormData(record);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Delete this bank record?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/bankdetails/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setRecords(prev => prev.filter(r => r.id !== id));
+        }
+      } catch (error) {
+        console.error('Error deleting:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      empId: '', companyName: '', bankName: '', accountNo: '',
+      ifscCode: '', swiftCode: '', micrCode: '', branchName: '',
+      accountHolder: '', category: ''
+    });
+    setIsEditing(false);
+  };
 
   return (
-    <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
+    <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans text-slate-600">
       {/* Bank Form */}
       <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden border border-gray-100">
-        <div className="bg-[#0061f2] p-4">
-          <h2 className="text-white font-bold text-[13px] uppercase tracking-wider">Bank Form</h2>
+        <div className={`p-4 transition-colors ${isEditing ? 'bg-orange-500' : 'bg-[#0061f2]'}`}>
+          <h2 className="text-white font-bold text-[13px] uppercase tracking-wider">{isEditing ? 'Edit Bank Detail' : 'Bank Form'}</h2>
         </div>
         <div className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
@@ -30,21 +151,34 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Employee ID</label>
               <input
                 type="text"
+                name="empId"
+                value={formData.empId}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Company Name</label>
-              <input
-                type="text"
-                placeholder="Type to search company..."
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 placeholder:text-gray-200"
-              />
+              <select 
+                name="companyName"
+                value={formData.companyName}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
+              >
+                <option value="">Select Company</option>
+                {companies.map((c, i) => <option key={i} value={c.companyName}>{c.companyName}</option>)}
+              </select>
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Bank Name</label>
-              <select className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 text-gray-400">
-                <option>Select Bank</option>
+              <select 
+                name="bankName"
+                value={formData.bankName}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
+              >
+                <option value="">Select Bank</option>
+                {banksMaster.map((b, i) => <option key={i} value={b.bankName}>{b.bankName}</option>)}
               </select>
             </div>
 
@@ -52,6 +186,9 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Account No</label>
               <input
                 type="text"
+                name="accountNo"
+                value={formData.accountNo}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -59,6 +196,9 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">IFSC Code</label>
               <input
                 type="text"
+                name="ifscCode"
+                value={formData.ifscCode}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -66,6 +206,9 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Swift Code</label>
               <input
                 type="text"
+                name="swiftCode"
+                value={formData.swiftCode}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -74,6 +217,9 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">MICR Code</label>
               <input
                 type="text"
+                name="micrCode"
+                value={formData.micrCode}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -81,6 +227,9 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Branch Name</label>
               <input
                 type="text"
+                name="branchName"
+                value={formData.branchName}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -88,22 +237,44 @@ export function BankDetails() {
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Account Holder</label>
               <input
                 type="text"
+                name="accountHolder"
+                value={formData.accountHolder}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Category</label>
-              <select className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 text-gray-400">
-                <option>Select Category</option>
+              <select 
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
+              >
+                <option value="">Select Category</option>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+                <option value="Salary">Salary</option>
               </select>
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end">
-            <button className="px-10 py-2.5 bg-[#0061f2] text-white text-[11px] font-bold rounded shadow-sm hover:bg-blue-700 transition-colors uppercase tracking-widest">
-              Save
+          <div className="mt-8 flex justify-end gap-2">
+            <button 
+              onClick={handleSave}
+              className={`px-10 py-2.5 text-white text-[11px] font-bold rounded shadow-sm transition-colors uppercase tracking-widest ${isEditing ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#0061f2] hover:bg-blue-700'}`}
+            >
+              {isEditing ? 'Update' : 'Save'}
             </button>
+            {isEditing && (
+              <button 
+                onClick={resetForm}
+                className="px-8 py-2.5 bg-gray-100 text-gray-600 text-[11px] font-bold rounded hover:bg-gray-200 transition-colors uppercase tracking-widest"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -113,39 +284,43 @@ export function BankDetails() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] border-collapse">
             <thead>
-              <tr className="bg-white border-b border-gray-100">
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Emp ID</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Company</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Bank</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Acc No</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">IFSC</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Swift</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">MICR</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Branch</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Holder</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 border-r border-gray-50 uppercase tracking-tighter whitespace-nowrap">Cat</th>
-                <th className="px-4 py-5 text-left font-bold text-gray-600 uppercase tracking-tighter whitespace-nowrap">Actions</th>
+              <tr className="bg-[#323c4e] text-white uppercase tracking-tighter">
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Emp ID</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Company</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Bank</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Acc No</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">IFSC</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Branch</th>
+                <th className="px-4 py-5 text-left font-bold border-r border-slate-600 whitespace-nowrap">Holder</th>
+                <th className="px-4 py-5 text-center font-bold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {bankRecords.map((record, index) => (
-                <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+              {loading ? (
+                <tr><td colSpan={8} className="py-10 text-center"><div className="animate-spin inline-block w-6 h-6 border-2 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
+              ) : records.length === 0 ? (
+                <tr><td colSpan={8} className="py-10 text-center text-gray-400 uppercase tracking-widest">No records found.</td></tr>
+              ) : records.map((record) => (
+                <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.empId}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-700 font-bold uppercase">{record.company}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.bank}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500">{record.accNo}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500">{record.ifsc}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 text-center">{record.swift || '-'}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 text-center">{record.micr || '-'}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.branch}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.holder}</td>
-                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500">{record.cat}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-700 font-bold uppercase">{record.companyName}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.bankName}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500">{record.accountNo}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500">{record.ifscCode}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.branchName}</td>
+                  <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.accountHolder}</td>
                   <td className="px-4 py-4">
                     <div className="flex flex-col gap-1.5 items-center">
-                      <button className="w-full max-w-[50px] px-2 py-1 bg-orange-400 text-white text-[9px] font-bold rounded uppercase hover:bg-orange-500 transition-colors shadow-sm">
+                      <button 
+                        onClick={() => handleEdit(record)}
+                        className="w-full max-w-[60px] px-2 py-1 bg-orange-400 text-white text-[9px] font-bold rounded uppercase hover:bg-orange-500 transition-colors shadow-sm"
+                      >
                         Edit
                       </button>
-                      <button className="w-full max-w-[50px] px-2 py-1 bg-red-600 text-white text-[9px] font-bold rounded uppercase hover:bg-red-700 transition-colors shadow-sm">
+                      <button 
+                        onClick={() => record.id && handleDelete(record.id)}
+                        className="w-full max-w-[60px] px-2 py-1 bg-red-600 text-white text-[9px] font-bold rounded uppercase hover:bg-red-700 transition-colors shadow-sm"
+                      >
                         Delete
                       </button>
                     </div>
@@ -154,16 +329,6 @@ export function BankDetails() {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-widest uppercase">
-        <p>Copyright &copy; Digital New Enterprises 2024</p>
-        <div className="flex gap-4 mt-2 md:mt-0">
-          <a href="#" className="hover:underline">Privacy Policy</a>
-          <span>•</span>
-          <a href="#" className="hover:underline">Terms & Conditions</a>
         </div>
       </div>
     </div>
