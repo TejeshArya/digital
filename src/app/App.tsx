@@ -131,8 +131,8 @@ export default function App() {
     if (currentPath === '/sub-gst') return <SubGST />;
     if (currentPath === '/add-bank') return <AddBank />;
     if (currentPath === '/bank-details') return <BankDetails />;
-    if (currentPath === '/upload-documents') return <UploadDocuments />;
-    if (currentPath === '/my-documents') return <MyDocuments />;
+    if (currentPath === '/upload-documents') return <UploadDocuments onNavigate={setCurrentPath} />;
+    if (currentPath === '/my-documents') return <MyDocuments onNavigate={setCurrentPath} />;
     if (currentPath === '/admin/dashboard') return <AdminDashboard />;
 
     // Business
@@ -155,8 +155,8 @@ export default function App() {
     // HR
     if (currentPath === '/hr/dashboard') return <HRDashboard />;
     if (currentPath === '/hr/profile-updates') return <ProfileUpdates />;
-    if (currentPath === '/hr/employees') return <Employees />;
-    if (currentPath === '/hr/add-employee') return <AddEmployee />;
+    if (currentPath === '/hr/employees') return <Employees onNavigate={setCurrentPath} />;
+    if (currentPath === '/hr/add-employee') return <AddEmployee onNavigate={setCurrentPath} />;
     if (currentPath === '/hr/group-id') return <CreateGroupID />;
     if (currentPath === '/hr/wing') return <Wings />;
     if (currentPath === '/hr/department') return <NewDepartment />;
@@ -218,7 +218,7 @@ export default function App() {
     if (currentPath === '/dd/sub-sub-document-categories') return <SubSubDocumentCategories />;
     if (currentPath === '/hr/attendance/daily') return <Attendance />;
     if (currentPath === '/hr/leave/apply' || currentPath === '/hr/leave/approval') return <LeaveManagement />;
-    if (currentPath === '/hr/employee-approval') return <EmployeeApproval />;
+    if (currentPath === '/hr/employee-approval') return <EmployeeApproval onNavigate={setCurrentPath} />;
 
     // Employee Portal
     if (currentPath === '/portal') return <EmployeePortal />;
@@ -253,7 +253,7 @@ export default function App() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar isOpen={isSidebarOpen} currentPath={currentPath} onNavigate={setCurrentPath} />
+        <Sidebar isOpen={isSidebarOpen} currentPath={currentPath} onNavigate={setCurrentPath} user={user} />
 
         <main className="flex-1 overflow-y-auto bg-gray-50">
           {renderContent()}

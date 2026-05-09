@@ -32,9 +32,12 @@ interface Project {
 
 export function Projects() {
   const [projectList, setProjectList] = useState<Project[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
+
+  const user = JSON.parse(localStorage.getItem('user') || '{"fullName": "System User"}');
   
   const [formData, setFormData] = useState({
     projectId: '',
@@ -43,7 +46,7 @@ export function Projects() {
     department: '',
     location: '',
     post: '',
-    createdBy: 'CURRENT USER',
+    createdBy: user.fullName || user.name || 'Anonymous',
     client: '',
     gst: '',
     value: '',
@@ -90,28 +93,41 @@ export function Projects() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.name || !formData.client || !formData.projectId) {
       alert('Please fill all required fields (Project ID, Name, Client)');
       return;
     }
 
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+    if (selectedFile) {
+      data.append('File', selectedFile);
+    }
+
     try {
       const response = await fetch('http://localhost:5076/api/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: data
       });
 
       if (response.ok) {
         alert('Project saved successfully!');
-        fetchProjects(); // Refresh list
-        // Reset form
+        fetchProjects();
         setFormData({
           projectId: '', name: '', wing: '', department: '', location: '',
-          post: '', createdBy: 'CURRENT USER', client: '', gst: '', value: '',
+          post: '', createdBy: user.fullName || user.name || 'Anonymous', client: '', gst: '', value: '',
           startDate: '', endDate: '', status: 'In Progress', priority: 'Medium', description: ''
         });
+        setSelectedFile(null);
       } else {
         const error = await response.json();
         alert('Error saving project: ' + (error.message || 'Unknown error'));
@@ -324,14 +340,22 @@ export function Projects() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">GST Number</label>
-            <input
-              type="text"
-              name="gst"
-              value={formData.gst}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors"
-            />
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Upload Project File</label>
+            <div className="relative group">
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="hidden"
+                id="project-file-upload"
+              />
+              <label 
+                htmlFor="project-file-upload"
+                className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+              >
+                <Upload className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
+                <span className="truncate">{selectedFile ? selectedFile.name : 'Choose file...'}</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -409,8 +433,11 @@ export function Projects() {
                   <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
                     Client
                   </th>
-                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors">
+                  <th className="px-4 py-5 text-left font-bold border-r border-slate-600">
                     GST Number
+                  </th>
+                  <th className="px-4 py-5 text-center font-bold border-r border-slate-600">
+                    File
                   </th>
                   <th className="px-4 py-5 text-center font-bold">
                     Actions
@@ -429,6 +456,13 @@ export function Projects() {
                     <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.createdBy}</td>
                     <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase font-bold text-blue-600/80">{project.client}</td>
                     <td className="px-4 py-4 text-gray-500 border-r border-gray-50 uppercase">{project.gst}</td>
+                    <td className="px-4 py-4 text-center border-r border-gray-50">
+                      {project.filePath ? (
+                        <div className="flex justify-center">
+                          <FileText className="w-4 h-4 text-emerald-500" />
+                        </div>
+                      ) : '-'}
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button 
@@ -565,6 +599,26 @@ export function Projects() {
               </div>
             </div>
 
+            {selectedProject?.filePath && (
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2 text-[#0061f2]">
+                  <Upload className="w-4 h-4" />
+                  <span className="text-[13px] font-bold">Project Document</span>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded flex items-center justify-between">
+                  <span className="text-[12px] text-emerald-700 font-bold uppercase tracking-tight">Project documentation is available</span>
+                  <a 
+                    href={`http://localhost:5076${selectedProject.filePath}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-4 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded uppercase hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                  >
+                    <Eye className="w-3 h-3" /> View Document
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* Remarks Section */}
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-2 text-[#0061f2]">
@@ -632,6 +686,9 @@ export function Projects() {
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Project Description / Remarks</label>
               <textarea 
                 rows={4}
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
                 placeholder="Enter detailed project scope, objectives or special remarks..."
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 transition-colors resize-none"
               ></textarea>

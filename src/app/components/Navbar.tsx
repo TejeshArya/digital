@@ -6,7 +6,8 @@ interface NavbarProps {
   onToggleSidebar: () => void;
   onLogout?: () => void;
   user: {
-    name: string;
+    name?: string;
+    fullName?: string;
     email: string;
     avatar: string;
   };
@@ -51,11 +52,11 @@ export function Navbar({ onToggleSidebar, user, onLogout }: NavbarProps) {
 
         <button className="flex items-center gap-3 pl-2 pr-1 py-1 hover:bg-gray-50 rounded-lg transition-colors">
           <div className="text-right hidden sm:block">
-            <p className="text-[11px] font-black text-gray-800 uppercase tracking-wider">{user.name}</p>
+            <p className="text-[11px] font-black text-gray-800 uppercase tracking-wider">{user.fullName || user.name}</p>
             <p className="text-[9px] font-bold text-gray-400">{user.email}</p>
           </div>
           <img 
-            src={user.avatar || 'https://ui-avatars.com/api/?name=' + user.name} 
+            src={user.avatar || 'https://ui-avatars.com/api/?name=' + (user.fullName || user.name)} 
             alt="Profile" 
             className="w-8 h-8 rounded-full border border-gray-100"
           />

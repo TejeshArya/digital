@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, X, ChevronDown } from 'lucide-react';
 
 interface BankRecord {
-  id?: number;
   empId: string;
   companyName: string;
   bankName: string;
@@ -20,8 +19,6 @@ interface BankMaster { bankName: string; }
 
 export function BankDetails() {
   const [records, setRecords] = useState<BankRecord[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [banksMaster, setBanksMaster] = useState<BankMaster[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<BankRecord>({
@@ -39,8 +36,6 @@ export function BankDetails() {
 
   useEffect(() => {
     fetchRecords();
-    fetchCompanies();
-    fetchBanksMaster();
   }, []);
 
   const fetchRecords = async () => {
@@ -56,25 +51,7 @@ export function BankDetails() {
     }
   };
 
-  const fetchCompanies = async () => {
-    try {
-      const response = await fetch('http://localhost:5076/api/companygsts');
-      const data = await response.json();
-      setCompanies(data);
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    }
-  };
 
-  const fetchBanksMaster = async () => {
-    try {
-      const response = await fetch('http://localhost:5076/api/banks');
-      const data = await response.json();
-      setBanksMaster(data);
-    } catch (error) {
-      console.error('Error fetching banks master:', error);
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -114,14 +91,14 @@ export function BankDetails() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (empId: string) => {
     if (window.confirm('Delete this bank record?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/bankdetails/${id}`, {
+        const response = await fetch(`http://localhost:5076/api/bankdetails/${empId}`, {
           method: 'DELETE'
         });
         if (response.ok) {
-          setRecords(prev => prev.filter(r => r.id !== id));
+          setRecords(prev => prev.filter(r => r.empId !== empId));
         }
       } catch (error) {
         console.error('Error deleting:', error);
@@ -159,27 +136,25 @@ export function BankDetails() {
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Company Name</label>
-              <select 
+              <input
+                type="text"
                 name="companyName"
                 value={formData.companyName}
                 onChange={handleInputChange}
+                placeholder="Enter Company Name"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              >
-                <option value="">Select Company</option>
-                {companies.map((c, i) => <option key={i} value={c.companyName}>{c.companyName}</option>)}
-              </select>
+              />
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Bank Name</label>
-              <select 
+              <input
+                type="text"
                 name="bankName"
                 value={formData.bankName}
                 onChange={handleInputChange}
+                placeholder="Enter Bank Name"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              >
-                <option value="">Select Bank</option>
-                {banksMaster.map((b, i) => <option key={i} value={b.bankName}>{b.bankName}</option>)}
-              </select>
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -189,6 +164,7 @@ export function BankDetails() {
                 name="accountNo"
                 value={formData.accountNo}
                 onChange={handleInputChange}
+                placeholder="Enter Account Number"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -199,6 +175,7 @@ export function BankDetails() {
                 name="ifscCode"
                 value={formData.ifscCode}
                 onChange={handleInputChange}
+                placeholder="Enter IFSC Code"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -209,6 +186,7 @@ export function BankDetails() {
                 name="swiftCode"
                 value={formData.swiftCode}
                 onChange={handleInputChange}
+                placeholder="Enter Swift Code"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -220,6 +198,7 @@ export function BankDetails() {
                 name="micrCode"
                 value={formData.micrCode}
                 onChange={handleInputChange}
+                placeholder="Enter MICR Code"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -230,6 +209,7 @@ export function BankDetails() {
                 name="branchName"
                 value={formData.branchName}
                 onChange={handleInputChange}
+                placeholder="Enter Branch Name"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -240,23 +220,21 @@ export function BankDetails() {
                 name="accountHolder"
                 value={formData.accountHolder}
                 onChange={handleInputChange}
+                placeholder="Enter Account Holder Name"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Category</label>
-              <select 
+              <input
+                type="text"
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                placeholder="e.g. Savings, Current"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              >
-                <option value="">Select Category</option>
-                <option value="Savings">Savings</option>
-                <option value="Current">Current</option>
-                <option value="Salary">Salary</option>
-              </select>
+              />
             </div>
           </div>
 
@@ -301,7 +279,7 @@ export function BankDetails() {
               ) : records.length === 0 ? (
                 <tr><td colSpan={8} className="py-10 text-center text-gray-400 uppercase tracking-widest">No records found.</td></tr>
               ) : records.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
+                <tr key={record.empId} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.empId}</td>
                   <td className="px-4 py-4 border-r border-gray-50 text-gray-700 font-bold uppercase">{record.companyName}</td>
                   <td className="px-4 py-4 border-r border-gray-50 text-gray-500 uppercase">{record.bankName}</td>
@@ -318,7 +296,7 @@ export function BankDetails() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => record.id && handleDelete(record.id)}
+                        onClick={() => handleDelete(record.empId)}
                         className="w-full max-w-[60px] px-2 py-1 bg-red-600 text-white text-[9px] font-bold rounded uppercase hover:bg-red-700 transition-colors shadow-sm"
                       >
                         Delete

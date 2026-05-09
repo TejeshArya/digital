@@ -1,50 +1,83 @@
-﻿import { FileText, Download, Eye, Search, Filter, Trash2, LayoutDashboard, Plus, Info, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { FileText, Download, Eye, Search, Filter, Trash2, LayoutDashboard, Plus, Info, ChevronDown, RefreshCw, AlertCircle, Files } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-export function MyDocuments() {
+interface Document {
+  id: number;
+  documentName: string;
+  category: string;
+  subCategory: string;
+  subSubCategory: string;
+  fileType: string;
+  fileSize: number;
+  remarks: string;
+  employeeEmail: string;
+  filePath: string;
+  uploadedAt: string;
+}
+
+interface MyDocumentsProps {
+  onNavigate?: (path: string) => void;
+}
+
+export function MyDocuments({ onNavigate }: MyDocumentsProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const documents = [
-    {
-      id: 1,
-      name: 'SOFTWARE LICENSE AGREEMENT',
-      category: 'ACME CORP',
-      subCategory: 'VENDOR CONTRACTS',
-      subSubCategory: 'JANE DOE',
-      fileType: 'PDF',
-      fileSize: '233.97 KB',
-      remarks: '-',
-      employee: 'JANE DOE',
-      uploadedBy: 'JANE DOE',
-      uploadDate: '30 Apr, 2024 02:35 AM'
-    },
-    {
-      id: 2,
-      name: 'NDA DOCUMENT',
-      category: 'ACME CORP',
-      subCategory: 'LEGAL DOCUMENTS',
-      subSubCategory: 'NDA/2024/B/1234567',
-      fileType: 'PDF',
-      fileSize: '114.13 KB',
-      remarks: 'CONFIDENTIAL',
-      employee: 'MICHAEL SMITH',
-      uploadedBy: 'MICHAEL SMITH',
-      uploadDate: '15 Apr, 2024 11:41 AM'
-    },
-    {
-      id: 3,
-      name: 'PBG',
-      category: '-',
-      subCategory: '-',
-      subSubCategory: '-',
-      fileType: 'PNG',
-      fileSize: '36.72 KB',
-      remarks: 're',
-      employee: 'MICHAEL SMITH',
-      uploadedBy: 'MICHAEL SMITH',
-      uploadDate: '03 Apr, 2024 05:23 AM'
+  const user = JSON.parse(localStorage.getItem('user') || '{"email": "anonymous@company.com"}');
+  const userEmail = user.email || user.Email;
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:5076/api/documents/employee/${userEmail}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data);
+      } else {
+        setError('Failed to fetch documents.');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError('Connection error. Please ensure the backend is running.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/documents/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setDocuments(prev => prev.filter(d => d.id !== id));
+        } else {
+          alert('Failed to delete document.');
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('Connection error.');
+      }
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const API_URL = 'http://localhost:5076';
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
@@ -54,79 +87,38 @@ export function MyDocuments() {
           <h1 className="text-lg font-bold text-gray-800 uppercase tracking-tight">My Documents</h1>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#4e73df] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90">
+          <button 
+            onClick={() => onNavigate?.('/dashboard')}
+            className="flex items-center gap-2 px-4 py-2 bg-[#4e73df] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90"
+          >
             <LayoutDashboard className="w-3 h-3" /> Dashboard
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#0061f2] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90">
+          <button 
+            onClick={() => onNavigate?.('/upload-documents')}
+            className="flex items-center gap-2 px-4 py-2 bg-[#0061f2] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90"
+          >
             <Plus className="w-3 h-3" /> Upload New Document
           </button>
         </div>
       </div>
 
-      {/* Filter Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-6 overflow-hidden">
-        <div className="p-4 border-b border-gray-50 flex items-center gap-2">
-          <Filter className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-bold text-blue-600 uppercase">Filter Documents</span>
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-[11px] font-black uppercase tracking-widest">{error}</p>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase">
-                <FileText className="w-3 h-3 text-blue-600" /> Document Category
-              </label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-8 py-2 bg-white border border-gray-200 rounded text-xs text-gray-500 focus:outline-none focus:border-blue-400 appearance-none">
-                  <option>All Categories</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase">
-                <FileText className="w-3 h-3 text-blue-600" /> Sub Document Category
-              </label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-8 py-2 bg-[#f4f4f4] border border-gray-200 rounded text-xs text-gray-500 focus:outline-none appearance-none">
-                  <option>All Sub Categories</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase">
-                <FileText className="w-3 h-3 text-blue-600" /> Sub-Sub Document Category
-              </label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-8 py-2 bg-[#f4f4f4] border border-gray-200 rounded text-xs text-gray-500 focus:outline-none appearance-none">
-                  <option>All Sub-Sub Categories</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#0061f2] text-white text-[11px] font-bold rounded shadow-sm">
-              <Search className="w-3 h-3" /> Apply Filter
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#4e73df] text-white text-[11px] font-bold rounded shadow-sm">
-              <Trash2 className="w-3 h-3" /> Reset Filters
-            </button>
-            <span className="text-xs text-gray-400 font-medium ml-2 italic">
-              Showing {documents.length} document(s)
-            </span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Uploaded Documents Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4 text-blue-600" />
+            <Files className="w-4 h-4 text-blue-600" />
             <span className="text-xs font-bold text-blue-600 uppercase">Uploaded Documents</span>
           </div>
-          <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">3 Documents</span>
+          <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+            {documents.length} Documents
+          </span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
@@ -136,72 +128,82 @@ export function MyDocuments() {
                 <th className="px-4 py-4 text-left font-bold">Document Name</th>
                 <th className="px-4 py-4 text-left font-bold">Category</th>
                 <th className="px-4 py-4 text-left font-bold">Sub Category</th>
-                <th className="px-4 py-4 text-left font-bold">Sub-Sub Category</th>
                 <th className="px-4 py-4 text-center font-bold">File Type</th>
                 <th className="px-4 py-4 text-left font-bold">File Size</th>
                 <th className="px-4 py-4 text-left font-bold">Remarks</th>
-                <th className="px-4 py-4 text-left font-bold">Employee</th>
-                <th className="px-4 py-4 text-left font-bold">Uploaded By</th>
                 <th className="px-4 py-4 text-left font-bold">Upload Date</th>
                 <th className="px-4 py-4 text-center font-bold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {documents.map((doc, index) => (
-                <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="py-20 text-center">
+                    <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Documents...</span>
+                  </td>
+                </tr>
+              ) : documents.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest">
+                    No documents uploaded yet.
+                  </td>
+                </tr>
+              ) : documents.map((doc, index) => (
+                <tr key={doc.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-4 py-5 text-center text-gray-400">{index + 1}</td>
                   <td className="px-4 py-5 font-bold text-gray-700">
                     <div className="flex items-center gap-2">
-                      {doc.fileType === 'PDF' ? (
-                        <FileText className="w-4 h-4 text-red-500" />
-                      ) : (
-                        <FileText className="w-4 h-4 text-emerald-500" />
-                      )}
-                      {doc.name}
+                      <FileText className={`w-4 h-4 ${doc.fileType.toLowerCase().includes('pdf') ? 'text-red-500' : 'text-blue-500'}`} />
+                      {doc.documentName}
                     </div>
                   </td>
                   <td className="px-4 py-5">
-                    {doc.category !== '-' ? (
-                      <span className="bg-cyan-500 text-white text-[9px] font-bold px-2 py-1 rounded uppercase">
-                        {doc.category}
-                      </span>
-                    ) : '-'}
+                    <span className="bg-cyan-500 text-white text-[9px] font-bold px-2 py-1 rounded uppercase">
+                      {doc.category}
+                    </span>
                   </td>
                   <td className="px-4 py-5">
-                    {doc.subCategory !== '-' ? (
+                    {doc.subCategory ? (
                       <span className="bg-orange-400 text-white text-[9px] font-bold px-2 py-1 rounded uppercase">
                         {doc.subCategory}
                       </span>
                     ) : '-'}
                   </td>
-                  <td className="px-4 py-5">
-                    {doc.subSubCategory !== '-' ? (
-                      <span className="bg-emerald-500 text-white text-[9px] font-bold px-2 py-1 rounded uppercase">
-                        {doc.subSubCategory}
-                      </span>
-                    ) : '-'}
-                  </td>
                   <td className="px-4 py-5 text-center">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded text-white ${
-                      doc.fileType === 'PDF' ? 'bg-red-500' : 'bg-emerald-500'
+                      doc.fileType.toLowerCase().includes('pdf') ? 'bg-red-500' : 'bg-blue-500'
                     }`}>
-                      {doc.fileType}
+                      {doc.fileType.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-gray-500">{doc.fileSize}</td>
-                  <td className="px-4 py-5 text-gray-400 italic">{doc.remarks}</td>
-                  <td className="px-4 py-5 text-gray-600 font-medium uppercase">{doc.employee}</td>
-                  <td className="px-4 py-5 text-gray-600 font-medium uppercase">{doc.uploadedBy}</td>
-                  <td className="px-4 py-5 text-gray-400">{doc.uploadDate}</td>
+                  <td className="px-4 py-5 text-gray-500">{formatFileSize(doc.fileSize)}</td>
+                  <td className="px-4 py-5 text-gray-400 italic">{doc.remarks || '-'}</td>
+                  <td className="px-4 py-5 text-gray-400">{new Date(doc.uploadedAt).toLocaleString()}</td>
                   <td className="px-4 py-5">
                     <div className="flex items-center justify-center gap-1.5">
-                      <button className="p-1.5 bg-cyan-100 text-cyan-600 rounded hover:bg-cyan-600 hover:text-white transition-all">
+                      <a 
+                        href={`${API_URL}${doc.filePath}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-1.5 bg-cyan-100 text-cyan-600 rounded hover:bg-cyan-600 hover:text-white transition-all"
+                        title="View Document"
+                      >
                         <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition-all">
+                      </a>
+                      <a 
+                        href={`${API_URL}${doc.filePath}`} 
+                        download={doc.documentName}
+                        className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-600 hover:text-white transition-all"
+                        title="Download"
+                      >
                         <Download className="w-3.5 h-3.5" />
-                      </button>
-                      <button className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-600 hover:text-white transition-all">
+                      </a>
+                      <button 
+                        onClick={() => handleDelete(doc.id)}
+                        className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-600 hover:text-white transition-all"
+                        title="Delete"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -213,7 +215,6 @@ export function MyDocuments() {
         </div>
       </div>
 
-      {/* Guidelines Section */}
       <div className="mt-8 bg-[#fdfdfd] border border-gray-100 rounded-lg p-6 flex gap-6">
         <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
           <Info className="w-6 h-6 text-white" />
@@ -228,15 +229,7 @@ export function MyDocuments() {
           </ul>
         </div>
       </div>
-
-      <div className="mt-12 flex justify-between items-center text-[10px] text-gray-400 px-2 uppercase font-medium">
-        <p>Copyright &copy; Digital New Enterprises 2024</p>
-        <div className="flex gap-4">
-          <a href="#" className="hover:underline">Privacy Policy</a>
-          <span>•</span>
-          <a href="#" className="hover:underline">Terms & Conditions</a>
-        </div>
-      </div>
     </div>
   );
 }
+

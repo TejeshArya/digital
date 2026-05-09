@@ -1,36 +1,47 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer, 
   ChevronDown, Eye, Layout, Edit, Download, Trash2, User
 } from 'lucide-react';
 
 export function Quotations() {
-  const [data] = useState([
-    {
-      no: 'Q2024-19',
-      company: 'ACME CORP',
-      date: '16-04-2024',
-      subject: 'SUPPLY AND INSTALLATION OF SERVER RACKS FOR MAIN DATA CENTER - PRJ-2024-01',
-      wing: 'FACILITIES',
-      dept: 'Engineering',
-      post: 'PROJECT LEAD',
-      createdBy: 'JOHN DOE',
-      amount: '496,500.00',
-      status: 'Pending'
-    },
-    {
-      no: 'Q2024-18',
-      company: 'TECH SOLUTIONS',
-      date: '15-04-2024',
-      subject: 'INSTALLATION AND COMMISSIONING OF ENTERPRISE NETWORK HARDWARE - PRJ-2024-02',
-      wing: 'IT OPS',
-      dept: 'Engineering',
-      post: 'NETWORK LEAD',
-      createdBy: 'JOHN DOE',
-      amount: '1,498,000.00',
-      status: 'Pending'
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchQuotations();
+  }, []);
+
+  const fetchQuotations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/quotations');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching quotations:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this quotation?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/quotations/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setData(prev => prev.filter(q => q.id !== id));
+          alert('Quotation deleted successfully!');
+        } else {
+          alert('Failed to delete quotation.');
+        }
+      } catch (error) {
+        console.error('Error deleting quotation:', error);
+      }
+    }
+  };
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
@@ -140,38 +151,48 @@ export function Quotations() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data.map((row, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={11} className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest italic animate-pulse">Loading Quotations...</td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td colSpan={11} className="py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No Quotations Found</td>
+                </tr>
+              ) : data.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 font-medium">{row.no}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 font-bold text-gray-800 uppercase">{row.company}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-500 whitespace-nowrap">{row.date}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.subject}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 font-medium">{row.quotationNumber}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 font-bold text-gray-800 uppercase">{row.companyName}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-500 whitespace-nowrap">{new Date(row.invoiceDate).toLocaleDateString()}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.projectName}</td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-cyan-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.wing}
+                    <span className="bg-cyan-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.wing || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-slate-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.dept}
+                    <span className="bg-slate-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.department || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.post}
+                    <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.post || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50">
-                    <div className="flex items-center gap-1 text-emerald-600 font-black tracking-tighter leading-tight max-w-[80px]">
+                    <div className="flex items-center gap-1 text-emerald-600 font-black tracking-tighter leading-tight max-w-[80px] uppercase">
                       <User className="w-3 h-3 flex-shrink-0" />
-                      {row.createdBy}
+                      {row.createdBy || 'System'}
                     </div>
                   </td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-right font-bold text-gray-600">{row.amount}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-right font-bold text-gray-600">
+                    {Number(row.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
                     <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase">
                       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                      {row.status}
+                      Pending
                     </span>
                   </td>
                   <td className="px-3 py-5">
@@ -179,16 +200,10 @@ export function Quotations() {
                       <button className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors">
-                        <Layout className="w-3.5 h-3.5" />
-                      </button>
-                      <button className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors">
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button className="p-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors">
-                        <Download className="w-3.5 h-3.5" />
-                      </button>
-                      <button className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors">
+                      <button 
+                        onClick={() => handleDelete(row.id)}
+                        className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
