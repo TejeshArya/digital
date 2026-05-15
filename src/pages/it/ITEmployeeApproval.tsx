@@ -1,29 +1,95 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Monitor, Users, ShieldCheck, UserCheck, 
   Settings, Key, LayoutDashboard, Search,
   Eye, Filter, MoreVertical, Building2,
   MapPin, Clock, ArrowRight, UserPlus,
   ShieldAlert, UserX, UserMinus, Network,
-  CheckCircle2
+  CheckCircle2, Check, X
 } from 'lucide-react';
+
+interface Employee {
+  id: number;
+  employeeId?: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  qualification?: string;
+  annualSalary?: string;
+  createdAt: string;
+}
 
 export function ITEmployeeApproval() {
   const [activeTab, setActiveTab] = useState('pending');
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/employees');
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        alert('Employee approved successfully!');
+        fetchEmployees();
+      }
+    } catch (error) {
+      console.error('Error approving:', error);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    if (!window.confirm('Are you sure you want to reject this request?')) return;
+    try {
+      const response = await fetch(`http://localhost:5076/api/employees/reject/${id}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        alert('Employee request rejected.');
+        fetchEmployees();
+      }
+    } catch (error) {
+      console.error('Error rejecting:', error);
+    }
+  };
+
+  const pending = employees.filter(e => e.status === 'Pending');
+  const approved = employees.filter(e => e.status === 'Active' || e.status === 'Approved');
+  const rejected = employees.filter(e => e.status === 'Rejected');
 
   const kpis = [
-    { label: 'PENDING IT APPROVAL', value: '0', icon: <Clock className="w-8 h-8 text-amber-200" />, color: 'amber' },
-    { label: 'APPROVED BY IT', value: '33', icon: <CheckCircle2 className="w-8 h-8 text-emerald-200" />, color: 'emerald' },
-    { label: 'ACTIVE USERS', value: '33', icon: <Users className="w-8 h-8 text-blue-200" />, color: 'blue' },
-    { label: 'REJECTED', value: '0', icon: <UserX className="w-8 h-8 text-rose-200" />, color: 'rose' },
+    { label: 'PENDING IT APPROVAL', value: pending.length.toString(), icon: <Clock className="w-8 h-8 text-amber-200" />, color: 'amber' },
+    { label: 'APPROVED BY IT', value: approved.length.toString(), icon: <CheckCircle2 className="w-8 h-8 text-emerald-200" />, color: 'emerald' },
+    { label: 'ACTIVE USERS', value: approved.length.toString(), icon: <Users className="w-8 h-8 text-blue-200" />, color: 'blue' },
+    { label: 'REJECTED', value: rejected.length.toString(), icon: <UserX className="w-8 h-8 text-rose-200" />, color: 'rose' },
   ];
 
   const tabs = [
-    { id: 'pending', label: 'Pending IT Approval', count: 0, icon: <Clock className="w-4 h-4 text-amber-500" /> },
-    { id: 'approved', label: 'Approved by IT', count: 33, icon: <CheckCircle2 className="w-4 h-4 text-blue-500" /> },
-    { id: 'active', label: 'Active Users', count: 33, icon: <UserPlus className="w-4 h-4 text-blue-500" /> },
-    { id: 'rejected', label: 'Rejected', count: 0, icon: <UserX className="w-4 h-4 text-blue-500" /> },
+    { id: 'pending', label: 'Pending IT Approval', count: pending.length, icon: <Clock className="w-4 h-4 text-amber-500" /> },
+    { id: 'approved', label: 'Approved by IT', count: approved.length, icon: <CheckCircle2 className="w-4 h-4 text-blue-500" /> },
+    { id: 'active', label: 'Active Users', count: approved.length, icon: <UserPlus className="w-4 h-4 text-blue-500" /> },
+    { id: 'rejected', label: 'Rejected', count: rejected.length, icon: <UserX className="w-4 h-4 text-rose-500" /> },
   ];
+
+  const currentList = activeTab === 'pending' ? pending : activeTab === 'rejected' ? rejected : approved;
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
@@ -87,24 +153,83 @@ export function ITEmployeeApproval() {
            </div>
 
            {/* Tab Body */}
-           <div className="p-24 flex flex-col items-center justify-center text-center space-y-6">
-              {activeTab === 'pending' && (
-                <>
-                   <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
-                      <CheckCircle2 className="w-12 h-12" />
-                   </div>
-                   <div className="space-y-2">
-                      <h3 className="text-[18px] font-black text-emerald-600 uppercase tracking-widest">All Employees Approved!</h3>
-                      <p className="text-[12px] text-gray-300 font-bold uppercase tracking-widest">No pending IT approvals at this time.</p>
-                   </div>
-                </>
-              )}
-              {activeTab !== 'pending' && (
-                <div className="space-y-4">
-                   <Users className="w-16 h-16 text-gray-100 mx-auto" />
-                   <p className="text-[11px] font-black text-gray-200 uppercase tracking-[0.2em]">Showing {activeTab} user records...</p>
-                </div>
-              )}
+           <div className="p-0">
+             <div className="overflow-x-auto min-h-[400px]">
+               <table className="w-full text-[11px] border-collapse">
+                 <thead>
+                   <tr className="bg-gray-50/50 text-gray-400 uppercase tracking-widest border-b border-gray-100 font-black">
+                     <th className="px-6 py-4 text-left">Details</th>
+                     <th className="px-6 py-4 text-left">Qualification</th>
+                     <th className="px-6 py-4 text-left">Salary</th>
+                     <th className="px-6 py-4 text-center">Date</th>
+                     <th className="px-6 py-4 text-center">Actions</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-gray-50">
+                   {loading ? (
+                     <tr><td colSpan={5} className="py-20 text-center"><div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
+                   ) : currentList.length === 0 ? (
+                     <tr>
+                       <td colSpan={5} className="py-24 text-center">
+                         <div className="flex flex-col items-center justify-center">
+                           {activeTab === 'pending' ? (
+                             <>
+                               <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner mb-6">
+                                  <CheckCircle2 className="w-12 h-12" />
+                               </div>
+                               <h3 className="text-[18px] font-black text-emerald-600 uppercase tracking-widest mb-2">All Employees Approved!</h3>
+                               <p className="text-[12px] text-gray-300 font-bold uppercase tracking-widest">No pending IT approvals at this time.</p>
+                             </>
+                           ) : (
+                             <>
+                               <Users className="w-16 h-16 text-gray-100 mb-4" />
+                               <h3 className="text-lg font-black text-gray-300 uppercase tracking-widest">No Records Found</h3>
+                             </>
+                           )}
+                         </div>
+                       </td>
+                     </tr>
+                   ) : currentList.map((emp) => (
+                     <tr key={emp.id} className="hover:bg-gray-50/50 transition-colors">
+                       <td className="px-6 py-4">
+                         <div className="flex flex-col">
+                           <span className="font-black text-gray-700 uppercase">{emp.name}</span>
+                           <span className="text-[10px] text-gray-400 font-bold lowercase">{emp.email}</span>
+                           {emp.employeeId && <span className="mt-1 text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded w-fit font-black">{emp.employeeId}</span>}
+                         </div>
+                       </td>
+                       <td className="px-6 py-4 font-bold text-gray-500 uppercase tracking-tight">{emp.qualification || 'N/A'}</td>
+                       <td className="px-6 py-4 font-black text-gray-600">{emp.annualSalary ? `₹ ${emp.annualSalary}` : '0'}</td>
+                       <td className="px-6 py-4 text-center font-bold text-gray-400 uppercase">{new Date(emp.createdAt).toLocaleDateString()}</td>
+                       <td className="px-6 py-4">
+                         <div className="flex justify-center gap-2">
+                           {emp.status === 'Pending' ? (
+                             <>
+                               <button 
+                                 onClick={() => handleApprove(emp.id)}
+                                 className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white rounded text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm"
+                               >
+                                 <Check className="w-3 h-3" /> Approve
+                               </button>
+                               <button 
+                                 onClick={() => handleReject(emp.id)}
+                                 className="flex items-center gap-1 px-3 py-1.5 bg-rose-500 text-white rounded text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-sm"
+                               >
+                                 <X className="w-3 h-3" /> Reject
+                               </button>
+                             </>
+                           ) : (
+                             <button className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-500 rounded text-[9px] font-black uppercase tracking-widest cursor-default">
+                               <Eye className="w-3 h-3" /> Details
+                             </button>
+                           )}
+                         </div>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
            </div>
         </div>
       </div>

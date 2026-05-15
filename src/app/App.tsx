@@ -28,6 +28,9 @@ import { SingleItemSelling } from '../pages/business/SingleItemSelling';
 import { PurchaseDC } from '../pages/business/PurchaseDC';
 import { AllCreatedDC } from '../pages/business/AllCreatedDC';
 import { ItemConsumption } from '../pages/business/ItemConsumption';
+import { QuotationWorkManage } from '../pages/business/QuotationWorkManage';
+import { QuotationPreview } from '../pages/business/QuotationPreview';
+import { InvoiceView } from '../pages/business/InvoiceView';
 import { PrepareGSTR } from '../pages/accounts/PrepareGSTR';
 import { AllPreparedGSTR } from '../pages/accounts/AllPreparedGSTR';
 import { InputGST } from '../pages/accounts/InputGST';
@@ -95,6 +98,8 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState('/dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -137,15 +142,18 @@ export default function App() {
 
     // Business
     if (currentPath === '/projects') return <Projects />;
-    if (currentPath === '/quotations/new') return <NewQuotation />;
-    if (currentPath === '/quotations/all') return <Quotations />;
+    if (currentPath === '/quotations/new') return <NewQuotation onNavigate={setCurrentPath} />;
+    if (currentPath === '/quotations/all') return <Quotations onNavigate={setCurrentPath} onSelectQuotation={(q: any) => setSelectedQuotation(q)} />;
+    if (currentPath === '/quotations/work-manage') return <QuotationWorkManage onNavigate={setCurrentPath} quotation={selectedQuotation} />;
+    if (currentPath === '/quotations/preview') return <QuotationPreview onNavigate={setCurrentPath} quotation={selectedQuotation} />;
     if (currentPath === '/purchase') return <Purchase />;
     if (currentPath === '/purchase/manage') return <ManagePurchase />;
     if (currentPath === '/purchase/single-item') return <SingleItemSelling />;
     if (currentPath === '/purchase/dc') return <PurchaseDC />;
     if (currentPath === '/purchase/all-dc') return <AllCreatedDC />;
     if (currentPath === '/invoices/consumption') return <ItemConsumption />;
-    if (currentPath === '/invoices/all') return <Invoices />;
+    if (currentPath === '/invoices/all') return <Invoices onNavigate={setCurrentPath} onSelectInvoice={(inv: any) => setSelectedInvoice(inv)} />;
+    if (currentPath === '/invoices/view') return <InvoiceView onNavigate={setCurrentPath} invoice={selectedInvoice} />;
 
     // Accounts
     if (currentPath === '/accounts/prepare-gstr') return <PrepareGSTR />;

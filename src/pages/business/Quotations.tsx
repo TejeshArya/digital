@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer, 
-  ChevronDown, Eye, Layout, Edit, Download, Trash2, User
+  ChevronDown, Eye, Layout, Edit, Download, Trash2, User, ShieldCheck,
+  Percent, ListChecks, Pencil
 } from 'lucide-react';
 
-export function Quotations() {
+export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (path: string) => void, onSelectQuotation?: (quote: any) => void }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [supportData, setSupportData] = useState({
+    percentage: '',
+    companyName: 'Vishwakarma',
+    format: 'Format 1',
+    inquiryNo: '',
+    inquiryDate: ''
+  });
 
   useEffect(() => {
     fetchQuotations();
@@ -39,6 +49,26 @@ export function Quotations() {
         }
       } catch (error) {
         console.error('Error deleting quotation:', error);
+      }
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    if (window.confirm('Approve this quotation and generate an invoice?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/quotations/${id}/approve`, {
+          method: 'POST'
+        });
+        if (response.ok) {
+          alert('Quotation approved and Invoice generated!');
+          fetchQuotations(); // Refresh list
+        } else {
+          const err = await response.json();
+          alert('Failed to approve: ' + (err.message || 'Server error'));
+        }
+      } catch (error) {
+        console.error('Approval error:', error);
+        alert('Connection error');
       }
     }
   };
@@ -164,7 +194,7 @@ export function Quotations() {
                   <td className="px-3 py-5 border-r border-gray-50 text-gray-600 font-medium">{row.quotationNumber}</td>
                   <td className="px-3 py-5 border-r border-gray-50 font-bold text-gray-800 uppercase">{row.companyName}</td>
                   <td className="px-3 py-5 border-r border-gray-50 text-gray-500 whitespace-nowrap">{new Date(row.invoiceDate).toLocaleDateString()}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.projectName}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.subject || row.projectName}</td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
                     <span className="bg-cyan-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
                       {row.wing || 'N/A'}
@@ -190,19 +220,67 @@ export function Quotations() {
                     {Number(row.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                      Pending
+                    <span className={`${
+                      row.status === 'Approved' ? 'bg-emerald-500' : 
+                      row.status === 'Rejected' ? 'bg-rose-500' : 'bg-amber-500'
+                    } text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase`}>
+                      {row.status === 'Pending' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
+                      {row.status || 'Pending'}
                     </span>
                   </td>
                   <td className="px-3 py-5">
                     <div className="flex items-center justify-center gap-1">
-                      <button className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                      <button 
+                        onClick={() => {
+                          onSelectQuotation?.(row);
+                          onNavigate?.('/quotations/preview');
+                        }}
+                        className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors shadow-sm" 
+                        title="View Quotation (PDF)"
+                      >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
+                      
+                      <button 
+                        onClick={() => {
+                          setSelectedQuote(row);
+                          setShowSupportModal(true);
+                        }}
+                        className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm" 
+                        title="Supporting Quotation"
+                      >
+                        <Percent className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          onSelectQuotation?.(row);
+                          onNavigate?.('/quotations/work-manage');
+                        }}
+                        className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors shadow-sm" 
+                        title="Manage Work & QC"
+                      >
+                        <ListChecks className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button className="p-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors shadow-sm" title="Edit">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+
+                      {row.status === 'Pending' && (
+                        <button 
+                          onClick={() => handleApprove(row.id)}
+                          className="p-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors shadow-sm"
+                          title="Approve & Generate Invoice"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
                       <button 
                         onClick={() => handleDelete(row.id)}
-                        className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors"
+                        className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors shadow-sm"
+                        title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -232,6 +310,95 @@ export function Quotations() {
           <a href="#" className="hover:underline">Terms & Conditions</a>
         </div>
       </div>
+
+      {/* Supporting Quotation Modal */}
+      {showSupportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div className="bg-emerald-600 p-4 flex justify-between items-center">
+              <h3 className="text-white font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                <Percent className="w-4 h-4" /> Supporting Quotation
+              </h3>
+              <button onClick={() => setShowSupportModal(false)} className="text-white/80 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Percentage</label>
+                <input 
+                  type="text" 
+                  value={supportData.percentage}
+                  onChange={(e) => setSupportData({...supportData, percentage: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                  placeholder="Enter Percentage"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Company Name</label>
+                <select 
+                  value={supportData.companyName}
+                  onChange={(e) => setSupportData({...supportData, companyName: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
+                >
+                  <option>Vishwakarma</option>
+                  <option>AG Coders</option>
+                  <option>DEE Enterprises</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Quotation Format</label>
+                <select 
+                  value={supportData.format}
+                  onChange={(e) => setSupportData({...supportData, format: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
+                >
+                  <option>Format 1</option>
+                  <option>Format 2</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Number</label>
+                <input 
+                  type="text" 
+                  value={supportData.inquiryNo}
+                  onChange={(e) => setSupportData({...supportData, inquiryNo: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                  placeholder="Enter Inquiry No"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Date</label>
+                <input 
+                  type="date" 
+                  value={supportData.inquiryDate}
+                  onChange={(e) => setSupportData({...supportData, inquiryDate: e.target.value})}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setShowSupportModal(false)}
+                className="px-6 py-2 bg-slate-500 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-slate-600 transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                className="px-6 py-2 bg-emerald-600 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-100"
+              >
+                View Quotation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

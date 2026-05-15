@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, Search, Filter, RefreshCcw, CheckCircle2, 
   Clock, Eye, FilePlus, ChevronDown, Building2, Layout
@@ -6,57 +6,44 @@ import {
 
 export function PrepareGSTR() {
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
-  const [invoices] = useState([
-    {
-      id: 1,
-      client: 'FLEET MAINTENANCE UNIT VISAKHAPATNAM',
-      invoiceNo: 'DEE2627104',
-      date: '02 Apr 2026',
-      amount: '231,860.00',
-      gst: '11,593.00',
-      total: '243,453.00',
-      payAmount: '0.00',
-      status: 'Pending'
-    },
-    {
-      id: 2,
-      client: 'FLEET MAINTENANCE UNIT VISAKHAPATNAM',
-      invoiceNo: 'DEE2627103',
-      date: '01 May 2026',
-      amount: '138,214.24',
-      gst: '6,910.71',
-      total: '145,124.95',
-      payAmount: '0.00',
-      status: 'Pending'
-    },
-    {
-      id: 3,
-      client: 'FLEET MAINTENANCE UNIT VISAKHAPATNAM',
-      invoiceNo: 'DEE2627102',
-      date: '02 Apr 2026',
-      amount: '138,214.24',
-      gst: '6,910.71',
-      total: '145,124.95',
-      payAmount: '0.00',
-      status: 'Pending'
-    },
-    {
-      id: 4,
-      client: 'THE ADMIRAL SUPERINTENDANT OF NAVAL DOCKYARD (VISAKHAPATNAM)',
-      invoiceNo: 'DEE2627101',
-      date: '01 Apr 2026',
-      amount: '363,808.00',
-      gst: '18,190.40',
-      total: '381,998.40',
-      payAmount: '0.00',
-      status: 'Pending'
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    gstType: 'All GST Types',
+    financialYear: '2026-2027',
+    quarter: 'Quarter 1 (Apr-Jun) - Available'
+  });
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/SalesInvoices');
+      const data = await response.json();
+      setInvoices(data);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const toggleSelect = (id: number) => {
     setSelectedInvoices(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      gstType: 'All GST Types',
+      financialYear: '2026-2027',
+      quarter: 'Quarter 1 (Apr-Jun) - Available'
+    });
+    fetchInvoices();
   };
 
   return (
@@ -70,7 +57,7 @@ export function PrepareGSTR() {
           <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tight mt-1">Select invoices and prepare GSTR reports</p>
         </div>
         <div className="bg-cyan-500 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg shadow-cyan-100 uppercase tracking-widest">
-          4 Invoices Found
+          {invoices.length} Invoices Found
         </div>
       </div>
 
@@ -107,7 +94,10 @@ export function PrepareGSTR() {
                   <option>Quarter 1 (Apr-Jun) - Available</option>
                 </select>
               </div>
-              <button className="px-6 py-2.5 border-2 border-blue-100 text-blue-500 text-[11px] font-black rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+              <button 
+                onClick={handleClearFilters}
+                className="px-6 py-2.5 border-2 border-blue-100 text-blue-500 text-[11px] font-black rounded-lg hover:bg-blue-50 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+              >
                 <RefreshCcw className="w-4 h-4" /> Clear Filters
               </button>
             </div>
@@ -149,7 +139,20 @@ export function PrepareGSTR() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {invoices.map((inv) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-20 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Loading Invoices...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-4 py-20 text-center text-gray-400 font-bold uppercase text-[10px]">No invoices found</td>
+                  </tr>
+                ) : invoices.map((inv) => (
                   <tr key={inv.id} className={`hover:bg-gray-50 transition-colors ${selectedInvoices.includes(inv.id) ? 'bg-blue-50/30' : ''}`}>
                     <td className="px-4 py-5 text-center border-r border-gray-50">
                       <input 
@@ -164,7 +167,7 @@ export function PrepareGSTR() {
                         <div className="bg-blue-600 p-2 rounded shadow-sm">
                           <Building2 className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-bold text-gray-700 uppercase leading-tight max-w-[240px]">{inv.client}</span>
+                        <span className="font-bold text-gray-700 uppercase leading-tight max-w-[240px]">{inv.clientName}</span>
                       </div>
                     </td>
                     <td className="px-4 py-5 border-r border-gray-50 text-center">
@@ -172,11 +175,13 @@ export function PrepareGSTR() {
                         {inv.invoiceNo}
                       </span>
                     </td>
-                    <td className="px-4 py-5 border-r border-gray-50 text-center font-bold text-gray-400">{inv.date}</td>
-                    <td className="px-4 py-5 border-r border-gray-50 text-right font-bold text-gray-600">₹{inv.amount}</td>
-                    <td className="px-4 py-5 border-r border-gray-50 text-right font-black text-emerald-600">₹{inv.gst}</td>
-                    <td className="px-4 py-5 border-r border-gray-50 text-right font-black text-blue-600">₹{inv.total}</td>
-                    <td className="px-4 py-5 border-r border-gray-50 text-right font-bold text-amber-500">₹{inv.payAmount}</td>
+                    <td className="px-4 py-5 border-r border-gray-50 text-center font-bold text-gray-400">
+                      {inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                    </td>
+                    <td className="px-4 py-5 border-r border-gray-50 text-right font-bold text-gray-600">₹{inv.amount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-4 py-5 border-r border-gray-50 text-right font-black text-emerald-600">₹{inv.gstAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-4 py-5 border-r border-gray-50 text-right font-black text-blue-600">₹{inv.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-4 py-5 border-r border-gray-50 text-right font-bold text-amber-500">₹{inv.payAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="px-4 py-5 border-r border-gray-50 text-center">
                       <span className="bg-[#6b58d3] text-white text-[9px] font-black px-3 py-1 rounded-full uppercase shadow-sm">
                         {inv.status}

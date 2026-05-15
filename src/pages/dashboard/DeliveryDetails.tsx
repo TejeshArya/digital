@@ -10,7 +10,7 @@ interface DeliveryDetail {
   companyName: string;
   state: string;
   mobileNo: string;
-  email: string;
+  email: string
   pinCode: string;
   remarks: string;
   location: string;
@@ -64,8 +64,8 @@ export function DeliveryDetails() {
     }
 
     try {
-      const url = isEditing 
-        ? 'http://localhost:5076/api/deliverydetails/edit' 
+      const url = isEditing
+        ? 'http://localhost:5076/api/deliverydetails/edit'
         : 'http://localhost:5076/api/deliverydetails';
 
       const response = await fetch(url, {
@@ -141,7 +141,7 @@ export function DeliveryDetails() {
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">State</label>
-              <select 
+              <select
                 name="state"
                 value={formData.state}
                 onChange={handleInputChange}
@@ -221,14 +221,14 @@ export function DeliveryDetails() {
           </div>
 
           <div className="mt-6 flex gap-2">
-            <button 
+            <button
               onClick={handleSave}
               className={`px-8 py-2 text-white text-[11px] font-bold rounded shadow-sm transition-all uppercase tracking-wider ${isEditing ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#0061f2] hover:bg-blue-700'}`}
             >
               {isEditing ? 'Update' : 'Save'}
             </button>
             {isEditing && (
-              <button 
+              <button
                 onClick={resetForm}
                 className="px-8 py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded hover:bg-gray-200 transition-all uppercase tracking-wider"
               >
@@ -304,10 +304,10 @@ export function DeliveryDetails() {
                   <span className="text-[12px] font-bold uppercase tracking-wider">Business Info</span>
                 </div>
                 <div className="space-y-2 text-[12px]">
-                   <p className="text-gray-400 font-bold uppercase">Name</p>
-                   <p className="text-gray-700 font-bold text-sm">{selectedDelivery?.companyName}</p>
-                   <p className="text-gray-400 font-bold uppercase mt-3">State</p>
-                   <p className="text-gray-700 uppercase">{selectedDelivery?.state || 'N/A'}</p>
+                  <p className="text-gray-400 font-bold uppercase">Name</p>
+                  <p className="text-gray-700 font-bold text-sm">{selectedDelivery?.companyName}</p>
+                  <p className="text-gray-400 font-bold uppercase mt-3">State</p>
+                  <p className="text-gray-700 uppercase">{selectedDelivery?.state || 'N/A'}</p>
                 </div>
               </div>
               <div className="space-y-4">
@@ -316,33 +316,33 @@ export function DeliveryDetails() {
                   <span className="text-[12px] font-bold uppercase tracking-wider">Contact Details</span>
                 </div>
                 <div className="space-y-2 text-[12px]">
-                   <p className="text-gray-400 font-bold uppercase">Mobile</p>
-                   <p className="text-gray-700 font-bold">{selectedDelivery?.mobileNo || 'N/A'}</p>
-                   <p className="text-gray-400 font-bold uppercase mt-3">Email</p>
-                   <p className="text-gray-700 lowercase">{selectedDelivery?.email || 'N/A'}</p>
+                  <p className="text-gray-400 font-bold uppercase">Mobile</p>
+                  <p className="text-gray-700 font-bold">{selectedDelivery?.mobileNo || 'N/A'}</p>
+                  <p className="text-gray-400 font-bold uppercase mt-3">Email</p>
+                  <p className="text-gray-700 lowercase">{selectedDelivery?.email || 'N/A'}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-                <div className="flex items-center gap-2 text-[#0061f2] border-b border-blue-50 pb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-[12px] font-bold uppercase tracking-wider">Address & Location</span>
+              <div className="flex items-center gap-2 text-[#0061f2] border-b border-blue-50 pb-2">
+                <MapPin className="w-4 h-4" />
+                <span className="text-[12px] font-bold uppercase tracking-wider">Address & Location</span>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <div className="text-[12px]">
+                  <p className="text-gray-400 font-bold uppercase mb-1">Location</p>
+                  <p className="text-gray-700 uppercase leading-relaxed">{selectedDelivery?.location || 'No location specified'}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div className="text-[12px]">
-                    <p className="text-gray-400 font-bold uppercase mb-1">Location</p>
-                    <p className="text-gray-700 uppercase leading-relaxed">{selectedDelivery?.location || 'No location specified'}</p>
-                  </div>
-                  <div className="text-[12px]">
-                    <p className="text-gray-400 font-bold uppercase mb-1">Company Address</p>
-                    <p className="text-gray-700 uppercase leading-relaxed">{selectedDelivery?.address || 'No address specified'}</p>
-                  </div>
+                <div className="text-[12px]">
+                  <p className="text-gray-400 font-bold uppercase mb-1">Company Address</p>
+                  <p className="text-gray-700 uppercase leading-relaxed">{selectedDelivery?.address || 'No address specified'}</p>
                 </div>
+              </div>
             </div>
 
             <div className="flex justify-end pt-2">
-                <button onClick={() => setIsViewModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded hover:bg-gray-200 transition-colors uppercase">Close</button>
+              <button onClick={() => setIsViewModalOpen(false)} className="px-6 py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded hover:bg-gray-200 transition-colors uppercase">Close</button>
             </div>
           </div>
         </DialogContent>
