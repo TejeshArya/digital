@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, Search, Edit, Trash2, Eye, X, Building2, MapPin, 
-  Phone, Mail, Calendar, Info, Globe, ShieldCheck, Briefcase 
+import {
+  Plus, Search, Edit, Trash2, Eye, X, Building2, MapPin,
+  Phone, Mail, Calendar, Info, Globe, ShieldCheck, Briefcase
 } from 'lucide-react';
 import {
   Dialog,
@@ -84,7 +84,7 @@ export function CompanyGST() {
 
     try {
       const method = isEditing ? 'PUT' : 'POST';
-      const url = isEditing 
+      const url = isEditing
         ? `http://localhost:5076/api/companygsts/${formData.gstNumber}`
         : 'http://localhost:5076/api/companygsts';
 
@@ -139,10 +139,10 @@ export function CompanyGST() {
   const handleEdit = (company: CompanyGst) => {
     setIsEditing(true);
     // Format date for the input field (YYYY-MM-DD)
-    const formattedDate = company.companyEstablished 
-      ? new Date(company.companyEstablished).toISOString().split('T')[0] 
+    const formattedDate = company.companyEstablished
+      ? new Date(company.companyEstablished).toISOString().split('T')[0]
       : '';
-    
+
     setFormData({
       ...company,
       companyEstablished: formattedDate
@@ -165,7 +165,7 @@ export function CompanyGST() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">GST State Code</label>
-              <select 
+              <select
                 name="gstStateCode"
                 value={formData.gstStateCode}
                 onChange={handleInputChange}
@@ -297,6 +297,10 @@ export function CompanyGST() {
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Company Established</label>
               <input
                 type="date"
+
+
+
+
                 name="companyEstablished"
                 value={formData.companyEstablished}
                 onChange={handleInputChange}
@@ -305,7 +309,7 @@ export function CompanyGST() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">City</label>
-              <select 
+              <select
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
@@ -319,13 +323,23 @@ export function CompanyGST() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">GST Type</label>
-              <input
+              {/* <input
                 type="text"
                 name="gstType"
                 value={formData.gstType}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-600"
-              />
+              /> */}
+              <select
+                name="gstType"
+                value={formData.gstType}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-[#f4f4f4] border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-600"
+              >
+                <option value="">Select GST Type</option>
+                <option value="GST">GST</option>
+                <option value="Non-GST">Non-GST</option>
+              </select>
             </div>
 
             <div>
@@ -343,7 +357,7 @@ export function CompanyGST() {
 
           <div className="mt-6 flex justify-end gap-2">
             {isEditing && (
-              <button 
+              <button
                 onClick={() => {
                   setIsEditing(false);
                   setFormData({
@@ -358,13 +372,13 @@ export function CompanyGST() {
                 Cancel
               </button>
             )}
-            <button 
+            <button
               onClick={handleOpenAdditionalInfo}
               className="px-6 py-2.5 bg-blue-50 text-[#0061f2] text-xs font-bold rounded uppercase hover:bg-blue-100 transition-colors border border-blue-100"
             >
               Open Additional Info
             </button>
-            <button 
+            <button
               onClick={handleSave}
               className={`px-8 py-2.5 text-white text-xs font-bold rounded shadow-lg transition-all uppercase tracking-widest ${isEditing ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-100' : 'bg-[#0061f2] hover:bg-blue-700 shadow-blue-100'}`}
             >
@@ -428,23 +442,23 @@ export function CompanyGST() {
                       <td className="px-4 py-4 text-gray-500 border-r border-gray-50">{company.email}</td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button 
+                          <button
                             onClick={() => handleView(company)}
-                            className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm" 
+                            className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm"
                             title="View"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleEdit(company)}
-                            className="p-1.5 bg-orange-400 text-white rounded hover:bg-orange-500 transition-colors shadow-sm" 
+                            className="p-1.5 bg-orange-400 text-white rounded hover:bg-orange-500 transition-colors shadow-sm"
                             title="Edit"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(company.gstNumber)}
-                            className="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors shadow-sm" 
+                            className="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors shadow-sm"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -533,13 +547,13 @@ export function CompanyGST() {
                 {selectedCompany?.companyAddress || 'No address provided'}
               </div>
               <div className="bg-[#f2f8ff] p-4 rounded text-[12px] text-gray-600 italic">
-                 <p className="font-bold text-gray-400 mb-1 uppercase not-italic">REMARKS:</p>
+                <p className="font-bold text-gray-400 mb-1 uppercase not-italic">REMARKS:</p>
                 {selectedCompany?.remarks || 'No remarks available'}
               </div>
             </div>
 
             <div className="mt-8 flex justify-end">
-              <button 
+              <button
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-6 py-2 bg-[#6f42c1] text-white text-[12px] font-bold rounded hover:bg-[#5a32a3] transition-colors shadow-sm uppercase tracking-wider"
               >
@@ -590,7 +604,7 @@ export function CompanyGST() {
 
             <div className="space-y-1.5">
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Internal Notes / Documentation</label>
-              <textarea 
+              <textarea
                 rows={4}
                 placeholder="Enter internal notes for this company..."
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 transition-colors resize-none"
@@ -606,13 +620,13 @@ export function CompanyGST() {
           </div>
 
           <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-            <button 
+            <button
               onClick={() => setIsAdditionalInfoModalOpen(false)}
               className="px-6 py-2 text-gray-400 text-[11px] font-bold rounded uppercase hover:text-gray-600 transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={() => setIsAdditionalInfoModalOpen(false)}
               className="px-8 py-2.5 bg-[#1cc88a] text-white text-[11px] font-bold rounded shadow-sm hover:bg-[#17a673] transition-all uppercase tracking-widest flex items-center gap-2"
             >

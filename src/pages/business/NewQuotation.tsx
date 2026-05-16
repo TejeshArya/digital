@@ -25,7 +25,8 @@ interface QuotationItem {
 export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => void }) {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [hsnCodes, setHsnCodes] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [denominations, setDenominations] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
 
@@ -72,12 +73,19 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
 
   const fetchMasters = async () => {
     try {
-      const [catRes, hsnRes, denRes] = await Promise.all([
-        fetch('http://localhost:5076/api/categories'),
-        fetch('http://localhost:5076/api/hsncodes'),
-        fetch('http://localhost:5076/api/denominations')
+      const fetchCat = (cat: string) => fetch(`http://localhost:5076/api/MasterData/category/${cat}`).then(r => r.json());
+      
+      const [catList, subCatList, brandList, denomList] = await Promise.all([
+        fetchCat('Category'),
+        fetchCat('Sub Category'),
+        fetchCat('Brand'),
+        fetchCat('Denom')
       ]);
-      if (catRes.ok) setCategories(await catRes.json());
+
+      setCategories(catList);
+      setSubcategories(subCatList);
+      setBrands(brandList);
+      setDenominations(denomList);
     } catch (err) {
       console.error('Master fetch error:', err);
     }
@@ -85,7 +93,7 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
 
   const fetchDepartments = async () => {
     try {
-      const res = await fetch('http://localhost:5076/api/departments');
+      const res = await fetch('http://localhost:5076/api/MasterData/category/Department');
       if (res.ok) setDepartments(await res.json());
     } catch (err) {
       console.error('Dept fetch error:', err);
@@ -99,7 +107,11 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
 
   const handleItemInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setItemInput(prev => ({ ...prev, [name]: value }));
+    setItemInput(prev => {
+      const newState = { ...prev, [name]: value };
+      if (name === 'category') newState.subcategory = '';
+      return newState;
+    });
   };
 
   const calculateItemTotals = (qty: number, price: number, gstType: string) => {
@@ -296,13 +308,41 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
               <h2 className="text-[12px] font-bold text-gray-600 uppercase tracking-tight">Add Item</h2>
             </div>
             
-            <select name="category" value={itemInput.category} onChange={handleItemInputChange} className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm text-gray-600 font-medium">
+            <select 
+              name="category" 
+              value={itemInput.category} 
+              onChange={handleItemInputChange} 
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm text-gray-600 font-medium"
+            >
               <option value="">Select Category</option>
-              {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+              {categories.map(c => <option key={c.id} value={c.value}>{c.value}</option>)}
             </select>
             
-            <input type="text" name="subcategory" value={itemInput.subcategory} onChange={handleItemInputChange} placeholder="Subcategory" className="w-full px-3 py-2 border border-gray-200 rounded text-sm" />
-            <input type="text" name="brand" value={itemInput.brand} onChange={handleItemInputChange} placeholder="Brand" className="w-full px-3 py-2 border border-gray-200 rounded text-sm" />
+            <select 
+              name="subcategory" 
+              value={itemInput.subcategory} 
+              onChange={handleItemInputChange} 
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm text-gray-600 font-medium"
+            >
+              <option value="">Select Subcategory</option>
+              {subcategories
+                .filter(s => {
+                  const selectedCat = categories.find(c => c.value === itemInput.category);
+                  return !itemInput.category || s.parentId === selectedCat?.id;
+                })
+                .map(s => <option key={s.id} value={s.value}>{s.value}</option>)
+              }
+            </select>
+
+            <select 
+              name="brand" 
+              value={itemInput.brand} 
+              onChange={handleItemInputChange} 
+              className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm text-gray-600 font-medium"
+            >
+              <option value="">Select Brand</option>
+              {brands.map(b => <option key={b.id} value={b.value}>{b.value}</option>)}
+            </select>
             
             <textarea name="description" value={itemInput.description} onChange={handleItemInputChange} placeholder="Description" rows={3} className="w-full px-3 py-2 border border-gray-200 rounded text-sm resize-none" />
             
@@ -310,7 +350,15 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
             
             <div className="grid grid-cols-2 gap-4">
               <input type="text" name="hsn" value={itemInput.hsn} onChange={handleItemInputChange} placeholder="HSN Code" className="w-full px-3 py-2 border border-gray-200 rounded text-sm" />
-              <input type="text" name="denom" value={itemInput.denom} onChange={handleItemInputChange} placeholder="Denom (e.g. Nos)" className="w-full px-3 py-2 border border-gray-200 rounded text-sm" />
+              <select 
+                name="denom" 
+                value={itemInput.denom} 
+                onChange={handleItemInputChange} 
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm text-gray-600 font-medium"
+              >
+                <option value="">Select Denom</option>
+                {denominations.map(d => <option key={d.id} value={d.value}>{d.value}</option>)}
+              </select>
             </div>
             
             <div className="grid grid-cols-2 gap-4">

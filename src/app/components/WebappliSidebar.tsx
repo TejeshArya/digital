@@ -11,7 +11,7 @@ interface SidebarProps {
   isOpen: boolean;
   currentPath: string;
   onNavigate: (path: string) => void;
-  user: { name: string; email?: string; role?: string } | null;
+  user: { name: string; fullName?: string; email?: string; role?: string } | null;
 }
 
 export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps) {

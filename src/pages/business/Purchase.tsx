@@ -32,7 +32,11 @@ interface PurchaseItem {
 export function Purchase() {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [denominations, setDenominations] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [items, setItems] = useState<PurchaseItem[]>([]);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
@@ -71,12 +75,23 @@ export function Purchase() {
 
   const fetchMasters = async () => {
     try {
-      const [catRes, deptRes] = await Promise.all([
-        fetch('http://localhost:5076/api/categories'),
-        fetch('http://localhost:5076/api/departments')
+      const fetchCat = (cat: string) => fetch(`http://localhost:5076/api/MasterData/category/${cat}`).then(r => r.json());
+      
+      const [catList, subCatList, brandList, denomList, locList, postList] = await Promise.all([
+        fetchCat('Category'),
+        fetchCat('Sub Category'),
+        fetchCat('Brand'),
+        fetchCat('Denom'),
+        fetchCat('Location'),
+        fetchCat('Post')
       ]);
-      if (catRes.ok) setCategories(await catRes.json());
-      if (deptRes.ok) setDepartments(await deptRes.json());
+
+      setCategories(catList);
+      setSubcategories(subCatList);
+      setBrands(brandList);
+      setDenominations(denomList);
+      setLocations(locList);
+      setPosts(postList);
     } catch (err) {
       console.error('Master fetch error:', err);
     }
@@ -221,7 +236,7 @@ export function Purchase() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                 <select name="designation" value={header.designation} onChange={handleHeaderChange} className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 font-bold text-gray-700">
                   <option value="">Search & select post...</option>
-                  {departments.map((d: any) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  {posts.map((p: any) => <option key={p.id} value={p.value}>{p.value}</option>)}
                 </select>
               </div>
             </div>
@@ -278,24 +293,47 @@ export function Purchase() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Category</label>
-                <input
-                  type="text"
+                <select
                   name="category"
                   value={itemInput.category}
                   onChange={handleItemInputChange}
-                  placeholder="Enter category"
                   className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none"
-                />
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((c: any) => <option key={c.id} value={c.value}>{c.value}</option>)}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Subcategory</label>
-                <input type="text" name="subcategory" value={itemInput.subcategory} onChange={handleItemInputChange} className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none" />
+                <select 
+                  name="subcategory" 
+                  value={itemInput.subcategory} 
+                  onChange={handleItemInputChange} 
+                  className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none"
+                >
+                  <option value="">Select Subcategory</option>
+                  {subcategories
+                    .filter(s => {
+                      const selectedCat = categories.find(c => c.value === itemInput.category);
+                      return !itemInput.category || s.parentId === selectedCat?.id;
+                    })
+                    .map((s: any) => <option key={s.id} value={s.value}>{s.value}</option>)
+                  }
+                </select>
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="text-[9px] font-bold text-gray-400 uppercase">Brand</label>
-              <input type="text" name="brand" value={itemInput.brand} onChange={handleItemInputChange} className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none" />
+              <select 
+                name="brand" 
+                value={itemInput.brand} 
+                onChange={handleItemInputChange} 
+                className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none"
+              >
+                <option value="">Select Brand</option>
+                {brands.map((b: any) => <option key={b.id} value={b.value}>{b.value}</option>)}
+              </select>
             </div>
 
             <div className="space-y-1">
@@ -317,7 +355,15 @@ export function Purchase() {
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Denom</label>
-                <input type="text" name="denom" value={itemInput.denom} onChange={handleItemInputChange} className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none" />
+                <select 
+                  name="denom" 
+                  value={itemInput.denom} 
+                  onChange={handleItemInputChange} 
+                  className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none"
+                >
+                  <option value="">Select Denom</option>
+                  {denominations.map((d: any) => <option key={d.id} value={d.value}>{d.value}</option>)}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Qty</label>
@@ -354,7 +400,15 @@ export function Purchase() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Location</label>
-                <input type="text" name="location" value={itemInput.location} onChange={handleItemInputChange} className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none" />
+                <select 
+                  name="location" 
+                  value={itemInput.location} 
+                  onChange={handleItemInputChange} 
+                  className="w-full px-2 py-2 border border-gray-100 rounded text-xs focus:outline-none"
+                >
+                  <option value="">Select Location</option>
+                  {locations.map((l: any) => <option key={l.id} value={l.value}>{l.value}</option>)}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Type</label>
