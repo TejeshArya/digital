@@ -20,6 +20,7 @@ interface Company {
 export function SubGST() {
   const [records, setRecords] = useState<SubGst[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<SubGst>({
     companyName: '',
@@ -30,11 +31,23 @@ export function SubGST() {
     remarks: '',
     status: true
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchRecords();
     fetchCompanies();
+    fetchDepartments();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('http://localhost:5076/api/MasterData/category/Client%20Department');
+      const data = await response.json();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
 
   const fetchRecords = async () => {
     try {
@@ -60,11 +73,14 @@ export function SubGST() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+    let { name, value, type } = e.target as HTMLInputElement;
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
+      if (name === 'mobile') {
+        value = value.replace(/[^0-9]/g, '').substring(0, 10);
+      }
       setFormData(prev => ({ ...prev, [name]: value }));
       
       // Auto-fill GST Number if company is selected
@@ -75,11 +91,34 @@ export function SubGST() {
         }
       }
     }
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.companyName) {
+      newErrors.companyName = 'Company is required';
+    }
+    if (!formData.officerName.trim()) {
+      newErrors.officerName = 'Officer Name is required';
+    }
+
+    const mobileRegex = /^[6-9][0-9]{9}$/;
+    if (formData.mobile && !mobileRegex.test(formData.mobile)) {
+      newErrors.mobile = 'Must be 10 digits starting with 6-9';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    if (!formData.companyName || !formData.officerName) {
-      alert('Please fill required fields');
+    if (!validateForm()) {
+      alert('Please correct validation errors first');
       return;
     }
 
@@ -149,10 +188,9 @@ export function SubGST() {
               className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none text-sm"
             >
               <option value="">Select Department</option>
-              <option value="ELECTRICAL">ELECTRICAL</option>
-              <option value="MECHANICAL">MECHANICAL</option>
-              <option value="CIVIL">CIVIL</option>
-              <option value="HR">HR</option>
+              {departments.map((dept: any) => (
+                <option key={dept.id} value={dept.value}>{dept.value}</option>
+              ))}
             </select>
             <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -166,8 +204,9 @@ export function SubGST() {
             value={formData.officerName}
             onChange={handleInputChange}
             placeholder="Officer Name"
-            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+            className={`w-full px-4 py-2.5 bg-white border rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm ${errors.officerName ? 'border-red-500 focus:ring-red-500/20' : 'border-gray-200'}`}
           />
+          {errors.officerName && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.officerName}</p>}
         </div>
 
         <div className="space-y-1.5">
@@ -178,8 +217,10 @@ export function SubGST() {
             value={formData.mobile}
             onChange={handleInputChange}
             placeholder="Mobile Number"
-            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+            maxLength={10}
+            className={`w-full px-4 py-2.5 bg-white border rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm ${errors.mobile ? 'border-red-500 focus:ring-red-500/20' : 'border-gray-200'}`}
           />
+          {errors.mobile && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.mobile}</p>}
         </div>
 
         <div className="space-y-1.5">

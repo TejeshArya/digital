@@ -14,7 +14,7 @@ interface UserProfile {
   status: string;
 }
 
-export function EmployeePortal() {
+export function EmployeePortal({ onNavigate }: { onNavigate?: (path: string) => void }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,25 +32,43 @@ export function EmployeePortal() {
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
+      } else {
+        // Mock fallback if offline/error
+        setProfile({
+          name: 'SANJAY KUMAR MAHATO',
+          email: email,
+          employeeId: 'DEE251225103',
+          department: { name: 'P & P' },
+          location: { name: 'JAMNAGAR' },
+          status: 'Active'
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile({
+        name: 'SANJAY KUMAR MAHATO',
+        email: email,
+        employeeId: 'DEE251225103',
+        department: { name: 'P & P' },
+        location: { name: 'JAMNAGAR' },
+        status: 'Active'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const actionCards = [
-    { label: 'Mark Attendance', icon: Fingerprint, color: 'text-cyan-500', border: 'border-cyan-100', bg: 'bg-cyan-50' },
-    { label: 'View Profile', icon: Eye, color: 'text-blue-500', border: 'border-blue-100', bg: 'bg-blue-50' },
-    { label: 'Update Profile', icon: UserIcon, color: 'text-amber-500', border: 'border-amber-100', bg: 'bg-amber-50' },
-    { label: 'Apply for Leave', icon: CalendarPlus, color: 'text-emerald-500', border: 'border-emerald-100', bg: 'bg-emerald-50' },
-    { label: 'Purchase Request', icon: ShoppingCart, color: 'text-slate-600', border: 'border-slate-100', bg: 'bg-slate-50' },
-    { label: 'Pay', icon: Banknote, color: 'text-emerald-500', border: 'border-emerald-100', bg: 'bg-emerald-50', badge: '19' },
-    { label: 'Manage Requests', icon: ListTodo, color: 'text-rose-500', border: 'border-rose-100', bg: 'bg-rose-50', badge: '30' },
-    { label: 'All Edited Purchases', icon: History, color: 'text-teal-500', border: 'border-teal-100', bg: 'bg-teal-50', badge: '6' },
-    { label: 'Finalized', icon: CheckCircle, color: 'text-indigo-500', border: 'border-indigo-100', bg: 'bg-indigo-50' },
-    { label: 'Work Assigned', icon: ClipboardList, color: 'text-sky-500', border: 'border-sky-100', bg: 'bg-sky-50' },
+    { label: 'Mark Attendance', icon: Fingerprint, color: 'text-cyan-500', border: 'border-cyan-100', bg: 'bg-cyan-50', path: '/hr/attendance/daily' },
+    { label: 'View Profile', icon: Eye, color: 'text-blue-500', border: 'border-blue-100', bg: 'bg-blue-50', path: '/portal/view-profile' },
+    { label: 'Update Profile', icon: UserIcon, color: 'text-amber-500', border: 'border-amber-100', bg: 'bg-amber-50', path: '/portal/profile' },
+    { label: 'Apply for Leave', icon: CalendarPlus, color: 'text-emerald-500', border: 'border-emerald-100', bg: 'bg-emerald-50', path: '/hr/leave/apply' },
+    { label: 'Purchase Request', icon: ShoppingCart, color: 'text-slate-600', border: 'border-slate-100', bg: 'bg-slate-50', path: '/purchase' },
+    { label: 'Pay', icon: Banknote, color: 'text-emerald-500', border: 'border-emerald-100', bg: 'bg-emerald-50', badge: '19', path: '/hr/salaries' },
+    { label: 'Manage Requests', icon: ListTodo, color: 'text-rose-500', border: 'border-rose-100', bg: 'bg-rose-50', badge: '30', path: '/hr/profile-updates' },
+    { label: 'All Edited Purchases', icon: History, color: 'text-teal-500', border: 'border-teal-100', bg: 'bg-teal-50', badge: '6', path: '/purchase/manage' },
+    { label: 'Finalized', icon: CheckCircle, color: 'text-indigo-500', border: 'border-indigo-100', bg: 'bg-indigo-50', path: '/invoices/all' },
+    { label: 'Work Assigned', icon: ClipboardList, color: 'text-sky-500', border: 'border-sky-100', bg: 'bg-sky-50', path: '/projects' },
   ];
 
   if (loading) {
@@ -87,7 +105,8 @@ export function EmployeePortal() {
         {actionCards.map((card, index) => (
           <div 
             key={index}
-            className={`bg-white border ${card.border} rounded-xl p-5 flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all cursor-pointer relative group`}
+            onClick={() => card.path && onNavigate && onNavigate(card.path)}
+            className={`bg-white border ${card.border} rounded-xl p-5 flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md transition-all cursor-pointer relative group active:scale-95`}
           >
             <div className={`${card.color} ${card.bg} p-3 rounded-xl group-hover:scale-110 transition-transform`}>
               <card.icon className="w-6 h-6" />

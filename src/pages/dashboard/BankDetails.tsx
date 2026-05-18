@@ -34,9 +34,29 @@ export function BankDetails() {
     category: ''
   });
 
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [banks, setBanks] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+
   useEffect(() => {
     fetchRecords();
+    fetchMasterData();
   }, []);
+
+  const fetchMasterData = async () => {
+    try {
+      const [companiesRes, banksRes, categoriesRes] = await Promise.all([
+        fetch('http://localhost:5076/api/companygsts'),
+        fetch('http://localhost:5076/api/banks'),
+        fetch('http://localhost:5076/api/MasterData/category/Category')
+      ]);
+      setCompanies(await companiesRes.json());
+      setBanks(await banksRes.json());
+      setCategories(await categoriesRes.json());
+    } catch (error) {
+      console.error('Error fetching master data:', error);
+    }
+  };
 
   const fetchRecords = async () => {
     try {
@@ -136,25 +156,37 @@ export function BankDetails() {
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Company Name</label>
-              <input
-                type="text"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleInputChange}
-                placeholder="Enter Company Name"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              />
+              <div className="relative">
+                <select
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 appearance-none"
+                >
+                  <option value="">Select Company</option>
+                  {companies.map((c: any) => (
+                    <option key={c.gstNumber} value={c.companyName}>{c.companyName}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Bank Name</label>
-              <input
-                type="text"
-                name="bankName"
-                value={formData.bankName}
-                onChange={handleInputChange}
-                placeholder="Enter Bank Name"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              />
+              <div className="relative">
+                <select
+                  name="bankName"
+                  value={formData.bankName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 appearance-none"
+                >
+                  <option value="">Select Bank</option>
+                  {banks.map((b: any) => (
+                    <option key={b.id} value={b.bankName}>{b.bankName}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -227,14 +259,20 @@ export function BankDetails() {
 
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Category</label>
-              <input
-                type="text"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                placeholder="e.g. Savings, Current"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
-              />
+              <div className="relative">
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 appearance-none"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.value}>{cat.value}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 

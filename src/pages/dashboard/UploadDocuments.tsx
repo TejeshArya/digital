@@ -1,5 +1,5 @@
-import { Upload, File, FileText, Image, CheckCircle, X, LayoutDashboard, Files, Plus, Lightbulb, ChevronDown, RefreshCw, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Upload, FileText, Folder, Tag, ArrowLeft, Files, Plus, CheckCircle, AlertCircle, ChevronDown, RefreshCw } from 'lucide-react';
 
 interface UploadDocumentsProps {
   onNavigate?: (path: string) => void;
@@ -18,10 +18,30 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [subSubCategories, setSubSubCategories] = useState<any[]>([]);
+
   const user = JSON.parse(localStorage.getItem('user') || '{"email": "anonymous@company.com"}');
 
-  const categories = ['KYC Documents', 'Educational Documents', 'Work Experience', 'Certifications', 'Other'];
-  const subCategories = ['Identity Proof', 'Address Proof', 'Degree Certificate', 'Offer Letter', 'Payslip'];
+  useEffect(() => {
+    fetchMasterData();
+  }, []);
+
+  const fetchMasterData = async () => {
+    try {
+      const [catRes, subRes, subSubRes] = await Promise.all([
+        fetch('http://localhost:5076/api/MasterData/category/Document%20Category'),
+        fetch('http://localhost:5076/api/MasterData/category/Sub%20Document%20Category'),
+        fetch('http://localhost:5076/api/MasterData/category/Sub-Sub%20Document%20Category')
+      ]);
+      setCategories(await catRes.json());
+      setSubCategories(await subRes.json());
+      setSubSubCategories(await subSubRes.json());
+    } catch (e) {
+      console.error('Error fetching master data:', e);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -47,7 +67,7 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
 
     const data = new FormData();
     data.append('File', selectedFile);
-    data.append('EmployeeEmail', user.email || user.Email); // Handle different case from login
+    data.append('EmployeeEmail', user.email || user.Email);
     data.append('Category', formData.category);
     data.append('SubCategory', formData.subCategory);
     data.append('SubSubCategory', formData.subSubCategory);
@@ -70,7 +90,6 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
           remarks: ''
         });
         setSelectedFile(null);
-        // Clear file input manually if needed
       } else {
         const errData = await response.json();
         setError(errData.message || 'Failed to upload document.');
@@ -84,92 +103,126 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
   };
 
   return (
-    <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-gray-700">
-          <Upload className="w-5 h-5" />
-          <h1 className="text-lg font-bold uppercase tracking-tight">Upload Documents</h1>
+    <div className="p-6 bg-[#f8f9fc] min-h-screen font-sans">
+      {/* Top Header Section */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2 text-gray-800">
+          <Upload className="w-6 h-6 text-gray-600" />
+          <h1 className="text-xl font-bold tracking-tight text-gray-800">Upload Documents</h1>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={() => onNavigate?.('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#4e73df] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90 transition-all uppercase"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#6b21a8] text-white text-[12px] font-semibold rounded hover:bg-[#581c87] transition-all shadow-sm uppercase tracking-wider"
           >
-            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+            <ArrowLeft className="w-4 h-4" /> Dashboard
           </button>
           <button 
             onClick={() => onNavigate?.('/my-documents')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#4e73df] text-white text-[11px] font-bold rounded shadow-sm hover:opacity-90 transition-all uppercase"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#0d6efd] text-white text-[12px] font-semibold rounded hover:bg-[#0b5ed7] transition-all shadow-sm uppercase tracking-wider"
           >
-            <Files className="w-3.5 h-3.5" /> My Documents
+            <Files className="w-4 h-4" /> My Documents
+          </button>
+          <button 
+            onClick={() => {
+              setFormData({ category: '', subCategory: '', subSubCategory: '', documentName: '', remarks: '' });
+              setSelectedFile(null);
+              setSuccess(false);
+              setError(null);
+            }}
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#198754] text-white text-[12px] font-semibold rounded hover:bg-[#157347] transition-all shadow-sm uppercase tracking-wider"
+          >
+            <Plus className="w-4 h-4" /> Upload New
           </button>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleUpload} className="bg-white rounded-lg shadow-sm border border-gray-100 mb-6 overflow-hidden">
-          <div className="bg-[#0061f2] p-4 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-white" />
-            <h2 className="text-white font-bold text-xs uppercase tracking-wider">Upload New Document</h2>
+          <div className="bg-[#0061f2] p-4 flex items-center gap-2.5">
+            <Upload className="w-5 h-5 text-white" />
+            <h2 className="text-white font-bold text-[13px] uppercase tracking-wider">Upload New Document</h2>
           </div>
 
-          <div className="p-10 space-y-8">
+          <div className="p-8 space-y-6">
             {error && (
-              <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600 animate-shake">
+              <div className="p-4 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-3 text-rose-600">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-[11px] font-black uppercase tracking-widest">{error}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider">{error}</p>
               </div>
             )}
 
             {success && (
-              <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 text-emerald-600">
+              <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center gap-3 text-emerald-600">
                 <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-[11px] font-black uppercase tracking-widest">Document uploaded successfully!</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider">Document uploaded successfully!</p>
               </div>
             )}
 
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                  <Files className="w-3.5 h-3.5 text-blue-600" /> Document Category <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select 
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full pl-3 pr-10 py-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 appearance-none transition-all"
-                  >
-                    <option value="">Select Document Category</option>
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                  <Files className="w-3.5 h-3.5 text-blue-600" /> Sub Document Category
-                </label>
-                <div className="relative">
-                  <select 
-                    name="subCategory"
-                    value={formData.subCategory}
-                    onChange={handleInputChange}
-                    className="w-full pl-3 pr-10 py-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 appearance-none transition-all"
-                  >
-                    <option value="">Select Sub Document Category</option>
-                    {subCategories.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+            {/* Document Category */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <Folder className="w-3.5 h-3.5 text-blue-600" /> Document Category <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <div className="relative">
+                <select 
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-400 appearance-none transition-all"
+                >
+                  <option value="">Select Document Category</option>
+                  {categories.map(c => <option key={c.id} value={c.value}>{c.value}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                <FileText className="w-3.5 h-3.5 text-blue-600" /> Document Name <span className="text-red-500">*</span>
+            {/* Sub Document Category */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <Folder className="w-3.5 h-3.5 text-blue-600" /> Sub Document Category <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <div className="relative">
+                <select 
+                  name="subCategory"
+                  value={formData.subCategory}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-400 appearance-none transition-all"
+                >
+                  <option value="">Select Sub Document Category</option>
+                  {subCategories.map(s => <option key={s.id} value={s.value}>{s.value}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Sub-Sub Document Category */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <Folder className="w-3.5 h-3.5 text-blue-600" /> Sub-Sub Document Category <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <div className="relative">
+                <select 
+                  name="subSubCategory"
+                  value={formData.subSubCategory}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-400 appearance-none transition-all"
+                >
+                  <option value="">Select Sub-Sub Document Category</option>
+                  {subSubCategories.map(ss => <option key={ss.id} value={ss.value}>{ss.value}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Document Name */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <Tag className="w-3.5 h-3.5 text-blue-600" /> Document Name <span className="text-red-500 ml-0.5">*</span>
               </label>
               <input
                 type="text"
@@ -178,31 +231,30 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
                 onChange={handleInputChange}
                 required
                 placeholder="e.g., Aadhar Card, Passport, Resume, Certificate"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-300"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-400 transition-all placeholder:text-gray-300"
               />
-              <p className="text-[10px] text-gray-400 mt-1 font-medium italic">Enter a descriptive name for your document</p>
+              <p className="text-[10px] text-gray-400 mt-1 font-medium">Enter a descriptive name for your document</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                <Plus className="w-3.5 h-3.5 text-blue-600" /> Select File <span className="text-red-500">*</span>
+            {/* Select File */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <FileText className="w-3.5 h-3.5 text-blue-600" /> Select File <span className="text-red-500 ml-0.5">*</span>
               </label>
-              <div className="border border-dashed border-gray-300 rounded-lg p-2 flex items-center bg-[#fdfdfd]">
+              <div className="border border-dashed border-gray-300 rounded-lg p-2.5 flex items-center bg-gray-50/30">
                 <input 
                   type="file" 
                   onChange={handleFileChange}
-                  className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer w-full"
+                  required
+                  className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-r file:border-gray-200 file:text-[12px] file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer w-full"
                 />
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-tight">
-                <CheckCircle className="w-3 h-3 text-blue-500" />
-                <span>PDF, DOC, XLS, JPG, PNG (Max 100MB)</span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-                <Files className="w-3.5 h-3.5 text-blue-600" /> Remarks (Optional)
+            {/* Remarks */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                <FileText className="w-3.5 h-3.5 text-blue-600" /> Remarks (Optional)
               </label>
               <textarea
                 name="remarks"
@@ -210,15 +262,16 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
                 onChange={handleInputChange}
                 placeholder="Add any additional notes or description about this document..."
                 rows={3}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-all placeholder:text-gray-300"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-400 transition-all placeholder:text-gray-300"
               />
             </div>
 
-            <div className="space-y-3 pt-4">
+            {/* Submit & Reset Buttons */}
+            <div className="flex gap-2 pt-4">
               <button 
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3.5 bg-[#0061f2] text-white text-[11px] font-extrabold rounded-lg shadow-lg shadow-blue-200 uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex-1 py-3 bg-[#0061f2] text-white text-[12px] font-bold rounded shadow-sm uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                 {loading ? 'Uploading...' : 'Upload Document'}
@@ -226,30 +279,14 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
               <button 
                 type="button"
                 onClick={() => setFormData({ category: '', subCategory: '', subSubCategory: '', documentName: '', remarks: '' })}
-                className="w-full py-3 bg-white border border-purple-200 text-purple-600 text-[11px] font-extrabold rounded-lg uppercase tracking-widest hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 bg-gray-100 text-gray-600 text-[12px] font-bold rounded uppercase tracking-wider hover:bg-gray-200 transition-all"
               >
-                <X className="w-4 h-4" /> Reset Form
+                Reset Form
               </button>
             </div>
           </div>
         </form>
-
-        <div className="bg-[#fdfdfd] border border-gray-100 rounded-lg p-6 flex gap-6 mt-8">
-          <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-amber-100">
-            <Lightbulb className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800 text-sm mb-3">Quick Tips:</h3>
-            <ul className="text-xs text-gray-500 space-y-2 list-disc ml-4 font-medium">
-              <li>Ensure your document is clear and readable before uploading</li>
-              <li>Use descriptive names to easily identify documents later</li>
-              <li>PDF format is recommended for official documents</li>
-              <li>You can upload multiple documents one by one</li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
-

@@ -26,6 +26,11 @@ interface CompanyGst {
   city: string;
   gstType: string;
   dealsIn: string;
+  secondaryMobileNo: string;
+  color: string;
+  logoPath: string;
+  headerPath: string;
+  footerPath: string;
 }
 
 export function CompanyGST() {
@@ -34,8 +39,16 @@ export function CompanyGST() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isAdditionalInfoModalOpen, setIsAdditionalInfoModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<CompanyGst | null>(null);
+  const [statesList, setStatesList] = useState<any[]>([]);
+  const [citiesList, setCitiesList] = useState<any[]>([]);
+  const [gstTypeList, setGstTypeList] = useState<any[]>([]);
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [headerFile, setHeaderFile] = useState<File | null>(null);
+  const [footerFile, setFooterFile] = useState<File | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<CompanyGst>({
     gstNumber: '',
     gstStateCode: '',
@@ -51,12 +64,33 @@ export function CompanyGST() {
     companyEstablished: '',
     city: '',
     gstType: 'GST',
-    dealsIn: ''
+    dealsIn: '',
+    secondaryMobileNo: '',
+    color: '',
+    logoPath: '',
+    headerPath: '',
+    footerPath: ''
   });
 
   useEffect(() => {
     fetchCompanies();
+    fetchMasterData();
   }, []);
+
+  const fetchMasterData = async () => {
+    try {
+      const [statesRes, citiesRes, gstTypeRes] = await Promise.all([
+        fetch('http://localhost:5076/api/MasterData/category/State'),
+        fetch('http://localhost:5076/api/MasterData/category/City'),
+        fetch('http://localhost:5076/api/MasterData/category/GST Type')
+      ]);
+      setStatesList(await statesRes.json());
+      setCitiesList(await citiesRes.json());
+      setGstTypeList(await gstTypeRes.json());
+    } catch (e) { 
+      console.error('Error fetching master data:', e); 
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -72,13 +106,111 @@ export function CompanyGST() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let { name, value } = e.target;
+    
+    // Automatically force uppercase on alphanumeric codes and strip spaces & special characters
+    if (name === 'gstNumber' || name === 'panNumber' || name === 'tanNumber') {
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    // Only allow numeric digits for phone and PIN fields
+    if (name === 'mobileNumber' || name === 'secondaryMobileNo' || name === 'pinCode') {
+      value = value.replace(/[^0-9]/g, '');
+    }
+
+    // Enforce absolute maximum lengths
+    const maxLengths: Record<string, number> = {
+      gstNumber: 15,
+      panNumber: 10,
+      tanNumber: 10,
+      mobileNumber: 10,
+      secondaryMobileNo: 10,
+      pinCode: 6
+    };
+
+    if (maxLengths[name]) {
+      value = value.substring(0, maxLengths[name]);
+    }
+
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      if (name === 'gstStateCode') {
+        newData.city = '';
+        const selectedState = statesList.find(s => s.gstStateCode === value);
+        if (selectedState) {
+          newData.stateName = selectedState.value;
+        } else {
+          newData.stateName = '';
+        }
+      }
+      return newData;
+    });
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // GSTIN validation rules:
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+    if (!formData.gstNumber) {
+      newErrors.gstNumber = 'GST Number is required';
+    } else if (!gstRegex.test(formData.gstNumber)) {
+      newErrors.gstNumber = 'Invalid GSTIN format (e.g. 22AAAAA1111A1Z1)';
+    }
+
+    // Company Name validation: at least 3 characters
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company Name is required';
+    } else if (formData.companyName.trim().length < 3) {
+      newErrors.companyName = 'Must be at least 3 characters';
+    }
+
+    // PAN validation: exactly 10 characters (5 letters, 4 digits, 1 letter)
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+    if (formData.panNumber && !panRegex.test(formData.panNumber)) {
+      newErrors.panNumber = 'Invalid PAN format (e.g. AAAAA1111A)';
+    }
+
+    // TAN validation: exactly 10 characters (4 letters, 5 digits, 1 letter)
+    const tanRegex = /^[A-Z]{4}[0-9]{5}[A-Z]$/;
+    if (formData.tanNumber && !tanRegex.test(formData.tanNumber)) {
+      newErrors.tanNumber = 'Invalid TAN format (e.g. AAAA11111A)';
+    }
+
+    // Mobile Number validation: exactly 10 digits starting with 6-9
+    const mobileRegex = /^[6-9][0-9]{9}$/;
+    if (formData.mobileNumber && !mobileRegex.test(formData.mobileNumber)) {
+      newErrors.mobileNumber = 'Must be 10 digits starting with 6-9';
+    }
+
+    if (formData.secondaryMobileNo && !mobileRegex.test(formData.secondaryMobileNo)) {
+      newErrors.secondaryMobileNo = 'Must be 10 digits starting with 6-9';
+    }
+
+    // Email validation: standard format
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = 'Invalid Email address';
+    }
+
+    // Pin Code validation: exactly 6 digits starting with non-zero
+    const pinRegex = /^[1-9][0-9]{5}$/;
+    if (formData.pinCode && !pinRegex.test(formData.pinCode)) {
+      newErrors.pinCode = 'Must be exactly 6 digits';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    if (!formData.gstNumber || !formData.companyName) {
-      alert('Please fill GST Number and Company Name');
+    if (!validateForm()) {
+      alert('Please correct validation errors first');
       return;
     }
 
@@ -88,10 +220,15 @@ export function CompanyGST() {
         ? `http://localhost:5076/api/companygsts/${formData.gstNumber}`
         : 'http://localhost:5076/api/companygsts';
 
+      const formPayload = new FormData();
+      formPayload.append('data', JSON.stringify(formData));
+      if (logoFile) formPayload.append('logo', logoFile);
+      if (headerFile) formPayload.append('header', headerFile);
+      if (footerFile) formPayload.append('footer', footerFile);
+
       const response = await fetch(url, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: formPayload
       });
 
       if (response.ok) {
@@ -101,8 +238,12 @@ export function CompanyGST() {
           gstNumber: '', gstStateCode: '', companyName: '', panNumber: '',
           tanNumber: '', mobileNumber: '', stateName: '', email: '',
           pinCode: '', companyAddress: '', remarks: '', companyEstablished: '',
-          city: '', gstType: 'GST', dealsIn: ''
+          city: '', gstType: 'GST', dealsIn: '',
+          secondaryMobileNo: '', color: '', logoPath: '', headerPath: '', footerPath: ''
         });
+        setLogoFile(null);
+        setHeaderFile(null);
+        setFooterFile(null);
         setIsEditing(false);
       } else {
         const error = await response.json();
@@ -145,8 +286,16 @@ export function CompanyGST() {
 
     setFormData({
       ...company,
-      companyEstablished: formattedDate
+      companyEstablished: formattedDate,
+      secondaryMobileNo: company.secondaryMobileNo || '',
+      color: company.color || '',
+      logoPath: company.logoPath || '',
+      headerPath: company.headerPath || '',
+      footerPath: company.footerPath || ''
     });
+    setLogoFile(null);
+    setHeaderFile(null);
+    setFooterFile(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -172,10 +321,9 @@ export function CompanyGST() {
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-600"
               >
                 <option value="">Select GST code</option>
-                <option value="27">27 - Maharashtra</option>
-                <option value="33">33 - Tamil Nadu</option>
-                <option value="37">37 - Andhra Pradesh</option>
-                <option value="20">20 - Jharkhand</option>
+                {statesList.map((s: any) => (
+                  <option key={s.id} value={s.gstStateCode}>{s.gstStateCode}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -187,8 +335,10 @@ export function CompanyGST() {
                 onChange={handleInputChange}
                 readOnly={isEditing}
                 placeholder="GST number"
-                className={`w-full px-3 py-2 border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${isEditing ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white border-gray-200'}`}
+                maxLength={15}
+                className={`w-full px-3 py-2 border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${isEditing ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white border-gray-200'} ${errors.gstNumber ? 'border-red-500' : ''}`}
               />
+              {errors.gstNumber && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.gstNumber}</p>}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Company Name <span className="text-red-500">*</span></label>
@@ -198,8 +348,9 @@ export function CompanyGST() {
                 value={formData.companyName}
                 onChange={handleInputChange}
                 placeholder="Company name"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.companyName ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.companyName && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.companyName}</p>}
             </div>
 
             <div>
@@ -210,8 +361,10 @@ export function CompanyGST() {
                 value={formData.panNumber}
                 onChange={handleInputChange}
                 placeholder="PAN number"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                maxLength={10}
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.panNumber ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.panNumber && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.panNumber}</p>}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">TAN Number</label>
@@ -221,8 +374,10 @@ export function CompanyGST() {
                 value={formData.tanNumber}
                 onChange={handleInputChange}
                 placeholder="TAN number"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                maxLength={10}
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.tanNumber ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.tanNumber && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.tanNumber}</p>}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Mobile Number</label>
@@ -232,8 +387,10 @@ export function CompanyGST() {
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
                 placeholder="Mobile number"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                maxLength={10}
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.mobileNumber ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.mobileNumber && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.mobileNumber}</p>}
             </div>
 
             <div>
@@ -242,9 +399,9 @@ export function CompanyGST() {
                 type="text"
                 name="stateName"
                 value={formData.stateName}
-                onChange={handleInputChange}
-                placeholder="State name"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                readOnly
+                placeholder="Auto-filled state name"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm text-gray-500 cursor-not-allowed focus:outline-none placeholder-gray-400"
               />
             </div>
             <div>
@@ -255,8 +412,9 @@ export function CompanyGST() {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.email && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Pin Code</label>
@@ -266,8 +424,10 @@ export function CompanyGST() {
                 value={formData.pinCode}
                 onChange={handleInputChange}
                 placeholder="Pin code"
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400"
+                maxLength={6}
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 placeholder-gray-400 ${errors.pinCode ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.pinCode && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.pinCode}</p>}
             </div>
 
             <div className="md:col-span-2">
@@ -316,9 +476,15 @@ export function CompanyGST() {
                 className="w-full px-3 py-2 bg-[#f4f4f4] border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-600"
               >
                 <option value="">Select City</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Chennai">Chennai</option>
-                <option value="Vizag">Vizag</option>
+                {citiesList
+                  .filter((c: any) => {
+                    if (!formData.gstStateCode) return false;
+                    const selectedState = statesList.find(s => s.gstStateCode === formData.gstStateCode);
+                    return selectedState && c.parentId === selectedState.id;
+                  })
+                  .map((c: any) => (
+                  <option key={c.id} value={c.value}>{c.value}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -337,8 +503,9 @@ export function CompanyGST() {
                 className="w-full px-3 py-2 bg-[#f4f4f4] border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500 text-gray-600"
               >
                 <option value="">Select GST Type</option>
-                <option value="GST">GST</option>
-                <option value="Non-GST">Non-GST</option>
+                {gstTypeList.map((t: any) => (
+                  <option key={t.id} value={t.value}>{t.value}</option>
+                ))}
               </select>
             </div>
 
@@ -566,71 +733,69 @@ export function CompanyGST() {
 
       {/* Additional Info Modal */}
       <Dialog open={isAdditionalInfoModalOpen} onOpenChange={setIsAdditionalInfoModalOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden bg-white border-none shadow-2xl">
-          <div className="bg-[#323c4e] p-5 text-white flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded">
-                <Info className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold tracking-tight uppercase">Additional Information</h2>
-                <p className="text-[10px] opacity-60 uppercase tracking-widest font-bold">Configure extended parameters</p>
-              </div>
-            </div>
-            <button onClick={() => setIsAdditionalInfoModalOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+        <DialogContent className="max-w-xl p-0 overflow-hidden bg-white border-none shadow-2xl rounded-lg">
+          <div className="bg-[#0061f2] p-4 text-white flex justify-between items-center">
+            <h2 className="text-sm font-semibold tracking-wide">Additional Info</h2>
+            <button onClick={() => setIsAdditionalInfoModalOpen(false)} className="p-1 hover:bg-white/10 rounded transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="p-8 space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Business Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="py-2 border-2 border-emerald-500 text-emerald-600 text-[10px] font-black rounded uppercase bg-emerald-50">Manufacturer</button>
-                  <button className="py-2 border border-gray-200 text-gray-400 text-[10px] font-bold rounded uppercase">Trader</button>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Taxation Category</label>
-                <select className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-colors appearance-none">
-                  <option>Standard (18%)</option>
-                  <option>Exempt</option>
-                  <option>Zero Rated</option>
-                  <option>Luxury (28%)</option>
-                </select>
-              </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Secondary Mobile No:</label>
+              <input
+                type="text"
+                name="secondaryMobileNo"
+                value={formData.secondaryMobileNo}
+                onChange={handleInputChange}
+                maxLength={10}
+                className={`w-full px-3 py-2 bg-white border rounded text-sm focus:outline-none focus:border-blue-500 ${errors.secondaryMobileNo ? 'border-red-500' : 'border-gray-200'}`}
+              />
+              {errors.secondaryMobileNo && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.secondaryMobileNo}</p>}
             </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider">Internal Notes / Documentation</label>
-              <textarea
-                rows={4}
-                placeholder="Enter internal notes for this company..."
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 transition-colors resize-none"
-              ></textarea>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Color:</label>
+              <input
+                type="text"
+                name="color"
+                value={formData.color}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-500"
+              />
             </div>
-
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg flex gap-3">
-              <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
-              <p className="text-xs text-blue-600 leading-relaxed">
-                <span className="font-bold">Compliance Note:</span> Ensure all GST documentation is verified before proceeding with transactions.
-              </p>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Logo:</label>
+              <input
+                type="file"
+                onChange={(e) => e.target.files && setLogoFile(e.target.files[0])}
+                className="w-full bg-white border border-gray-200 rounded text-sm file:mr-4 file:py-2 file:px-4 file:border-r file:border-gray-200 file:text-sm file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Header:</label>
+              <input
+                type="file"
+                onChange={(e) => e.target.files && setHeaderFile(e.target.files[0])}
+                className="w-full bg-white border border-gray-200 rounded text-sm file:mr-4 file:py-2 file:px-4 file:border-r file:border-gray-200 file:text-sm file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Footer:</label>
+              <input
+                type="file"
+                onChange={(e) => e.target.files && setFooterFile(e.target.files[0])}
+                className="w-full bg-white border border-gray-200 rounded text-sm file:mr-4 file:py-2 file:px-4 file:border-r file:border-gray-200 file:text-sm file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+              />
             </div>
           </div>
 
-          <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+          <div className="p-4 flex justify-end">
             <button
               onClick={() => setIsAdditionalInfoModalOpen(false)}
-              className="px-6 py-2 text-gray-400 text-[11px] font-bold rounded uppercase hover:text-gray-600 transition-colors"
+              className="px-6 py-2 bg-[#6b21a8] text-white text-[13px] rounded hover:bg-[#581c87] transition-colors shadow-sm"
             >
-              Cancel
-            </button>
-            <button
-              onClick={() => setIsAdditionalInfoModalOpen(false)}
-              className="px-8 py-2.5 bg-[#1cc88a] text-white text-[11px] font-bold rounded shadow-sm hover:bg-[#17a673] transition-all uppercase tracking-widest flex items-center gap-2"
-            >
-              Save Information
+              Close
             </button>
           </div>
         </DialogContent>

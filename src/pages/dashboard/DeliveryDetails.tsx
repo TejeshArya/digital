@@ -23,6 +23,7 @@ export function DeliveryDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetail | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<DeliveryDetail>({
     companyName: '',
@@ -35,9 +36,26 @@ export function DeliveryDetails() {
     address: ''
   });
 
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+
   useEffect(() => {
     fetchDeliveries();
+    fetchMasterData();
   }, []);
+
+  const fetchMasterData = async () => {
+    try {
+      const [companiesRes, statesRes] = await Promise.all([
+        fetch('http://localhost:5076/api/companygsts'),
+        fetch('http://localhost:5076/api/MasterData/category/State')
+      ]);
+      setCompanies(await companiesRes.json());
+      setStates(await statesRes.json());
+    } catch (e) {
+      console.error('Error fetching master data:', e);
+    }
+  };
 
   const fetchDeliveries = async () => {
     try {
@@ -53,13 +71,62 @@ export function DeliveryDetails() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Filter numeric fields
+    if (name === 'mobileNo' || name === 'pinCode') {
+      value = value.replace(/[^0-9]/g, '');
+    }
+
+    // Limit characters
+    const maxLengths: Record<string, number> = {
+      mobileNo: 10,
+      pinCode: 6
+    };
+
+    if (maxLengths[name]) {
+      value = value.substring(0, maxLengths[name]);
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.companyName) {
+      newErrors.companyName = 'Company Name is required';
+    }
+
+    // Mobile validation: exactly 10 digits starting with 6-9
+    const mobileRegex = /^[6-9][0-9]{9}$/;
+    if (formData.mobileNo && !mobileRegex.test(formData.mobileNo)) {
+      newErrors.mobileNo = 'Must be 10 digits starting with 6-9';
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = 'Invalid Email address';
+    }
+
+    // PIN validation
+    const pinRegex = /^[1-9][0-9]{5}$/;
+    if (formData.pinCode && !pinRegex.test(formData.pinCode)) {
+      newErrors.pinCode = 'Must be exactly 6 digits';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    if (!formData.companyName) {
-      alert('Company Name is required');
+    if (!validateForm()) {
+      alert('Please correct validation errors first');
       return;
     }
 
@@ -131,13 +198,17 @@ export function DeliveryDetails() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Company Name</label>
-              <input
-                type="text"
+              <select
                 name="companyName"
                 value={formData.companyName}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:border-blue-400 transition-colors"
-              />
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:border-blue-400 transition-colors text-sm"
+              >
+                <option value="">Select Company</option>
+                {companies.map((c: any) => (
+                  <option key={c.gstNumber} value={c.companyName}>{c.companyName}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">State</label>
@@ -148,10 +219,9 @@ export function DeliveryDetails() {
                 className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded text-gray-700 text-sm focus:outline-none focus:border-blue-400 transition-colors"
               >
                 <option value="">Select state</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Telangana">Telangana</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Karnataka">Karnataka</option>
+                {states.map((s: any) => (
+                  <option key={s.id} value={s.value}>{s.value}</option>
+                ))}
               </select>
             </div>
 
@@ -162,8 +232,11 @@ export function DeliveryDetails() {
                 name="mobileNo"
                 value={formData.mobileNo}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:border-blue-400 transition-colors"
+                maxLength={10}
+                placeholder="Mobile number"
+                className={`w-full px-3 py-2.5 bg-white border rounded focus:outline-none focus:border-blue-400 transition-colors text-sm ${errors.mobileNo ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.mobileNo && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.mobileNo}</p>}
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Email</label>
@@ -172,8 +245,10 @@ export function DeliveryDetails() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:border-blue-400 transition-colors"
+                placeholder="Email address"
+                className={`w-full px-3 py-2.5 bg-white border rounded focus:outline-none focus:border-blue-400 transition-colors text-sm ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.email && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.email}</p>}
             </div>
 
             <div className="space-y-1">
@@ -183,8 +258,11 @@ export function DeliveryDetails() {
                 name="pinCode"
                 value={formData.pinCode}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:border-blue-400 transition-colors"
+                maxLength={6}
+                placeholder="PIN code"
+                className={`w-full px-3 py-2.5 bg-white border rounded focus:outline-none focus:border-blue-400 transition-colors text-sm ${errors.pinCode ? 'border-red-500' : 'border-gray-200'}`}
               />
+              {errors.pinCode && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase tracking-tight">{errors.pinCode}</p>}
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-tight">Remarks</label>

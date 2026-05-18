@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer, 
+import {
+  Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer,
   ChevronDown, Eye, Layout, Edit, Download, Trash2, User, ShieldCheck,
   Percent, ListChecks, Pencil
 } from 'lucide-react';
@@ -220,44 +220,43 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
                     {Number(row.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className={`${
-                      row.status === 'Approved' ? 'bg-emerald-500' : 
-                      row.status === 'Rejected' ? 'bg-rose-500' : 'bg-amber-500'
-                    } text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase`}>
+                    <span className={`${row.status === 'Approved' ? 'bg-emerald-500' :
+                        row.status === 'Rejected' ? 'bg-rose-500' : 'bg-amber-500'
+                      } text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase`}>
                       {row.status === 'Pending' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
                       {row.status || 'Pending'}
                     </span>
                   </td>
                   <td className="px-3 py-5">
                     <div className="flex items-center justify-center gap-1">
-                      <button 
+                      <button
                         onClick={() => {
                           onSelectQuotation?.(row);
                           onNavigate?.('/quotations/preview');
                         }}
-                        className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors shadow-sm" 
+                        className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors shadow-sm"
                         title="View Quotation (PDF)"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      
-                      <button 
+
+                      <button
                         onClick={() => {
                           setSelectedQuote(row);
                           setShowSupportModal(true);
                         }}
-                        className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm" 
+                        className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm"
                         title="Supporting Quotation"
                       >
                         <Percent className="w-3.5 h-3.5" />
                       </button>
 
-                      <button 
+                      <button
                         onClick={() => {
                           onSelectQuotation?.(row);
                           onNavigate?.('/quotations/work-manage');
                         }}
-                        className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors shadow-sm" 
+                        className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors shadow-sm"
                         title="Manage Work & QC"
                       >
                         <ListChecks className="w-3.5 h-3.5" />
@@ -268,7 +267,7 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
                       </button>
 
                       {row.status === 'Pending' && (
-                        <button 
+                        <button
                           onClick={() => handleApprove(row.id)}
                           className="p-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors shadow-sm"
                           title="Approve & Generate Invoice"
@@ -277,7 +276,7 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
                         </button>
                       )}
 
-                      <button 
+                      <button
                         onClick={() => handleDelete(row.id)}
                         className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors shadow-sm"
                         title="Delete"
@@ -323,24 +322,24 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-5">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Percentage</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={supportData.percentage}
-                  onChange={(e) => setSupportData({...supportData, percentage: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                  onChange={(e) => setSupportData({ ...supportData, percentage: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
                   placeholder="Enter Percentage"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Company Name</label>
-                <select 
+                <select
                   value={supportData.companyName}
-                  onChange={(e) => setSupportData({...supportData, companyName: e.target.value})}
+                  onChange={(e) => setSupportData({ ...supportData, companyName: e.target.value })}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
                 >
                   <option>Vishwakarma</option>
@@ -351,9 +350,9 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Quotation Format</label>
-                <select 
+                <select
                   value={supportData.format}
-                  onChange={(e) => setSupportData({...supportData, format: e.target.value})}
+                  onChange={(e) => setSupportData({ ...supportData, format: e.target.value })}
                   className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
                 >
                   <option>Format 1</option>
@@ -363,34 +362,34 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Number</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={supportData.inquiryNo}
-                  onChange={(e) => setSupportData({...supportData, inquiryNo: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                  onChange={(e) => setSupportData({ ...supportData, inquiryNo: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
                   placeholder="Enter Inquiry No"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={supportData.inquiryDate}
-                  onChange={(e) => setSupportData({...supportData, inquiryDate: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700" 
+                  onChange={(e) => setSupportData({ ...supportData, inquiryDate: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
                 />
               </div>
             </div>
 
             <div className="p-4 bg-gray-50 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setShowSupportModal(false)}
                 className="px-6 py-2 bg-slate-500 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-slate-600 transition-colors"
               >
                 Close
               </button>
-              <button 
+              <button
                 className="px-6 py-2 bg-emerald-600 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-100"
               >
                 View Quotation

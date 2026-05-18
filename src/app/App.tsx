@@ -73,6 +73,8 @@ import { ITUserManagement } from '../pages/it/ITUserManagement';
 import { ITRoleManagement } from '../pages/it/ITRoleManagement';
 import { UpdatePassword } from '../pages/it/UpdatePassword';
 import { MasterDataManagement } from '../pages/dd-menus/MasterDataManagement';
+import { UpdateProfile } from '../pages/dashboard/UpdateProfile';
+import { ViewProfile } from '../pages/dashboard/ViewProfile';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -193,11 +195,12 @@ export default function App() {
     if (currentPath === '/dd/client-department') return <MasterDataManagement category="Client Department" title="Add Client Department" fieldLabel="Department Name" />;
     if (currentPath === '/dd/hsn') return <MasterDataManagement category="HSN" title="Add HSN" fieldLabel="HSN Code" />;
     if (currentPath === '/dd/gst-percent') return <MasterDataManagement category="GST %" title="Add GST %" fieldLabel="GST %" />;
+    if (currentPath === '/dd/gst-type') return <MasterDataManagement category="GST Type" title="Add GST Type" fieldLabel="GST Type" />;
     if (currentPath === '/dd/denom') return <MasterDataManagement category="Denom" title="Add Denom" fieldLabel="Denom Name" showShortName={true} />;
-    if (currentPath === '/dd/state') return <MasterDataManagement category="State" title="State" fieldLabel="State Name" showShortName={true} shortNameLabel="State GST Code" showLocation={true} locationLabel="Location" descriptionLabel="Remarks" />;
+    if (currentPath === '/dd/state') return <MasterDataManagement category="State" title="State" fieldLabel="State Name" showShortName={true} shortNameLabel="State GST Code" showGstStateCode={true} showLocation={true} locationLabel="Location" descriptionLabel="Remarks" />;
     if (currentPath === '/dd/city') return <MasterDataManagement category="City" title="Add City" fieldLabel="City Name" parentCategory="State" />;
     if (currentPath === '/dd/expense') return <MasterDataManagement category="Expense" title="Expense" fieldLabel="Expense Name" types={["Direct Expense", "Indirect Expense"]} />;
-    if (currentPath === '/dd/amount-type') return <MasterDataManagement category="Amount Type" title="Add Amount Type" fieldLabel="Amount Type" />;
+    if (currentPath === '/dd/amount-type') return <MasterDataManagement category="Amount Type" title="Add Amount Type" fieldLabel="Amount Type" tableHeaderColor="bg-[#1cc88a]" tableTitle="Amount Types List" showId={true} showCreatedBy={true} isDescriptionTextArea={true} />;
     if (currentPath === '/dd/state-location') return <MasterDataManagement category="State Location" title="Add State Location" fieldLabel="Location Name" parentCategory="State" />;
     if (currentPath === '/dd/amount') return <MasterDataManagement category="Amount" title="Add Amount" fieldLabel="Amount" />;
     if (currentPath === '/dd/add-project') return <MasterDataManagement category="Project" title="Add Project" fieldLabel="Project Name" />;
@@ -210,7 +213,9 @@ export default function App() {
     if (currentPath === '/hr/employee-approval') return <EmployeeApproval onNavigate={setCurrentPath} />;
 
     // Employee Portal
-    if (currentPath === '/portal') return <EmployeePortal />;
+    if (currentPath === '/portal') return <EmployeePortal onNavigate={setCurrentPath} />;
+    if (currentPath === '/portal/profile') return <UpdateProfile onNavigate={setCurrentPath} />;
+    if (currentPath === '/portal/view-profile') return <ViewProfile onNavigate={setCurrentPath} />;
 
 
     // Generic fallback for other routes

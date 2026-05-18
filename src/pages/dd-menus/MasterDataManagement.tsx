@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, Edit3, Trash2, Search 
+  Plus, Edit3, Trash2, Search, ListChecks, 
+  Save, FileText, LayoutGrid, Calendar, User as UserIcon,
+  PlusCircle, List
 } from 'lucide-react';
 
 interface MasterDataManagementProps {
@@ -15,6 +17,12 @@ interface MasterDataManagementProps {
   locationLabel?: string;
   descriptionLabel?: string;
   types?: string[];
+  tableHeaderColor?: string;
+  tableTitle?: string;
+  showId?: boolean;
+  showCreatedBy?: boolean;
+  isDescriptionTextArea?: boolean;
+  showGstStateCode?: boolean;
 }
 
 export function MasterDataManagement({ 
@@ -23,7 +31,13 @@ export function MasterDataManagement({
   showShortName = false, shortNameLabel,
   showLocation = false, locationLabel,
   descriptionLabel = 'Description',
-  types
+  types,
+  tableHeaderColor = 'bg-[#0061f2]',
+  tableTitle,
+  showId = false,
+  showCreatedBy = false,
+  isDescriptionTextArea = false,
+  showGstStateCode = false
 }: MasterDataManagementProps) {
   const [data, setData] = useState<any[]>([]);
   const [parents, setParents] = useState<any[]>([]);
@@ -99,6 +113,9 @@ export function MasterDataManagement({
         setFile(null);
         setIsEditing(false);
         fetchData();
+      } else {
+        const errorText = await response.text();
+        alert(errorText || 'Failed to save data. Please check your inputs.');
       }
     } catch (error) {
       console.error('Error saving master data:', error);
@@ -176,7 +193,7 @@ export function MasterDataManagement({
                 </div>
             )}
              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{fieldLabel}</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{fieldLabel} <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   value={formData.value}
@@ -206,14 +223,22 @@ export function MasterDataManagement({
                    />
                 </div>
              )}
-             <div className="space-y-2">
+             <div className={`space-y-2 ${isDescriptionTextArea ? 'md:col-span-2' : ''}`}>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{descriptionLabel}</label>
-                <input 
-                  type="text" 
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-4 py-3 bg-white border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 transition-all" 
-                />
+                {isDescriptionTextArea ? (
+                  <textarea 
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 transition-all min-h-[100px]" 
+                  />
+                ) : (
+                  <input 
+                    type="text" 
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 transition-all" 
+                  />
+                )}
              </div>
              {showPhoto && (
                <div className="space-y-2">
@@ -228,9 +253,10 @@ export function MasterDataManagement({
              <div className="flex gap-2">
               <button 
                 onClick={handleSave}
-                className={`flex-1 px-8 py-3.5 ${isEditing ? 'bg-amber-500 shadow-amber-100' : 'bg-[#0061f2] shadow-blue-100'} text-white text-[11px] font-black rounded shadow-lg uppercase tracking-widest hover:opacity-90 transition-all`}
+                className={`flex-1 px-8 py-3.5 ${isEditing ? 'bg-amber-500 shadow-amber-100' : 'bg-[#0061f2] shadow-blue-100'} text-white text-[11px] font-black rounded shadow-lg uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2`}
               >
-                  {isEditing ? 'Update Item' : 'Save Item'}
+                  <Save className="w-3.5 h-3.5" />
+                  {isEditing ? 'Update ' + category : 'Save ' + category}
               </button>
               {isEditing && (
                 <button 
@@ -246,28 +272,38 @@ export function MasterDataManagement({
 
         {/* Data Table Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[600px]">
+           <div className={`${tableHeaderColor} px-8 py-4 flex items-center gap-3`}>
+              <List className="text-white w-5 h-5" />
+              <h2 className="text-white text-[12px] font-black uppercase tracking-widest">{tableTitle || (category + ' List')}</h2>
+           </div>
            <div className="overflow-x-auto">
               <table className="w-full text-[11px] border-collapse">
                  <thead>
-                    <tr className="bg-white text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                       {showPhoto && <th className="px-8 py-6 text-center font-black border-r border-gray-50">Photo</th>}
-                       {parentCategory && <th className="px-8 py-6 text-left font-black border-r border-gray-50">{parentCategory}</th>}
-                       <th className="px-8 py-6 text-left font-black border-r border-gray-50">{fieldLabel}</th>
-                       {types && <th className="px-8 py-6 text-left font-black border-r border-gray-50">Type</th>}
-                       {showShortName && <th className="px-8 py-6 text-left font-black border-r border-gray-50">{shortNameLabel || 'Short Name'}</th>}
-                       {showLocation && <th className="px-8 py-6 text-left font-black border-r border-gray-50">{locationLabel || 'Location'}</th>}
-                       <th className="px-8 py-6 text-left font-black border-r border-gray-50">{descriptionLabel}</th>
-                       <th className="px-8 py-6 text-left font-black border-r border-gray-50">Created Date</th>
+                    <tr className="bg-[#212529] text-white uppercase tracking-widest border-b border-gray-100">
+                       {showId && <th className="px-8 py-6 text-left font-black border-r border-gray-700">ID</th>}
+                       {showPhoto && <th className="px-8 py-6 text-center font-black border-r border-gray-700">Photo</th>}
+                       {parentCategory && <th className="px-8 py-6 text-left font-black border-r border-gray-700">{parentCategory}</th>}
+                       <th className="px-8 py-6 text-left font-black border-r border-gray-700">{fieldLabel}</th>
+                       {types && <th className="px-8 py-6 text-left font-black border-r border-gray-700">Type</th>}
+                       {showShortName && <th className="px-8 py-6 text-left font-black border-r border-gray-700">{shortNameLabel || 'Short Name'}</th>}
+                       {showGstStateCode && <th className="px-8 py-6 text-left font-black border-r border-gray-700">GST State Code</th>}
+                       {showLocation && <th className="px-8 py-6 text-left font-black border-r border-gray-700">{locationLabel || 'Location'}</th>}
+                       <th className="px-8 py-6 text-left font-black border-r border-gray-700">{descriptionLabel}</th>
+                       {showCreatedBy && <th className="px-8 py-6 text-left font-black border-r border-gray-700">Created By</th>}
+                       <th className="px-8 py-6 text-left font-black border-r border-gray-700">Created Date</th>
                        <th className="px-8 py-6 text-center font-black">Actions</th>
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-50">
                     {loading ? (
-                      <tr><td colSpan={parentCategory && showPhoto ? 7 : (showLocation ? 7 : (parentCategory || showPhoto || showShortName || types ? 6 : 5))} className="text-center py-20 font-bold text-gray-400">Loading...</td></tr>
+                      <tr><td colSpan={10} className="text-center py-20 font-bold text-gray-400">Loading...</td></tr>
                     ) : data.length === 0 ? (
-                      <tr><td colSpan={parentCategory && showPhoto ? 7 : (showLocation ? 7 : (parentCategory || showPhoto || showShortName || types ? 6 : 5))} className="text-center py-20 font-bold text-gray-400">No records found for {category}</td></tr>
+                      <tr><td colSpan={10} className="text-center py-20 font-bold text-gray-400">No records found for {category}</td></tr>
                     ) : data.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                         {showId && (
+                           <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400">{item.id}</td>
+                         )}
                          {showPhoto && (
                            <td className="px-8 py-4 border-r border-gray-50 text-center">
                               {item.photoPath ? (
@@ -289,11 +325,19 @@ export function MasterDataManagement({
                          {showShortName && (
                            <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-500 uppercase tracking-tight">{item.shortName || '---'}</td>
                          )}
+                         {showGstStateCode && (
+                           <td className="px-8 py-5 border-r border-gray-50 font-bold text-blue-500 uppercase tracking-tight">{item.gstStateCode || '---'}</td>
+                         )}
                          {showLocation && (
                            <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-500 uppercase tracking-tight">{item.location || '---'}</td>
                          )}
                          <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tight">{item.description}</td>
-                         <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400 tracking-tighter whitespace-nowrap">{new Date(item.createdAt).toLocaleString()}</td>
+                         {showCreatedBy && (
+                           <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400">2</td>
+                         )}
+                         <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400 tracking-tighter whitespace-nowrap">
+                            {new Date(item.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + new Date(item.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                         </td>
                          <td className="px-8 py-5 text-center">
                             <div className="flex gap-2 justify-center">
                                <button 
