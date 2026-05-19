@@ -33,6 +33,9 @@ interface Project {
 }
 
 export function Projects() {
+  const [subGsts, setSubGsts] = useState<any[]>([]);
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientResults, setShowClientResults] = useState(false);
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +43,7 @@ export function Projects() {
   const [locations, setLocations] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [availablePosts, setAvailablePosts] = useState<string[]>([]);
-  const [postSearch, setPostSearch] = useState('');
+  const [postSearch, setPostSearch] = useState(JSON.parse(localStorage.getItem('user') || '{}').role || '');
   const [showPostResults, setShowPostResults] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{"fullName": "System User"}');
@@ -51,7 +54,7 @@ export function Projects() {
     wing: '',
     department: '',
     location: '',
-    post: '',
+    post: user.role || '',
     createdBy: user.fullName || user.name || 'Anonymous',
     client: '',
     gst: '',
@@ -84,24 +87,30 @@ export function Projects() {
 
   const fetchDropdowns = async () => {
     try {
-      const [deptRes, locRes, compRes, empRes] = await Promise.all([
+      const [deptRes, locRes, compRes, empRes, subGstRes] = await Promise.all([
         fetch('http://localhost:5076/api/departments'),
         fetch('http://localhost:5076/api/locations'),
         fetch('http://localhost:5076/api/companygsts'),
-        fetch('http://localhost:5076/api/employees')
+        fetch('http://localhost:5076/api/employees'),
+        fetch('http://localhost:5076/api/subgsts')
       ]);
       
       const depts = await deptRes.json();
       const locs = await locRes.json();
       const comps = await compRes.json();
       const emps = await empRes.json();
+      const subg = await subGstRes.json();
       
       setDepartments(depts);
       setLocations(locs);
       setCompanies(comps);
+      setSubGsts(subg);
       
       // Extract unique roles/posts from employees
       const uniquePosts = Array.from(new Set(emps.map((e: any) => e.role).filter(Boolean))) as string[];
+      if (user.role && !uniquePosts.includes(user.role)) {
+        uniquePosts.unshift(user.role);
+      }
       setAvailablePosts(uniquePosts.length > 0 ? uniquePosts : ['IT', 'ASSISTANT MANAGER', 'SENIOR MANAGER', 'PROJECT LEAD']);
       
     } catch (error) {
@@ -162,12 +171,13 @@ export function Projects() {
         fetchProjects();
         setFormData({
           projectId: '', name: '', wing: '', department: '', location: '',
-          post: '', createdBy: user.fullName || user.name || 'Anonymous', client: '', gst: '', value: '',
+          post: user.role || '', createdBy: user.fullName || user.name || 'Anonymous', client: '', gst: '', value: '',
           startDate: '', endDate: '', selectDate: new Date().toISOString().split('T')[0],
           status: 'In Progress', priority: 'Medium', description: ''
         });
         setSelectedFile(null);
-        setPostSearch('');
+        setPostSearch(user.role || '');
+        setClientSearch('');
       } else {
         const error = await response.json();
         alert('Error saving project: ' + (error.message || 'Unknown error'));
@@ -177,6 +187,54 @@ export function Projects() {
       alert('Failed to connect to the server.');
     }
   };
+
+  // Get unique clients from both companies and subGsts
+  const uniqueClients = React.useMemo(() => {
+    const map = new Map();
+    companies.forEach((c: any) => {
+      if (c && c.companyName) {
+        map.set(`${c.companyName.trim()} - ${c.gstNumber.trim()}`.toLowerCase(), { companyName: c.companyName.trim(), gstNumber: c.gstNumber.trim() });
+      }
+    });
+    subGsts.forEach((s: any) => {
+      if (s && s.companyName) {
+        map.set(`${s.companyName.trim()} - ${s.gstNumber.trim()}`.toLowerCase(), { companyName: s.companyName.trim(), gstNumber: s.gstNumber.trim() });
+      }
+    });
+    return Array.from(map.values());
+  }, [companies, subGsts]);
+
+  const filteredClients = uniqueClients.filter((c: any) => {
+    const searchStr = `${c.companyName} - ${c.gstNumber}`.toLowerCase();
+    return searchStr.includes(clientSearch.toLowerCase());
+  });
+
+  const handleClientSelect = (selected: any) => {
+    setFormData(prev => ({
+      ...prev,
+      client: selected.companyName,
+      gst: selected.gstNumber,
+      department: '' // Reset dynamic department on client change
+    }));
+    setClientSearch(`${selected.companyName} - ${selected.gstNumber}`);
+    setShowClientResults(false);
+  };
+
+  const dynamicDeptOfficers = React.useMemo(() => {
+    if (!formData.client) return [];
+    const clientLower = formData.client.trim().toLowerCase();
+    return subGsts
+      .filter((item: any) => {
+        if (!item || !item.companyName) return false;
+        const itemCompLower = item.companyName.trim().toLowerCase();
+        return itemCompLower === clientLower || clientLower.includes(itemCompLower) || itemCompLower.includes(clientLower);
+      })
+      .map((item: any) => {
+        return item.departmentOfficer || (item.designation 
+          ? `${item.department.trim()} - ${item.designation.trim()} - ${item.officerName.trim()}` 
+          : `${item.department.trim()} - ${item.officerName.trim()}`);
+      });
+  }, [formData.client, subGsts]);
 
   const filteredPosts = availablePosts.filter(p => 
     p.toLowerCase().includes(postSearch.toLowerCase())
@@ -211,6 +269,7 @@ export function Projects() {
                     setShowPostResults(true);
                   }}
                   onFocus={() => setShowPostResults(true)}
+                  onBlur={() => setTimeout(() => setShowPostResults(false), 200)}
                   className="w-full pl-10 pr-4 py-2.5 bg-[#f8f9fc] border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:bg-white transition-all placeholder:text-gray-400 shadow-sm"
                 />
               </div>
@@ -220,7 +279,7 @@ export function Projects() {
                   {filteredPosts.map((p, i) => (
                     <button
                       key={i}
-                      onClick={() => {
+                      onMouseDown={(e) => { e.preventDefault();
                         setFormData(prev => ({ ...prev, post: p }));
                         setPostSearch(p);
                         setShowPostResults(false);
@@ -260,6 +319,41 @@ export function Projects() {
 
             <div className="space-y-1.5">
               <label className="block text-[12px] font-bold text-gray-600 uppercase tracking-tight">Client (Company Name - GST) <span className="text-red-500">*</span></label>
+              {/* CLIENT_SEARCH_MARKER */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Type to search client..."
+                  value={clientSearch}
+                  onChange={(e) => {
+                    setClientSearch(e.target.value);
+                    setShowClientResults(true);
+                  }}
+                  onFocus={() => setShowClientResults(true)}
+                  onBlur={() => setTimeout(() => setShowClientResults(false), 200)}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-all placeholder:text-gray-300"
+                />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              
+              {showClientResults && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded shadow-xl max-h-60 overflow-y-auto">
+                  {filteredClients.map((c: any, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); handleClientSelect(c); }}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      {c.companyName} - {c.gstNumber}
+                    </button>
+                  ))}
+                  {filteredClients.length === 0 && (
+                    <div className="px-4 py-2.5 text-sm text-gray-400 italic">No clients found</div>
+                  )}
+                </div>
+              )}
+              <div style={{ display: 'none' }}>
               <select
                 name="client"
                 value={formData.client}
@@ -273,6 +367,7 @@ export function Projects() {
                   </option>
                 ))}
               </select>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -289,7 +384,7 @@ export function Projects() {
 
             {/* Row 3 */}
             <div className="space-y-1.5">
-              <label className="block text-[12px] font-bold text-gray-600 uppercase tracking-tight">Department - Officer <span className="text-red-500">*</span></label>
+              <label className="block text-[12px] font-bold text-gray-600 uppercase tracking-tight">Department - Designation - Officer <span className="text-red-500">*</span></label>
               <select
                 name="department"
                 value={formData.department}
@@ -297,7 +392,13 @@ export function Projects() {
                 className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.67%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
               >
                 <option value="">Select</option>
-                {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                {dynamicDeptOfficers.length > 0 ? (
+                  dynamicDeptOfficers.map((opt, i) => (
+                    <option key={i} value={opt}>{opt}</option>
+                  ))
+                ) : (
+                  departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)
+                )}
               </select>
             </div>
 

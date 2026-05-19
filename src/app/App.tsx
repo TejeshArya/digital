@@ -20,6 +20,8 @@ import { AddBank } from '../pages/dashboard/AddBank';
 import { BankDetails } from '../pages/dashboard/BankDetails';
 import { UploadDocuments } from '../pages/dashboard/UploadDocuments';
 import { MyDocuments } from '../pages/dashboard/MyDocuments';
+import { DesignationOfficer } from '../pages/dd-menus/DesignationOfficer';
+import { ClientDepartment } from '../pages/dd-menus/ClientDepartment';
 
 // New Screens
 import { NewQuotation } from '../pages/business/NewQuotation';
@@ -113,10 +115,10 @@ export default function App() {
 
   const renderContent = () => {
     // Dashboards
-    if (currentPath === '/dashboard') return <Dashboard />;
+    if (currentPath === '/dashboard') return <Dashboard onNavigate={setCurrentPath} />;
     if (currentPath === '/company-gst') return <CompanyGST />;
     if (currentPath === '/delivery-details') return <DeliveryDetails />;
-    if (currentPath === '/sub-gst') return <SubGST />;
+    if (currentPath === '/sub-gst') return <SubGST isMasterPage={false} />;
     if (currentPath === '/add-bank') return <AddBank />;
     if (currentPath === '/bank-details') return <BankDetails />;
     if (currentPath === '/upload-documents') return <UploadDocuments onNavigate={setCurrentPath} />;
@@ -192,7 +194,9 @@ export default function App() {
     if (currentPath === '/dd/brands') return <MasterDataManagement category="Brand" title="Add Brand" fieldLabel="Brand Name" showPhoto={true} />;
     if (currentPath === '/dd/sub-categories') return <MasterDataManagement category="Sub Category" title="Add Sub Category" fieldLabel="Sub Category Name" parentCategory="Category" showPhoto={true} />;
     if (currentPath === '/dd/sub-sub-categories') return <MasterDataManagement category="Sub Sub Category" title="Add Sub Sub Category" fieldLabel="Sub Sub Category Name" parentCategory="Sub Category" showPhoto={true} />;
-    if (currentPath === '/dd/client-department') return <MasterDataManagement category="Client Department" title="Add Client Department" fieldLabel="Department Name" />;
+    if (currentPath === '/dd/client-department') return <ClientDepartment />;
+    if (currentPath === '/dd/department-officer' || currentPath === '/dd/department-designation-officer') return <SubGST isMasterPage={true} />;
+    if (currentPath === '/dd/designation-officer') return <DesignationOfficer />;
     if (currentPath === '/dd/hsn') return <MasterDataManagement category="HSN" title="Add HSN" fieldLabel="HSN Code" />;
     if (currentPath === '/dd/gst-percent') return <MasterDataManagement category="GST %" title="Add GST %" fieldLabel="GST %" />;
     if (currentPath === '/dd/gst-type') return <MasterDataManagement category="GST Type" title="Add GST Type" fieldLabel="GST Type" />;

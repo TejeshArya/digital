@@ -531,7 +531,8 @@ export function CompanyGST() {
                     gstNumber: '', gstStateCode: '', companyName: '', panNumber: '',
                     tanNumber: '', mobileNumber: '', stateName: '', email: '',
                     pinCode: '', companyAddress: '', remarks: '', companyEstablished: '',
-                    city: '', gstType: 'GST', dealsIn: ''
+                    city: '', gstType: 'GST', dealsIn: '',
+                    secondaryMobileNo: '', color: '', logoPath: '', headerPath: '', footerPath: ''
                   });
                 }}
                 className="px-6 py-2.5 bg-gray-100 text-gray-600 text-xs font-bold rounded uppercase hover:bg-gray-200 transition-colors border border-gray-200"

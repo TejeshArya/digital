@@ -180,6 +180,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
             { label: 'Brands', path: '/dd/brands' },
             { label: 'Sub Category', path: '/dd/sub-categories' },
             { label: 'Client Department', path: '/dd/client-department' },
+            { label: 'Designation - Officer', path: '/dd/designation-officer' },
+            { label: 'Department - Designation - Officer', path: '/dd/department-designation-officer' },
             { label: 'HSN', path: '/dd/hsn' },
             { label: 'GST %', path: '/dd/gst-percent' },
             { label: 'GST Type', path: '/dd/gst-type' },
@@ -211,7 +213,7 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
           key={item.path}
           onClick={() => onNavigate(item.path)}
           className={`w-full text-left transition-all flex items-center ${level === 0 ? 'gap-4 px-0 py-2.5 text-[13px] font-bold text-gray-500 hover:text-gray-800' :
-              `py-2 text-[12px] font-bold ${currentPath === item.path ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`
+            `py-2 text-[12px] font-bold ${currentPath === item.path ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`
             }`}
         >
           {level === 0 && item.icon && <item.icon className="w-5 h-5 text-gray-400" />}
@@ -269,8 +271,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
                 <button
                   onClick={() => toggleMenu(group.id)}
                   className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${expandedMenus.includes(group.id)
-                      ? 'text-gray-800 bg-gray-50/50'
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                    ? 'text-gray-800 bg-gray-50/50'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                     }`}
                 >
                   <group.icon className="w-5 h-5" />
@@ -288,8 +290,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
                         key={child.path}
                         onClick={() => onNavigate(child.path)}
                         className={`w-full flex items-center justify-between px-14 py-2 text-[12px] font-bold transition-all ${currentPath === child.path
-                            ? 'text-blue-600'
-                            : 'text-gray-400 hover:text-gray-600'
+                          ? 'text-blue-600'
+                          : 'text-gray-400 hover:text-gray-600'
                           }`}
                       >
                         <span>{child.label}</span>
@@ -307,8 +309,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
               <button
                 onClick={() => onNavigate(group.path!)}
                 className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${currentPath === group.path
-                    ? 'text-blue-600 border-r-4 border-blue-600 bg-blue-50/50'
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  ? 'text-blue-600 border-r-4 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                   }`}
               >
                 <group.icon className="w-5 h-5" />
