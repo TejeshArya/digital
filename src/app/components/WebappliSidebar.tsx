@@ -180,7 +180,7 @@ export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps)
             { label: 'Brands', path: '/dd/brands' },
             { label: 'Sub Category', path: '/dd/sub-categories' },
             { label: 'Client Department', path: '/dd/client-department' },
-            { label: 'Designation - Officer', path: '/dd/designation-officer' },
+            { label: 'Designation Master', path: '/dd/designation-officer' },
             { label: 'Department - Designation - Officer', path: '/dd/department-designation-officer' },
             { label: 'HSN', path: '/dd/hsn' },
             { label: 'GST %', path: '/dd/gst-percent' },
