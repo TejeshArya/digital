@@ -1,39 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Calendar, Layout, User, FileText, Filter, 
   ChevronDown, CreditCard, ArrowRight, BarChart3, TrendingUp, AlertCircle
 } from 'lucide-react';
 
 export function ManagePurchase() {
-  const [data] = useState([
-    {
-      id: '47',
-      company: 'HOTEL NAWANAGAR RESIDENCY - OPERATED BY - KHUSHI HOSPITALITY',
-      expenseType: 'Indirect',
-      invoiceNo: 'NIL',
-      date: '28-09-2026',
-      wing: 'ELECTRICAL',
-      dept: 'HR'
-    },
-    {
-      id: '46',
-      company: 'HOTEL NAWANAGAR RESIDENCY - OPERATED BY - KHUSHI HOSPITALITY',
-      expenseType: 'Indirect',
-      invoiceNo: 'NIL',
-      date: '28-09-2026',
-      wing: 'ELECTRICAL',
-      dept: 'HR'
-    },
-    {
-      id: '41',
-      company: 'GUJRAI NON GST PURCHASE',
-      expenseType: 'Indirect',
-      invoiceNo: 'NIL',
-      date: '29-09-2026',
-      wing: 'ELECTRICAL',
-      dept: 'HR'
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/purchaseinvoices');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const totalPurchaseAmount = data.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
+  const totalPaidAmount = data.reduce((sum, item) => sum + (item.paidAmount || 0), 0);
+  const totalDueAmount = totalPurchaseAmount - totalPaidAmount;
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
@@ -99,7 +93,15 @@ export function ManagePurchase() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data.map((row, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest italic animate-pulse">Loading Purchase Invoices...</td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No Purchase Invoices Found</td>
+                </tr>
+              ) : data.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50/80 transition-colors">
                   <td className="px-4 py-5 border-r border-gray-50 text-gray-400 font-bold">{row.id}</td>
                   <td className="px-4 py-5 border-r border-gray-50 text-center">
@@ -107,22 +109,22 @@ export function ManagePurchase() {
                       <CreditCard className="w-3 h-3" /> PAY
                     </button>
                   </td>
-                  <td className="px-4 py-5 border-r border-gray-50 font-bold text-gray-700 uppercase leading-tight max-w-md">{row.company}</td>
+                  <td className="px-4 py-5 border-r border-gray-50 font-bold text-gray-700 uppercase leading-tight max-w-md">{row.companyName}</td>
                   <td className="px-4 py-5 border-r border-gray-50 text-center">
                     <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase tracking-tighter">
                       {row.expenseType}
                     </span>
                   </td>
                   <td className="px-4 py-5 border-r border-gray-50 text-center text-gray-500 font-bold">{row.invoiceNo}</td>
-                  <td className="px-4 py-5 border-r border-gray-50 text-center text-gray-600 font-bold">{row.date}</td>
+                  <td className="px-4 py-5 border-r border-gray-50 text-center text-gray-600 font-bold">{new Date(row.invoiceDate).toLocaleDateString()}</td>
                   <td className="px-4 py-5 border-r border-gray-50 text-center">
                     <span className="bg-cyan-400 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
-                      {row.wing}
+                      N/A
                     </span>
                   </td>
                   <td className="px-4 py-5 text-center">
                     <span className="bg-purple-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
-                      {row.dept}
+                      {row.designation || 'N/A'}
                     </span>
                   </td>
                 </tr>
@@ -132,7 +134,7 @@ export function ManagePurchase() {
         </div>
 
         <div className="p-4 border-t border-gray-50 flex justify-between items-center bg-white">
-          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Showing 1 to 3 of 3 entries</div>
+          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Showing {data.length} entries</div>
           <div className="flex items-center gap-2">
             <button className="text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase px-2">Previous</button>
             <button className="w-6 h-6 bg-blue-600 text-white text-[10px] font-bold rounded flex items-center justify-center shadow-lg shadow-blue-100">1</button>
@@ -149,26 +151,26 @@ export function ManagePurchase() {
         </div>
         <div className="p-8 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="text-center space-y-2">
-            <div className="text-2xl font-black text-blue-600">3</div>
+            <div className="text-2xl font-black text-blue-600">{data.length}</div>
             <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Purchase Invoices</div>
           </div>
           <div className="text-center space-y-2 border-l border-gray-50">
-            <div className="text-2xl font-black text-emerald-600">₹1,380.00</div>
+            <div className="text-2xl font-black text-emerald-600">₹{totalPurchaseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Purchase Amount</div>
           </div>
           <div className="text-center space-y-2 border-l border-gray-50">
-            <div className="text-2xl font-black text-blue-500">₹0.00</div>
+            <div className="text-2xl font-black text-blue-500">₹{totalPaidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Paid Amount</div>
           </div>
           <div className="text-center space-y-2 border-l border-gray-50">
-            <div className="text-2xl font-black text-orange-500">₹1,380.00</div>
+            <div className="text-2xl font-black text-orange-500">₹{totalDueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Due Amount</div>
           </div>
         </div>
       </div>
 
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>

@@ -1,36 +1,77 @@
-import React, { useState } from 'react';
-import { 
-  Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer, 
-  ChevronDown, Eye, Layout, Edit, Download, Trash2, User
+import React, { useState, useEffect } from 'react';
+import {
+  Search, Filter, X, Copy, FileSpreadsheet, FileText, Printer,
+  ChevronDown, Eye, Layout, Edit, Download, Trash2, User, ShieldCheck,
+  Percent, ListChecks, Pencil
 } from 'lucide-react';
 
-export function Quotations() {
-  const [data] = useState([
-    {
-      no: 'Q2627-19',
-      company: 'INS DEGA',
-      date: '16-04-2026',
-      subject: 'SUPPLY AND INSTALLATION OF CABLE TRAY FOR DG SETS ARSR RADAR EQUIPPED AT DOLPIHIN HILLS - PN2627-17',
-      wing: 'CIVIL',
-      dept: 'P & P',
-      post: 'CIVIL HEAD',
-      createdBy: 'SANJAY KUMAR MAHATO',
-      amount: '496,500.00',
-      status: 'Pending'
-    },
-    {
-      no: 'Q2627-18',
-      company: 'INS RANVIJAY',
-      date: '15-04-2026',
-      subject: 'INSTALLATION AND COMMISSIONING OF 10 TRAY MARINE GRADE CUSTOMISED COMBI OVEN - PN2627-16',
-      wing: 'CIVIL',
-      dept: 'P & P',
-      post: 'CIVIL HEAD',
-      createdBy: 'SANJAY KUMAR MAHATO',
-      amount: '1,498,000.00',
-      status: 'Pending'
+export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (path: string) => void, onSelectQuotation?: (quote: any) => void }) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [supportData, setSupportData] = useState({
+    percentage: '',
+    companyName: 'Vishwakarma',
+    format: 'Format 1',
+    inquiryNo: '',
+    inquiryDate: ''
+  });
+
+  useEffect(() => {
+    fetchQuotations();
+  }, []);
+
+  const fetchQuotations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/quotations');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Error fetching quotations:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this quotation?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/quotations/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          setData(prev => prev.filter(q => q.id !== id));
+          alert('Quotation deleted successfully!');
+        } else {
+          alert('Failed to delete quotation.');
+        }
+      } catch (error) {
+        console.error('Error deleting quotation:', error);
+      }
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    if (window.confirm('Approve this quotation and generate an invoice?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/quotations/${id}/approve`, {
+          method: 'POST'
+        });
+        if (response.ok) {
+          alert('Quotation approved and Invoice generated!');
+          fetchQuotations(); // Refresh list
+        } else {
+          const err = await response.json();
+          alert('Failed to approve: ' + (err.message || 'Server error'));
+        }
+      } catch (error) {
+        console.error('Approval error:', error);
+        alert('Connection error');
+      }
+    }
+  };
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
@@ -140,55 +181,106 @@ export function Quotations() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data.map((row, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={11} className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest italic animate-pulse">Loading Quotations...</td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td colSpan={11} className="py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No Quotations Found</td>
+                </tr>
+              ) : data.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 font-medium">{row.no}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 font-bold text-gray-800 uppercase">{row.company}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-500 whitespace-nowrap">{row.date}</td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.subject}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 font-medium">{row.quotationNumber}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 font-bold text-gray-800 uppercase">{row.companyName}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-500 whitespace-nowrap">{new Date(row.invoiceDate).toLocaleDateString()}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-gray-600 leading-relaxed uppercase max-w-xs">{row.subject || row.projectName}</td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-cyan-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.wing}
+                    <span className="bg-cyan-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.wing || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-slate-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.dept}
+                    <span className="bg-slate-500 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.department || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm">
-                      {row.post}
+                    <span className="bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-sm uppercase">
+                      {row.post || 'N/A'}
                     </span>
                   </td>
                   <td className="px-3 py-5 border-r border-gray-50">
-                    <div className="flex items-center gap-1 text-emerald-600 font-black tracking-tighter leading-tight max-w-[80px]">
+                    <div className="flex items-center gap-1 text-emerald-600 font-black tracking-tighter leading-tight max-w-[80px] uppercase">
                       <User className="w-3 h-3 flex-shrink-0" />
-                      {row.createdBy}
+                      {row.createdBy || 'System'}
                     </div>
                   </td>
-                  <td className="px-3 py-5 border-r border-gray-50 text-right font-bold text-gray-600">{row.amount}</td>
+                  <td className="px-3 py-5 border-r border-gray-50 text-right font-bold text-gray-600">
+                    {Number(row.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td>
                   <td className="px-3 py-5 border-r border-gray-50 text-center">
-                    <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                      {row.status}
+                    <span className={`${row.status === 'Approved' ? 'bg-emerald-500' :
+                        row.status === 'Rejected' ? 'bg-rose-500' : 'bg-amber-500'
+                      } text-white text-[8px] font-black px-2 py-1 rounded-full flex items-center justify-center gap-1 uppercase`}>
+                      {row.status === 'Pending' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
+                      {row.status || 'Pending'}
                     </span>
                   </td>
                   <td className="px-3 py-5">
                     <div className="flex items-center justify-center gap-1">
-                      <button className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                      <button
+                        onClick={() => {
+                          onSelectQuotation?.(row);
+                          onNavigate?.('/quotations/preview');
+                        }}
+                        className="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors shadow-sm"
+                        title="View Quotation (PDF)"
+                      >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors">
-                        <Layout className="w-3.5 h-3.5" />
+
+                      <button
+                        onClick={() => {
+                          setSelectedQuote(row);
+                          setShowSupportModal(true);
+                        }}
+                        className="p-1.5 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors shadow-sm"
+                        title="Supporting Quotation"
+                      >
+                        <Percent className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors">
-                        <Edit className="w-3.5 h-3.5" />
+
+                      <button
+                        onClick={() => {
+                          onSelectQuotation?.(row);
+                          onNavigate?.('/quotations/work-manage');
+                        }}
+                        className="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors shadow-sm"
+                        title="Manage Work & QC"
+                      >
+                        <ListChecks className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors">
-                        <Download className="w-3.5 h-3.5" />
+
+                      <button className="p-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors shadow-sm" title="Edit">
+                        <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors">
+
+                      {row.status === 'Pending' && (
+                        <button
+                          onClick={() => handleApprove(row.id)}
+                          className="p-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors shadow-sm"
+                          title="Approve & Generate Invoice"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className="p-1.5 bg-rose-500 text-white rounded hover:bg-rose-600 transition-colors shadow-sm"
+                        title="Delete"
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -210,13 +302,102 @@ export function Quotations() {
 
       {/* Footer */}
       <div className="mt-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline">Privacy Policy</a>
           <span>•</span>
           <a href="#" className="hover:underline">Terms & Conditions</a>
         </div>
       </div>
+
+      {/* Supporting Quotation Modal */}
+      {showSupportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
+            <div className="bg-emerald-600 p-4 flex justify-between items-center">
+              <h3 className="text-white font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                <Percent className="w-4 h-4" /> Supporting Quotation
+              </h3>
+              <button onClick={() => setShowSupportModal(false)} className="text-white/80 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Percentage</label>
+                <input
+                  type="text"
+                  value={supportData.percentage}
+                  onChange={(e) => setSupportData({ ...supportData, percentage: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
+                  placeholder="Enter Percentage"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Company Name</label>
+                <select
+                  value={supportData.companyName}
+                  onChange={(e) => setSupportData({ ...supportData, companyName: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
+                >
+                  <option>Vishwakarma</option>
+                  <option>AG Coders</option>
+                  <option>DEE Enterprises</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Quotation Format</label>
+                <select
+                  value={supportData.format}
+                  onChange={(e) => setSupportData({ ...supportData, format: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700 appearance-none"
+                >
+                  <option>Format 1</option>
+                  <option>Format 2</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Number</label>
+                <input
+                  type="text"
+                  value={supportData.inquiryNo}
+                  onChange={(e) => setSupportData({ ...supportData, inquiryNo: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
+                  placeholder="Enter Inquiry No"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Inquiry Date</label>
+                <input
+                  type="date"
+                  value={supportData.inquiryDate}
+                  onChange={(e) => setSupportData({ ...supportData, inquiryDate: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-gray-700"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="px-6 py-2 bg-slate-500 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-slate-600 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                className="px-6 py-2 bg-emerald-600 text-white text-[11px] font-bold rounded uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-100"
+              >
+                View Quotation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

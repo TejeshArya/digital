@@ -7,8 +7,8 @@ import {
 export function SubSubDocumentCategories() {
   const [isCreating, setIsCreating] = useState(false);
   const [docs] = useState([
-    { id: 1, category: 'SHREEYAAN ENTERPRISES', subCategory: 'INVOICES', name: 'TAX INVOICES 2026', desc: 'ALL TAX INVOICES', status: 'Active', date: '24-04-2026' },
-    { id: 2, category: 'DIGITAL ENGINEERING', subCategory: 'PROJECT PLANS', name: 'PHASE 1 DOCS', desc: 'INITIAL PHASE', status: 'Active', date: '15-04-2026' },
+    { id: 1, category: 'ACME CORP', subCategory: 'INVOICES', name: 'TAX INVOICES 2024', desc: 'ALL TAX INVOICES', status: 'Active', date: '24-04-2024' },
+    { id: 2, category: 'TECH SOLUTIONS INC', subCategory: 'PROJECT PLANS', name: 'PHASE 1 DOCS', desc: 'INITIAL PHASE', status: 'Active', date: '15-04-2024' },
   ]);
 
   if (isCreating) {
@@ -41,8 +41,8 @@ export function SubSubDocumentCategories() {
                     <div className="relative">
                        <select className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded text-[13px] text-gray-700 focus:outline-none focus:border-[#0061f2] transition-all appearance-none">
                           <option>Select Document Category</option>
-                          <option>SHREEYAAN ENTERPRISES</option>
-                          <option>DIGITAL ENGINEERING ENTERPRISES</option>
+                          <option>ACME CORP</option>
+                          <option>TECH SOLUTIONS INC</option>
                        </select>
                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                     </div>

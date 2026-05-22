@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/WebappliSidebar';
+import { LoginScreen } from '../pages/auth/LoginScreen';
 import { Dashboard } from '../pages/dashboard/Dashboard';
 import { CompanyGST } from '../pages/dashboard/CompanyGST';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -19,6 +20,8 @@ import { AddBank } from '../pages/dashboard/AddBank';
 import { BankDetails } from '../pages/dashboard/BankDetails';
 import { UploadDocuments } from '../pages/dashboard/UploadDocuments';
 import { MyDocuments } from '../pages/dashboard/MyDocuments';
+import { DesignationOfficer } from '../pages/dd-menus/DesignationOfficer';
+import { ClientDepartment } from '../pages/dd-menus/ClientDepartment';
 
 // New Screens
 import { NewQuotation } from '../pages/business/NewQuotation';
@@ -27,6 +30,9 @@ import { SingleItemSelling } from '../pages/business/SingleItemSelling';
 import { PurchaseDC } from '../pages/business/PurchaseDC';
 import { AllCreatedDC } from '../pages/business/AllCreatedDC';
 import { ItemConsumption } from '../pages/business/ItemConsumption';
+import { QuotationWorkManage } from '../pages/business/QuotationWorkManage';
+import { QuotationPreview } from '../pages/business/QuotationPreview';
+import { InvoiceView } from '../pages/business/InvoiceView';
 import { PrepareGSTR } from '../pages/accounts/PrepareGSTR';
 import { AllPreparedGSTR } from '../pages/accounts/AllPreparedGSTR';
 import { InputGST } from '../pages/accounts/InputGST';
@@ -68,60 +74,71 @@ import { ITEmployeeApproval } from '../pages/it/ITEmployeeApproval';
 import { ITUserManagement } from '../pages/it/ITUserManagement';
 import { ITRoleManagement } from '../pages/it/ITRoleManagement';
 import { UpdatePassword } from '../pages/it/UpdatePassword';
-import { AddPaymentMode } from '../pages/dd-menus/AddPaymentMode';
-import { Categories } from '../pages/dd-menus/Categories';
-import { Brands } from '../pages/dd-menus/Brands';
-import { SubCategories } from '../pages/dd-menus/SubCategories';
-import { SubSubCategories } from '../pages/dd-menus/SubSubCategories';
-import { ClientDepartment } from '../pages/dd-menus/ClientDepartment';
-import { HSN } from '../pages/dd-menus/HSN';
-import { GSTPercent } from '../pages/dd-menus/GSTPercent';
-import { Denom } from '../pages/dd-menus/Denom';
-import { State as States } from '../pages/dd-menus/State';
-import { City as Cities } from '../pages/dd-menus/City';
-import { Expense as Expenses } from '../pages/dd-menus/Expense';
-import { AmountType } from '../pages/dd-menus/AmountType';
-import { StateLocation } from '../pages/dd-menus/StateLocation';
-import { Amount } from '../pages/dd-menus/Amount';
-import { AddProject } from '../pages/dd-menus/AddProject';
-import { CoreQualification } from '../pages/dd-menus/CoreQualification';
-import { DocumentCategories } from '../pages/dd-menus/DocumentCategories';
-import { SubDocumentCategories } from '../pages/dd-menus/SubDocumentCategories';
-import { SubSubDocumentCategories } from '../pages/dd-menus/SubSubDocumentCategories';
+import { MasterDataManagement } from '../pages/dd-menus/MasterDataManagement';
+import { UpdateProfile } from '../pages/dashboard/UpdateProfile';
+import { ViewProfile } from '../pages/dashboard/ViewProfile';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentPath, setCurrentPath] = useState('/dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
-  const user = {
-    name: 'Admin User',
-    email: 'admin@deenterprises.com',
-    avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=4f46e5&color=fff'
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (token && savedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogin = () => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsAuthenticated(true);
+    }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   const renderContent = () => {
     // Dashboards
-    if (currentPath === '/dashboard') return <Dashboard />;
+    if (currentPath === '/dashboard') return <Dashboard onNavigate={setCurrentPath} />;
     if (currentPath === '/company-gst') return <CompanyGST />;
     if (currentPath === '/delivery-details') return <DeliveryDetails />;
-    if (currentPath === '/sub-gst') return <SubGST />;
+    if (currentPath === '/sub-gst') return <SubGST isMasterPage={false} />;
     if (currentPath === '/add-bank') return <AddBank />;
     if (currentPath === '/bank-details') return <BankDetails />;
-    if (currentPath === '/upload-documents') return <UploadDocuments />;
-    if (currentPath === '/my-documents') return <MyDocuments />;
+    if (currentPath === '/upload-documents') return <UploadDocuments onNavigate={setCurrentPath} />;
+    if (currentPath === '/my-documents') return <MyDocuments onNavigate={setCurrentPath} />;
     if (currentPath === '/admin/dashboard') return <AdminDashboard />;
 
     // Business
     if (currentPath === '/projects') return <Projects />;
-    if (currentPath === '/quotations/new') return <NewQuotation />;
-    if (currentPath === '/quotations/all') return <Quotations />;
+    if (currentPath === '/quotations/new') return <NewQuotation onNavigate={setCurrentPath} />;
+    if (currentPath === '/quotations/all') return <Quotations onNavigate={setCurrentPath} onSelectQuotation={(q: any) => setSelectedQuotation(q)} />;
+    if (currentPath === '/quotations/work-manage') return <QuotationWorkManage onNavigate={setCurrentPath} quotation={selectedQuotation} />;
+    if (currentPath === '/quotations/preview') return <QuotationPreview onNavigate={setCurrentPath} quotation={selectedQuotation} />;
     if (currentPath === '/purchase') return <Purchase />;
     if (currentPath === '/purchase/manage') return <ManagePurchase />;
     if (currentPath === '/purchase/single-item') return <SingleItemSelling />;
     if (currentPath === '/purchase/dc') return <PurchaseDC />;
     if (currentPath === '/purchase/all-dc') return <AllCreatedDC />;
     if (currentPath === '/invoices/consumption') return <ItemConsumption />;
-    if (currentPath === '/invoices/all') return <Invoices />;
+    if (currentPath === '/invoices/all') return <Invoices onNavigate={setCurrentPath} onSelectInvoice={(inv: any) => setSelectedInvoice(inv)} />;
+    if (currentPath === '/invoices/view') return <InvoiceView onNavigate={setCurrentPath} invoice={selectedInvoice} />;
 
     // Accounts
     if (currentPath === '/accounts/prepare-gstr') return <PrepareGSTR />;
@@ -131,14 +148,14 @@ export default function App() {
     // HR
     if (currentPath === '/hr/dashboard') return <HRDashboard />;
     if (currentPath === '/hr/profile-updates') return <ProfileUpdates />;
-    if (currentPath === '/hr/employees') return <Employees />;
-    if (currentPath === '/hr/add-employee') return <AddEmployee />;
+    if (currentPath === '/hr/employees') return <Employees onNavigate={setCurrentPath} />;
+    if (currentPath === '/hr/add-employee') return <AddEmployee onNavigate={setCurrentPath} />;
     if (currentPath === '/hr/group-id') return <CreateGroupID />;
     if (currentPath === '/hr/wing') return <Wings />;
     if (currentPath === '/hr/department') return <NewDepartment />;
     if (currentPath === '/hr/location') return <LocationManagement />;
     if (currentPath === '/hr/sub-location') return <SubLocation />;
-    if (currentPath === '/hr/post') return <CreatePost />;
+    if (currentPath === '/hr/post') return <CreatePost onNavigate={setCurrentPath} />;
     if (currentPath === '/hr/role-assign') return <RoleAssignment />;
     if (currentPath === '/hr/manager-assign') return <ManagerAssignment />;
     if (currentPath === '/hr/location-head') return <LocationHead />;
@@ -172,32 +189,37 @@ export default function App() {
     if (currentPath === '/it/manage-roles') return <ITRoleManagement />;
 
     // DD MENUS
-    if (currentPath === '/dd/payment-mode') return <AddPaymentMode />;
-    if (currentPath === '/dd/categories') return <Categories />;
-    if (currentPath === '/dd/brands') return <Brands />;
-    if (currentPath === '/dd/sub-categories') return <SubCategories />;
-    if (currentPath === '/dd/sub-sub-categories') return <SubSubCategories />;
+    if (currentPath === '/dd/payment-mode') return <MasterDataManagement category="Payment Mode" title="Add Payment Mode" fieldLabel="Payment Mode" />;
+    if (currentPath === '/dd/categories') return <MasterDataManagement category="Category" title="Add Category" fieldLabel="Category Name" showPhoto={true} />;
+    if (currentPath === '/dd/brands') return <MasterDataManagement category="Brand" title="Add Brand" fieldLabel="Brand Name" showPhoto={true} />;
+    if (currentPath === '/dd/sub-categories') return <MasterDataManagement category="Sub Category" title="Add Sub Category" fieldLabel="Sub Category Name" parentCategory="Category" showPhoto={true} />;
+    if (currentPath === '/dd/sub-sub-categories') return <MasterDataManagement category="Sub Sub Category" title="Add Sub Sub Category" fieldLabel="Sub Sub Category Name" parentCategory="Sub Category" showPhoto={true} />;
     if (currentPath === '/dd/client-department') return <ClientDepartment />;
-    if (currentPath === '/dd/hsn') return <HSN />;
-    if (currentPath === '/dd/gst-percent') return <GSTPercent />;
-    if (currentPath === '/dd/denom') return <Denom />;
-    if (currentPath === '/dd/state') return <States />;
-    if (currentPath === '/dd/city') return <Cities />;
-    if (currentPath === '/dd/expense') return <Expenses />;
-    if (currentPath === '/dd/amount-type') return <AmountType />;
-    if (currentPath === '/dd/state-location') return <StateLocation />;
-    if (currentPath === '/dd/amount') return <Amount />;
-    if (currentPath === '/dd/add-project') return <AddProject />;
-    if (currentPath === '/dd/core-qualification') return <CoreQualification />;
-    if (currentPath === '/dd/document-categories') return <DocumentCategories />;
-    if (currentPath === '/dd/sub-document-categories') return <SubDocumentCategories />;
-    if (currentPath === '/dd/sub-sub-document-categories') return <SubSubDocumentCategories />;
+    if (currentPath === '/dd/department-officer' || currentPath === '/dd/department-designation-officer') return <SubGST isMasterPage={true} />;
+    if (currentPath === '/dd/designation-officer') return <DesignationOfficer />;
+    if (currentPath === '/dd/hsn') return <MasterDataManagement category="HSN" title="Add HSN" fieldLabel="HSN Code" />;
+    if (currentPath === '/dd/gst-percent') return <MasterDataManagement category="GST %" title="Add GST %" fieldLabel="GST %" />;
+    if (currentPath === '/dd/gst-type') return <MasterDataManagement category="GST Type" title="Add GST Type" fieldLabel="GST Type" />;
+    if (currentPath === '/dd/denom') return <MasterDataManagement category="Denom" title="Add Denom" fieldLabel="Denom Name" showShortName={true} />;
+    if (currentPath === '/dd/state') return <MasterDataManagement category="State" title="State" fieldLabel="State Name" showShortName={true} shortNameLabel="State GST Code" showGstStateCode={true} showLocation={true} locationLabel="Location" descriptionLabel="Remarks" />;
+    if (currentPath === '/dd/city') return <MasterDataManagement category="City" title="Add City" fieldLabel="City Name" parentCategory="State" />;
+    if (currentPath === '/dd/expense') return <MasterDataManagement category="Expense" title="Expense" fieldLabel="Expense Name" types={["Direct Expense", "Indirect Expense"]} />;
+    if (currentPath === '/dd/amount-type') return <MasterDataManagement category="Amount Type" title="Add Amount Type" fieldLabel="Amount Type" tableHeaderColor="bg-[#1cc88a]" tableTitle="Amount Types List" showId={true} showCreatedBy={true} isDescriptionTextArea={true} />;
+    if (currentPath === '/dd/state-location') return <MasterDataManagement category="State Location" title="Add State Location" fieldLabel="Location Name" parentCategory="State" />;
+    if (currentPath === '/dd/amount') return <MasterDataManagement category="Amount" title="Add Amount" fieldLabel="Amount" />;
+    if (currentPath === '/dd/add-project') return <MasterDataManagement category="Project" title="Add Project" fieldLabel="Project Name" />;
+    if (currentPath === '/dd/core-qualification') return <MasterDataManagement category="Qualification" title="Add Core Qualification" fieldLabel="Qualification" />;
+    if (currentPath === '/dd/document-categories') return <MasterDataManagement category="Document Category" title="Add Document Category" fieldLabel="Category" />;
+    if (currentPath === '/dd/sub-document-categories') return <MasterDataManagement category="Sub Document Category" title="Add Sub Document Category" fieldLabel="Sub Category" parentCategory="Document Category" />;
+    if (currentPath === '/dd/sub-sub-document-categories') return <MasterDataManagement category="Sub Sub Document Category" title="Add Sub Sub Document Category" fieldLabel="Sub Sub Category" parentCategory="Sub Document Category" />;
     if (currentPath === '/hr/attendance/daily') return <Attendance />;
     if (currentPath === '/hr/leave/apply' || currentPath === '/hr/leave/approval') return <LeaveManagement />;
-    if (currentPath === '/hr/employee-approval') return <EmployeeApproval />;
+    if (currentPath === '/hr/employee-approval') return <EmployeeApproval onNavigate={setCurrentPath} />;
 
     // Employee Portal
-    if (currentPath === '/portal') return <EmployeePortal />;
+    if (currentPath === '/portal') return <EmployeePortal onNavigate={setCurrentPath} />;
+    if (currentPath === '/portal/profile') return <UpdateProfile onNavigate={setCurrentPath} />;
+    if (currentPath === '/portal/view-profile') return <ViewProfile onNavigate={setCurrentPath} />;
 
 
     // Generic fallback for other routes
@@ -222,10 +244,15 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <Navbar onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} user={user} />
+      <Navbar 
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        user={user || { name: 'User', email: '', avatar: '' }} 
+        onLogout={handleLogout}
+        onNavigate={setCurrentPath}
+      />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar isOpen={isSidebarOpen} currentPath={currentPath} onNavigate={setCurrentPath} />
+        <Sidebar isOpen={isSidebarOpen} currentPath={currentPath} onNavigate={setCurrentPath} user={user} />
 
         <main className="flex-1 overflow-y-auto bg-gray-50">
           {renderContent()}

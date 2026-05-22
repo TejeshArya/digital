@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { 
   FileText, Calendar, Clock, AlertTriangle, 
   CheckCircle2, Send, ArrowLeft, Info, 
@@ -196,7 +196,7 @@ export function ApplyLeave() {
 
       {/* Footer */}
       <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase px-4">
-        <p>Copyright © Your Website 2021</p>
+        <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4 text-gray-300 italic lowercase tracking-tight font-bold">
           <span>privacy policy</span>
           <span>•</span>

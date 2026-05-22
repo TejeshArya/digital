@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, User, Briefcase, Calculator, 
-  Users, Shield, GitMerge, List, ChevronDown, 
+import {
+  LayoutDashboard, User, Briefcase, Calculator,
+  Users, Shield, GitMerge, List, ChevronDown,
   ChevronRight, Search, Menu, Settings, Bell,
   FolderTree, LayoutGrid
 } from 'lucide-react';
@@ -11,13 +11,14 @@ interface SidebarProps {
   isOpen: boolean;
   currentPath: string;
   onNavigate: (path: string) => void;
+  user: { name: string; fullName?: string; email?: string; role?: string } | null;
 }
 
-export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
+export function Sidebar({ isOpen, currentPath, onNavigate, user }: SidebarProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['dashboards', 'business']);
 
   const toggleMenu = (id: string) => {
-    setExpandedMenus(prev => 
+    setExpandedMenus(prev =>
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
   };
@@ -30,8 +31,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
       children: [
         { label: 'Home', path: '/dashboard', badge: 'Updated' },
         { label: 'Company GST', path: '/company-gst' },
-        { label: 'Delivery Details', path: '/delivery-details' },
         { label: 'Sub GST', path: '/sub-gst' },
+        { label: 'Delivery Details', path: '/delivery-details' },
         { label: 'Add Bank', path: '/add-bank' },
         { label: 'Bank Details', path: '/bank-details' },
         { label: 'Upload Documents', path: '/upload-documents' },
@@ -179,8 +180,11 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
             { label: 'Brands', path: '/dd/brands' },
             { label: 'Sub Category', path: '/dd/sub-categories' },
             { label: 'Client Department', path: '/dd/client-department' },
+            { label: 'Designation Master', path: '/dd/designation-officer' },
+            { label: 'Department - Designation - Officer', path: '/dd/department-designation-officer' },
             { label: 'HSN', path: '/dd/hsn' },
             { label: 'GST %', path: '/dd/gst-percent' },
+            { label: 'GST Type', path: '/dd/gst-type' },
             { label: 'Denom', path: '/dd/denom' },
             { label: 'State', path: '/dd/state' },
             { label: 'City', path: '/dd/city' },
@@ -202,16 +206,15 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
   const renderMenuItem = (item: any, level: number = 0) => {
     const isExpanded = expandedMenus.includes(item.id);
     const hasChildren = item.children && item.children.length > 0;
-    
+
     if (!hasChildren) {
       return (
         <button
           key={item.path}
           onClick={() => onNavigate(item.path)}
-          className={`w-full text-left transition-all flex items-center ${
-            level === 0 ? 'gap-4 px-0 py-2.5 text-[13px] font-bold text-gray-500 hover:text-gray-800' : 
+          className={`w-full text-left transition-all flex items-center ${level === 0 ? 'gap-4 px-0 py-2.5 text-[13px] font-bold text-gray-500 hover:text-gray-800' :
             `py-2 text-[12px] font-bold ${currentPath === item.path ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`
-          }`}
+            }`}
         >
           {level === 0 && item.icon && <item.icon className="w-5 h-5 text-gray-400" />}
           <span>{item.label}</span>
@@ -223,9 +226,8 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
       <div key={item.id} className={level === 0 ? "mb-1" : "mt-1"}>
         <button
           onClick={() => toggleMenu(item.id)}
-          className={`w-full flex items-center transition-colors ${
-            level === 0 ? 'gap-4 px-0 py-2.5 text-gray-500 hover:text-gray-800' : 'py-2 text-gray-500 hover:text-gray-800 text-[13px] font-medium'
-          }`}
+          className={`w-full flex items-center transition-colors ${level === 0 ? 'gap-4 px-0 py-2.5 text-gray-500 hover:text-gray-800' : 'py-2 text-gray-500 hover:text-gray-800 text-[13px] font-medium'
+            }`}
         >
           {level === 0 && item.icon && <item.icon className="w-5 h-5 text-gray-400" />}
           <span className={level === 0 ? "text-[13px] font-bold" : ""}>{item.label}</span>
@@ -235,7 +237,7 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
             <ChevronRight className={`ml-auto ${level === 0 ? 'w-4 h-4 text-gray-300' : 'w-4 h-4 text-gray-300'}`} />
           )}
         </button>
-        
+
         {isExpanded && (
           <div className={`${level === 0 ? 'ml-6 border-l border-gray-200 pl-4' : 'ml-2 border-l border-gray-100 pl-4'} space-y-0.5 mt-1`}>
             {item.children.map((child: any) => renderMenuItem(child, level + 1))}
@@ -252,11 +254,11 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
       <div className="p-6 flex flex-col items-center border-b border-gray-50 bg-gray-50/30">
         <div className="relative group">
           <div className="w-24 h-24 bg-white flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-             <img 
-               src={logo} 
-               alt="Company Logo" 
-               className="w-full h-full object-contain"
-             />
+            <img
+              src={logo}
+              alt="Company Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
       </div>
@@ -268,11 +270,10 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
               <>
                 <button
                   onClick={() => toggleMenu(group.id)}
-                  className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${
-                    expandedMenus.includes(group.id) 
-                      ? 'text-gray-800 bg-gray-50/50' 
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-                  }`}
+                  className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${expandedMenus.includes(group.id)
+                    ? 'text-gray-800 bg-gray-50/50'
+                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
                 >
                   <group.icon className="w-5 h-5" />
                   <span className="text-[13px] font-bold">{group.label}</span>
@@ -288,11 +289,10 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
                       <button
                         key={child.path}
                         onClick={() => onNavigate(child.path)}
-                        className={`w-full flex items-center justify-between px-14 py-2 text-[12px] font-bold transition-all ${
-                          currentPath === child.path 
-                            ? 'text-blue-600' 
-                            : 'text-gray-400 hover:text-gray-600'
-                        }`}
+                        className={`w-full flex items-center justify-between px-14 py-2 text-[12px] font-bold transition-all ${currentPath === child.path
+                          ? 'text-blue-600'
+                          : 'text-gray-400 hover:text-gray-600'
+                          }`}
                       >
                         <span>{child.label}</span>
                         {child.badge && (
@@ -308,11 +308,10 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
             ) : (
               <button
                 onClick={() => onNavigate(group.path!)}
-                className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${
-                  currentPath === group.path 
-                    ? 'text-blue-600 border-r-4 border-blue-600 bg-blue-50/50' 
-                    : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-                }`}
+                className={`w-full flex items-center gap-4 px-6 py-3 transition-all ${currentPath === group.path
+                  ? 'text-blue-600 border-r-4 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
               >
                 <group.icon className="w-5 h-5" />
                 <span className="text-[13px] font-bold">{group.label}</span>
@@ -322,17 +321,17 @@ export function Sidebar({ isOpen, currentPath, onNavigate }: SidebarProps) {
         ))}
 
         <div className="px-6 py-6 mt-2">
-           <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Work Book</h3>
-           
-           <div className="space-y-1">
-              {workBookOperational.map(group => renderMenuItem(group))}
-           </div>
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Work Book</h3>
+
+          <div className="space-y-1">
+            {workBookOperational.map(group => renderMenuItem(group))}
+          </div>
         </div>
       </div>
 
       <div className="p-6 bg-gray-50/50 border-t border-gray-100">
-         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Logged in as:</p>
-         <h4 className="text-[12px] font-black text-gray-800 uppercase tracking-tight">Sanjay Kumar Mahato</h4>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Logged in as:</p>
+        <h4 className="text-[12px] font-black text-gray-800 uppercase tracking-tight">{user?.fullName || user?.name || 'Guest'}</h4>
       </div>
     </aside>
   );

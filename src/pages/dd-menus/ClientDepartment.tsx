@@ -1,88 +1,217 @@
-import React, { useState } from 'react';
-import { 
-  Plus, Edit3, Trash2, Search, 
-  Filter, MoreVertical, Building2,
-  Clock, ArrowRight, UserPlus
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
+
+interface Company {
+  gstNumber: string;
+  companyName: string;
+}
+
+interface Department {
+  id?: number;
+  name: string;
+  companyGstNumber: string;
+  company?: Company;
+}
 
 export function ClientDepartment() {
-  const [depts] = useState([
-    { name: 'INS DEGA PHOTO SECTION', desc: 'INS DEGA PHOTO SECTION', date: '29-04-2026' },
-    { name: 'MYU', desc: 'MYU', date: '22-04-2026' },
-    { name: 'INS DEGA , BLD', desc: 'INS DEGA , BLD', date: '06-04-2026' },
-    { name: 'EPS', desc: 'EPS', date: '29-03-2026' },
-    { name: 'SALES', desc: 'SALES', date: '26-03-2026' },
-    { name: 'MCD', desc: 'MCD', date: '23-03-2026' },
-    { name: 'CIVIL', desc: 'CIVIL', date: '13-03-2026' },
-  ]);
+  const [depts, setDepts] = useState<Department[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: '',
+    companyGstNumber: ''
+  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchDepts();
+    fetchCompanies();
+  }, []);
+
+  const fetchDepts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5076/api/departments');
+      const data = await response.json();
+      setDepts(data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await fetch('http://localhost:5076/api/companygsts');
+      const data = await response.json();
+      setCompanies(data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('Department Name is required');
+      return;
+    }
+    if (!formData.companyGstNumber) {
+      alert('Please select a Company');
+      return;
+    }
+
+    try {
+      const url = editingId 
+        ? 'http://localhost:5076/api/departments/edit' 
+        : 'http://localhost:5076/api/departments';
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingId ? { ...formData, id: editingId } : formData)
+      });
+
+      if (response.ok) {
+        fetchDepts();
+        handleCancel();
+      }
+    } catch (error) {
+      console.error('Error saving department:', error);
+    }
+  };
+
+  const handleEdit = (dept: Department) => {
+    setEditingId(dept.id || null);
+    setFormData({
+      name: dept.name,
+      companyGstNumber: dept.companyGstNumber || ''
+    });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setFormData({
+      name: '',
+      companyGstNumber: ''
+    });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this department?')) {
+      try {
+        const response = await fetch(`http://localhost:5076/api/departments/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          fetchDepts();
+        }
+      } catch (error) {
+        console.error('Error deleting:', error);
+      }
+    }
+  };
 
   return (
-    <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
-      <div className="max-w-[1600px] mx-auto space-y-8">
-        {/* Add Department Form Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="bg-blue-50/10 px-8 py-5 border-b border-gray-100 flex items-center justify-between">
-             <h2 className="text-[#0061f2] text-[12px] font-black uppercase tracking-widest">Add Department</h2>
-          </div>
-          <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Department Name</label>
-                <input type="text" placeholder="Department Name" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 transition-all shadow-inner" />
-             </div>
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</label>
-                <input type="text" placeholder="Description" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 transition-all shadow-inner" />
-             </div>
-             <button className="px-12 py-3.5 bg-[#0061f2] text-white text-[11px] font-black rounded shadow-lg shadow-blue-100 uppercase tracking-widest hover:bg-blue-700 transition-all">
-                Add Department
-             </button>
+    <div className="p-8 bg-white min-h-screen font-sans text-slate-600">
+      {/* Header */}
+      <div className="mb-8 border-b border-gray-100 pb-4">
+        <h1 className="text-xl font-bold text-gray-800 tracking-tight">Client Department Master</h1>
+        <p className="text-xs text-gray-400 font-medium">Link client departments to registered companies under reference keys</p>
+      </div>
+
+      {/* Add Department Form */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 bg-[#f8f9fc] p-6 rounded-lg border border-gray-100 items-end">
+        <div className="space-y-1.5">
+          <label className="block text-[13px] font-medium text-gray-500">Company Name <span className="text-red-500">*</span></label>
+          <div className="relative">
+            <select
+              name="companyGstNumber"
+              value={formData.companyGstNumber}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none text-sm"
+            >
+              <option value="">Select Company</option>
+              {companies.map((c, idx) => (
+                <option key={idx} value={c.gstNumber}>{c.companyName}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* Departments Data Grid */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[600px]">
-           <div className="overflow-x-auto">
-              <table className="w-full text-[11px] border-collapse">
-                 <thead>
-                    <tr className="bg-white text-gray-400 uppercase tracking-widest border-b border-gray-100 font-black">
-                       <th className="px-8 py-5 text-left border-r border-gray-50">Department Name</th>
-                       <th className="px-8 py-5 text-left border-r border-gray-50">Description</th>
-                       <th className="px-8 py-5 text-left border-r border-gray-50">Created Date</th>
-                       <th className="px-8 py-5 text-center">Actions</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-50">
-                    {depts.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                         <td className="px-8 py-4 border-r border-gray-50 font-black text-gray-600 uppercase tracking-tight">{item.name}</td>
-                         <td className="px-8 py-4 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tight">{item.desc}</td>
-                         <td className="px-8 py-4 border-r border-gray-50 font-bold text-gray-400 tracking-tighter whitespace-nowrap">{item.date}</td>
-                         <td className="px-8 py-4 text-center">
-                            <div className="flex gap-2 justify-center">
-                               <button className="px-4 py-1.5 border border-blue-400 text-blue-500 rounded text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-sm">
-                                  Edit
-                               </button>
-                               <button className="px-4 py-1.5 border border-red-400 text-red-500 rounded text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                                  Delete
-                               </button>
-                            </div>
-                         </td>
-                      </tr>
-                    ))}
-                 </tbody>
-              </table>
-           </div>
+        <div className="space-y-1.5">
+          <label className="block text-[13px] font-medium text-gray-500">Department Name <span className="text-red-500">*</span></label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="e.g. Civil Department, IT Department"
+            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <button 
+            onClick={handleSave}
+            className={`flex-1 py-2.5 text-white font-bold rounded transition-colors shadow-sm ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#0061f2] hover:bg-blue-700'}`}
+          >
+            {editingId ? 'Update' : 'Save'}
+          </button>
+          {editingId && (
+            <button 
+              onClick={handleCancel}
+              className="py-2.5 px-4 bg-gray-200 text-gray-700 font-bold rounded hover:bg-gray-300 transition-colors shadow-sm"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase px-4">
-        <p>Copyright © Your Website 2021</p>
-        <div className="flex gap-4">
-          <a href="#" className="hover:underline transition-colors hover:text-gray-600">Privacy Policy</a>
-          <span>•</span>
-          <a href="#" className="hover:underline transition-colors hover:text-gray-600">Terms & Conditions</a>
-        </div>
+      {/* Departments Grid */}
+      <div className="overflow-x-auto border border-gray-100 rounded-lg">
+        <table className="w-full text-sm text-left border-collapse">
+          <thead>
+            <tr className="bg-[#f8f9fc] border-b border-gray-100">
+              <th className="px-6 py-4 font-bold text-gray-600 uppercase tracking-tight font-black">Department Name</th>
+              <th className="px-6 py-4 font-bold text-gray-600 uppercase tracking-tight text-center font-black">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50 font-medium text-gray-600">
+            {loading ? (
+               <tr><td colSpan={2} className="py-10 text-center"><div className="animate-spin inline-block w-6 h-6 border-2 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
+            ) : depts.length === 0 ? (
+               <tr><td colSpan={2} className="py-10 text-center text-gray-400">No records found.</td></tr>
+            ) : depts.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                 <td className="px-6 py-4 uppercase font-bold text-blue-600">{item.name}</td>
+                 <td className="px-6 py-4">
+                    <div className="flex gap-2 justify-center">
+                       <button 
+                         onClick={() => handleEdit(item)}
+                         className="px-3 py-1 bg-amber-500 text-white text-[11px] font-bold rounded hover:bg-amber-600 transition-colors shadow-sm font-black"
+                       >
+                          Edit
+                       </button>
+                       <button 
+                         onClick={() => item.id && handleDelete(item.id)}
+                         className="px-3 py-1 bg-red-600 text-white text-[11px] font-bold rounded hover:bg-red-700 transition-colors shadow-sm font-black"
+                       >
+                          Delete
+                       </button>
+                    </div>
+                 </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
