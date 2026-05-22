@@ -248,6 +248,7 @@ export default function App() {
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         user={user || { name: 'User', email: '', avatar: '' }} 
         onLogout={handleLogout}
+        onNavigate={setCurrentPath}
       />
 
       <div className="flex flex-1 overflow-hidden">

@@ -48,7 +48,6 @@ interface Employee {
   employeeId?: string;
   name: string;
 }
-
 export function RoleAssignment() {
   // DB Lists
   const [assignments, setAssignments] = useState<RoleAssignmentData[]>([]);
@@ -365,8 +364,8 @@ export function RoleAssignment() {
       {toast.show && (
         <div className="fixed top-6 right-6 z-50 animate-slide-in max-w-sm bg-white rounded-xl shadow-xl border border-slate-100 p-4 flex items-start gap-3.5 transition-all hover:scale-[1.02]">
           <div className={`p-2 rounded-lg ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' :
-              toast.type === 'error' ? 'bg-rose-50 text-rose-600' :
-                'bg-sky-50 text-sky-600'
+            toast.type === 'error' ? 'bg-rose-50 text-rose-600' :
+              'bg-sky-50 text-sky-600'
             }`}>
             {toast.type === 'success' && <Check className="w-5 h-5" />}
             {toast.type === 'error' && <AlertCircle className="w-5 h-5" />}
@@ -587,8 +586,8 @@ export function RoleAssignment() {
                 onClick={handleSave}
                 disabled={saveLoading}
                 className={`flex items-center justify-center gap-1.5 px-12 py-2.5 text-white text-[10px] font-black rounded-lg shadow-md uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer ${editingId
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/10'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-indigo-600/10'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/10'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-indigo-600/10'
                   }`}
               >
                 {saveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
