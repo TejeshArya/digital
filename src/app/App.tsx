@@ -155,7 +155,7 @@ export default function App() {
     if (currentPath === '/hr/department') return <NewDepartment />;
     if (currentPath === '/hr/location') return <LocationManagement />;
     if (currentPath === '/hr/sub-location') return <SubLocation />;
-    if (currentPath === '/hr/post') return <CreatePost />;
+    if (currentPath === '/hr/post') return <CreatePost onNavigate={setCurrentPath} />;
     if (currentPath === '/hr/role-assign') return <RoleAssignment />;
     if (currentPath === '/hr/manager-assign') return <ManagerAssignment />;
     if (currentPath === '/hr/location-head') return <LocationHead />;
