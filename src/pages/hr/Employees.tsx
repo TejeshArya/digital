@@ -14,8 +14,8 @@ interface Employee {
   role: string;
   status: string;
   createdAt: string;
-  department?: { name: string };
-  location?: { name: string };
+  departmentName?: string;
+  locationName?: string;
 }
 
 interface EmployeesProps {
@@ -186,8 +186,8 @@ export function Employees({ onNavigate }: EmployeesProps) {
                     </td>
                     <td className="px-6 py-4 font-black text-gray-700">{emp.name}</td>
                     <td className="px-6 py-4 font-bold text-gray-400 lowercase">{emp.email}</td>
-                    <td className="px-6 py-4 font-bold text-gray-400">{emp.location?.name || 'N/A'}</td>
-                    <td className="px-6 py-4 font-bold text-gray-400">{emp.department?.name || 'N/A'}</td>
+                    <td className="px-6 py-4 font-bold text-gray-400">{emp.locationName || 'N/A'}</td>
+                    <td className="px-6 py-4 font-bold text-gray-400">{emp.departmentName || 'N/A'}</td>
                     <td className="px-6 py-4 font-black text-gray-600">{emp.role}</td>
                     <td className="px-6 py-4 text-center">
                       <span className={`flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase ${getStatusColor(emp.status)}`}>

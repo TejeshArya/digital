@@ -67,9 +67,10 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
     try {
       const response = await fetch('http://localhost:5076/api/departments');
       const data = await response.json();
-      setDepartments(data);
+      setDepartments(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
       console.error('Error fetching departments:', error);
+      setDepartments([]);
     }
   };
 
@@ -77,9 +78,10 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
     try {
       const response = await fetch('http://localhost:5076/api/designationofficers');
       const data = await response.json();
-      setDesignations(data);
+      setDesignations(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
       console.error('Error fetching designations:', error);
+      setDesignations([]);
     }
   };
 
@@ -87,9 +89,10 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
     try {
       const response = await fetch('http://localhost:5076/api/employees');
       const data = await response.json();
-      setEmployees(data);
+      setEmployees(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
       console.error('Error fetching employees:', error);
+      setEmployees([]);
     }
   };
 
@@ -98,7 +101,8 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
       setLoading(true);
       const response = await fetch('http://localhost:5076/api/subgsts');
       const data = await response.json();
-      const mapped = data.map((item: any) => ({
+      const rawList = Array.isArray(data) ? data : data?.value ?? [];
+      const mapped = rawList.map((item: any) => ({
         ...item,
         startDate: item.startDate ? item.startDate.split('T')[0] : '',
         endDate: item.endDate ? item.endDate.split('T')[0] : ''
@@ -106,6 +110,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
       setRecords(mapped);
     } catch (error) {
       console.error('Error fetching records:', error);
+      setRecords([]);
     } finally {
       setLoading(false);
     }
@@ -115,9 +120,10 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
     try {
       const response = await fetch('http://localhost:5076/api/companygsts');
       const data = await response.json();
-      setCompanies(data);
+      setCompanies(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
       console.error('Error fetching companies:', error);
+      setCompanies([]);
     }
   };
 

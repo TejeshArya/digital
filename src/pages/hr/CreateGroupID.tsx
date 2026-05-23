@@ -197,7 +197,7 @@ export function CreateGroupID() {
             </h2>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               {/* Group ID Input (Auto-generated) */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -291,11 +291,11 @@ export function CreateGroupID() {
             <table className="w-full text-[11px] border-collapse">
               <thead>
                 <tr className="bg-white text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                  <th className="px-8 py-5 text-left font-black border-r border-gray-100 w-24">Group ID</th>
-                  <th className="px-8 py-5 text-left font-black border-r border-gray-100">Name</th>
-                  <th className="px-8 py-5 text-left font-black border-r border-gray-100">Description</th>
-                  <th className="px-8 py-5 text-left font-black border-r border-gray-100 w-48">Created Date</th>
-                  <th className="px-8 py-5 text-center font-black w-32">Actions</th>
+                  <th className="px-4 sm:px-8 py-4 sm:py-5 text-left font-black border-r border-gray-100 w-24">Group ID</th>
+                  <th className="px-4 sm:px-8 py-4 sm:py-5 text-left font-black border-r border-gray-100">Name</th>
+                  <th className="px-4 sm:px-8 py-4 sm:py-5 text-left font-black border-r border-gray-100">Description</th>
+                  <th className="px-4 sm:px-8 py-4 sm:py-5 text-left font-black border-r border-gray-100 w-48">Created Date</th>
+                  <th className="px-4 sm:px-8 py-4 sm:py-5 text-center font-black w-32">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -315,14 +315,14 @@ export function CreateGroupID() {
                 ) : (
                   filteredGroups.map((group) => (
                     <tr key={group.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-8 py-5 border-r border-gray-50 font-black text-gray-500">#{group.id}</td>
-                      <td className="px-8 py-5 border-r border-gray-50 font-black text-gray-700 uppercase tracking-tight">{group.name}</td>
-                      <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{group.description || 'No Description'}</td>
-                      <td className="px-8 py-5 border-r border-gray-50 font-bold text-gray-400 flex items-center gap-2">
+                      <td className="px-4 sm:px-8 py-4 sm:py-5 border-r border-gray-50 font-black text-gray-500">#{group.id}</td>
+                      <td className="px-4 sm:px-8 py-4 sm:py-5 border-r border-gray-50 font-black text-gray-700 uppercase tracking-tight">{group.name}</td>
+                      <td className="px-4 sm:px-8 py-4 sm:py-5 border-r border-gray-50 font-bold text-gray-400 uppercase tracking-tighter">{group.description || 'No Description'}</td>
+                      <td className="px-4 sm:px-8 py-4 sm:py-5 border-r border-gray-50 font-bold text-gray-400 flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5 opacity-30" /> 
                         {group.id <= 18 ? '2025-12-23' : new Date().toISOString().split('T')[0]}
                       </td>
-                      <td className="px-8 py-5 text-center">
+                      <td className="px-4 sm:px-8 py-4 sm:py-5 text-center">
                         <div className="flex justify-center gap-2">
                           <button 
                             onClick={() => handleEdit(group)}

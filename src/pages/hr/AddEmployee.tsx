@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   User, Mail, Calendar, GraduationCap, IndianRupee,
   FileText, Lock, RefreshCw, AlertCircle, ArrowLeft,
@@ -6,7 +6,8 @@ import {
   X, Copy, Eye, EyeOff, Sparkles, ClipboardList, Send,
   ChevronRight, ChevronDown, Phone, MapPin, CreditCard,
   Building2, Users, Heart, Upload, Paperclip, Image,
-  Briefcase, Hash, Home, UserCheck, BadgeCheck, Landmark
+  Briefcase, Hash, Home, UserCheck, BadgeCheck, Landmark,
+  Plus, Trash2, Utensils, Leaf
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -16,19 +17,24 @@ interface AddEmployeeProps {
   onNavigate?: (path: string) => void;
 }
 
+interface FamilyMember {
+  name: string;
+  relation: string;
+  dateOfBirth: string;
+  mealType: 'Veg' | 'Non-Veg' | '';
+}
+
 interface EmployeeFormData {
-  // Step 1 — Basic Info
   fullName: string;
   officialEmail: string;
   employeeCode: string;
   dateOfJoining: string;
   department: string;
+  location: string;
   designation: string;
   coreQualification: string[];
   annualSalary: string;
   remarks: string;
-
-  // Step 2 — Personal Details
   dateOfBirth: string;
   gender: string;
   maritalStatus: string;
@@ -37,8 +43,6 @@ interface EmployeeFormData {
   category: string;
   mobileNumber: string;
   alternateNumber: string;
-
-  // Step 3 — Address
   currentAddressLine: string;
   currentCity: string;
   currentState: string;
@@ -48,34 +52,26 @@ interface EmployeeFormData {
   permanentCity: string;
   permanentState: string;
   permanentPincode: string;
-
-  // Step 4 — Government IDs
   aadharNumber: string;
   panNumber: string;
   uanNumber: string;
   esicNumber: string;
   passportNumber: string;
+  passportValidUpto: string;
   pvcNumber: string;
-
-  // Step 5 — Bank Details
+  pvcValidUpto: string;
   bankName: string;
   accountNumber: string;
   ifscCode: string;
   branchName: string;
   accountType: string;
-
-  // Step 6 — Emergency & Family
   emergencyName: string;
   emergencyPhone: string;
   emergencyRelation: string;
-  fatherName: string;
-  motherName: string;
-  spouseName: string;
+  familyMembers: FamilyMember[];
   nomineeName: string;
   nomineeRelation: string;
   nomineeDOB: string;
-
-  // Step 8 — Credentials
   password: string;
   confirmPassword: string;
 }
@@ -85,6 +81,7 @@ interface UploadedDocs {
   aadharCard: File | null;
   panCard: File | null;
   bankPassbook: File | null;
+  passport: File | null;
   pvc: File | null;
   educationCerts: File[];
   experienceLetter: File | null;
@@ -92,18 +89,17 @@ interface UploadedDocs {
   otherDocs: File[];
 }
 
+interface ApiDepartment { id: number; name: string; }
+interface ApiLocation   { id: number; name: string; }
+
 // ─────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────
+const API = 'http://localhost:5076';
+
 const QUALIFICATIONS = [
   'B.E / B.TECH', 'MBA', 'MCA', 'M.TECH', 'Ph.D',
   'B.COM', 'M.COM', 'B.SC', 'M.SC', 'DIPLOMA', 'ITI', '10th Pass', '12th Pass',
-];
-
-const DEPARTMENTS = [
-  'Human Resources', 'Finance & Accounts', 'Information Technology',
-  'Operations', 'Sales & Marketing', 'Legal & Compliance',
-  'Administration', 'Production', 'Quality Assurance', 'Logistics',
 ];
 
 const BLOOD_GROUPS = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'];
@@ -111,35 +107,47 @@ const ACCOUNT_TYPES = ['Savings', 'Current', 'Salary'];
 const CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'EWS'];
 const RELIGIONS = ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Others'];
 
-const STEPS = [
-  { id: 1,  label: 'Basic Info',      sublabel: 'Identity & Role'      },
-  { id: 2,  label: 'Personal',        sublabel: 'Profile Details'      },
-  { id: 3,  label: 'Address',         sublabel: 'Current & Permanent'  },
-  { id: 4,  label: 'Govt. IDs',       sublabel: 'Aadhar, PAN, UAN'     },
-  { id: 5,  label: 'Bank',            sublabel: 'Account Details'      },
-  { id: 6,  label: 'Family',          sublabel: 'Emergency & Nominee'  },
-  { id: 7,  label: 'Documents',       sublabel: 'Upload Files'         },
-  { id: 8,  label: 'Credentials',     sublabel: 'Login Setup'          },
-  { id: 9,  label: 'Review',          sublabel: 'Confirm & Submit'     },
+const FAMILY_RELATIONS = [
+  'Father', 'Mother', 'Spouse', 'Son', 'Daughter',
+  'Brother', 'Sister', 'Grandfather', 'Grandmother', 'Other',
 ];
+
+const STEPS = [
+  { id: 1, label: 'Basic Info',  sublabel: 'Identity & Role'    },
+  { id: 2, label: 'Personal',    sublabel: 'Profile Details'    },
+  { id: 3, label: 'Address',     sublabel: 'Current & Permanent'},
+  { id: 4, label: 'Govt. IDs',   sublabel: 'IDs & Documents'    },
+  { id: 5, label: 'Bank',        sublabel: 'Account Details'    },
+  { id: 6, label: 'Family',      sublabel: 'Members & Nominee'  },
+  { id: 7, label: 'Credentials', sublabel: 'Login Setup'        },
+  { id: 8, label: 'Review',      sublabel: 'Confirm & Submit'   },
+];
+
+const TOTAL_STEPS = STEPS.length;
+
+const EMPTY_FAMILY_MEMBER: FamilyMember = { name: '', relation: '', dateOfBirth: '', mealType: '' };
 
 const EMPTY_FORM: EmployeeFormData = {
   fullName: '', officialEmail: '', employeeCode: '', dateOfJoining: '',
-  department: '', designation: '', coreQualification: [], annualSalary: '', remarks: '',
+  department: '', location: '', designation: '', coreQualification: [], annualSalary: '', remarks: '',
   dateOfBirth: '', gender: '', maritalStatus: '', bloodGroup: '', religion: '', category: '',
   mobileNumber: '', alternateNumber: '',
   currentAddressLine: '', currentCity: '', currentState: '', currentPincode: '',
   sameAsCurrent: false,
   permanentAddressLine: '', permanentCity: '', permanentState: '', permanentPincode: '',
-  aadharNumber: '', panNumber: '', uanNumber: '', esicNumber: '', passportNumber: '', pvcNumber: '',
+  aadharNumber: '', panNumber: '', uanNumber: '', esicNumber: '',
+  passportNumber: '', passportValidUpto: '',
+  pvcNumber: '', pvcValidUpto: '',
   bankName: '', accountNumber: '', ifscCode: '', branchName: '', accountType: '',
   emergencyName: '', emergencyPhone: '', emergencyRelation: '',
-  fatherName: '', motherName: '', spouseName: '', nomineeName: '', nomineeRelation: '', nomineeDOB: '',
+  familyMembers: [{ ...EMPTY_FAMILY_MEMBER }],
+  nomineeName: '', nomineeRelation: '', nomineeDOB: '',
   password: '', confirmPassword: '',
 };
 
 const EMPTY_DOCS: UploadedDocs = {
-  photo: null, aadharCard: null, panCard: null, bankPassbook: null, pvc: null,
+  photo: null, aadharCard: null, panCard: null, bankPassbook: null,
+  passport: null, pvc: null,
   educationCerts: [], experienceLetter: null, offerLetter: null, otherDocs: [],
 };
 
@@ -147,42 +155,44 @@ const EMPTY_DOCS: UploadedDocs = {
 // Shared UI helpers
 // ─────────────────────────────────────────────
 const inputCls =
-  'w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-lg text-[13px] font-bold text-gray-700 focus:outline-none focus:border-blue-400 focus:bg-white transition-all';
+  'w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 focus:outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-50 transition-all placeholder:text-gray-300 placeholder:font-normal';
 
-function FieldLabel({ icon, text }: { icon?: React.ReactNode; text: string; required?: boolean; optional?: boolean }) {
+function FieldLabel({ icon, text, required, optional }: {
+  icon?: React.ReactNode; text: string; required?: boolean; optional?: boolean;
+}) {
   return (
-    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] flex items-center gap-1.5 flex-wrap">
       {icon && <span className="text-gray-300">{icon}</span>}
       {text}
+      {required && <span className="text-rose-400 font-black">*</span>}
+      {optional && !required && <span className="text-gray-300 normal-case font-bold tracking-normal">(optional)</span>}
     </label>
   );
 }
 
 function SectionBanner({ color, icon, title, desc }: {
   color: 'blue' | 'purple' | 'teal' | 'emerald' | 'amber' | 'rose' | 'indigo';
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
+  icon: React.ReactNode; title: string; desc: string;
 }) {
-  const p: Record<string, { wrap: string; iconBg: string; text: string }> = {
-    blue:    { wrap: 'bg-blue-50 border-blue-100',     iconBg: 'bg-blue-600',    text: 'text-blue-800'    },
-    purple:  { wrap: 'bg-purple-50 border-purple-100', iconBg: 'bg-purple-600',  text: 'text-purple-800'  },
-    teal:    { wrap: 'bg-teal-50 border-teal-100',     iconBg: 'bg-teal-600',    text: 'text-teal-800'    },
-    emerald: { wrap: 'bg-emerald-50 border-emerald-100',iconBg:'bg-emerald-600', text: 'text-emerald-800' },
-    amber:   { wrap: 'bg-amber-50 border-amber-100',   iconBg: 'bg-amber-600',   text: 'text-amber-800'   },
-    rose:    { wrap: 'bg-rose-50 border-rose-100',     iconBg: 'bg-rose-600',    text: 'text-rose-800'    },
-    indigo:  { wrap: 'bg-indigo-50 border-indigo-100', iconBg: 'bg-indigo-600',  text: 'text-indigo-800'  },
+  const palette: Record<string, { wrap: string; iconBg: string; text: string }> = {
+    blue:    { wrap: 'bg-blue-50 border-blue-100',      iconBg: 'bg-blue-600',    text: 'text-blue-800'    },
+    purple:  { wrap: 'bg-purple-50 border-purple-100',  iconBg: 'bg-purple-600',  text: 'text-purple-800'  },
+    teal:    { wrap: 'bg-teal-50 border-teal-100',      iconBg: 'bg-teal-600',    text: 'text-teal-800'    },
+    emerald: { wrap: 'bg-emerald-50 border-emerald-100',iconBg: 'bg-emerald-600', text: 'text-emerald-800' },
+    amber:   { wrap: 'bg-amber-50 border-amber-100',    iconBg: 'bg-amber-600',   text: 'text-amber-800'   },
+    rose:    { wrap: 'bg-rose-50 border-rose-100',      iconBg: 'bg-rose-600',    text: 'text-rose-800'    },
+    indigo:  { wrap: 'bg-indigo-50 border-indigo-100',  iconBg: 'bg-indigo-600',  text: 'text-indigo-800'  },
   };
-  const palette = p[color];
+  const p = palette[color];
   return (
-    <div className={`border rounded-lg p-4 mb-6 ${palette.wrap}`}>
-      <div className={`flex items-start gap-3 ${palette.text}`}>
-        <div className={`${palette.iconBg} p-1.5 rounded-full mt-0.5 flex-shrink-0`}>
+    <div className={`border rounded-xl p-3 sm:p-4 mb-5 sm:mb-6 ${p.wrap}`}>
+      <div className={`flex items-start gap-3 ${p.text}`}>
+        <div className={`${p.iconBg} p-1.5 rounded-full mt-0.5 flex-shrink-0`}>
           <span className="text-white">{icon}</span>
         </div>
         <div>
-          <h3 className="text-[12px] font-black uppercase tracking-widest mb-0.5">{title}</h3>
-          <p className="text-[11px] font-medium opacity-80">{desc}</p>
+          <h3 className="text-[11px] sm:text-xs font-black uppercase tracking-widest mb-0.5">{title}</h3>
+          <p className="text-[10px] sm:text-[11px] font-medium opacity-80 leading-snug">{desc}</p>
         </div>
       </div>
     </div>
@@ -195,55 +205,67 @@ function NativeSelect({ name, value, onChange, children, required }: {
   children: React.ReactNode; required?: boolean;
 }) {
   return (
-    <select name={name} value={value} onChange={onChange} required={required}
-      className={`${inputCls} appearance-none cursor-pointer`}>
-      {children}
-    </select>
+    <div className="relative">
+      <select name={name} value={value} onChange={onChange} required={required}
+        className={`${inputCls} appearance-none cursor-pointer pr-10`}>
+        {children}
+      </select>
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    </div>
   );
 }
 
 // ─────────────────────────────────────────────
-// Step Indicator
+// Step Indicator  — FIX: single progress bar on mobile, no duplicate
 // ─────────────────────────────────────────────
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
     <div>
-      {/* Mobile: compact progress */}
-      <div className="flex items-center gap-2 md:hidden mb-2">
-        {STEPS.map(s => (
-          <div key={s.id} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-            s.id < currentStep ? 'bg-[#0061f2]' : s.id === currentStep ? 'bg-[#0061f2]' : 'bg-gray-200'
-          }`} />
-        ))}
+      {/* Mobile: step pills + label */}
+      <div className="md:hidden">
+        <div className="flex items-center gap-1 mb-2">
+          {STEPS.map(s => (
+            <div key={s.id}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                s.id <= currentStep ? 'bg-[#0061f2]' : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+        <div className="text-center">
+          <span className="text-[11px] font-black text-[#0061f2] uppercase tracking-widest">{STEPS[currentStep - 1].label}</span>
+          <span className="text-[9px] text-gray-400 font-bold ml-2">— {STEPS[currentStep - 1].sublabel}</span>
+        </div>
       </div>
-      {/* Desktop: full steps */}
-      <div className="hidden md:flex items-center justify-center flex-wrap gap-y-2 py-2">
+
+      {/* Desktop: full step row */}
+      <div className="hidden md:flex items-center justify-center flex-wrap gap-y-1 py-1">
         {STEPS.map((step, idx) => {
           const done   = step.id < currentStep;
           const active = step.id === currentStep;
           return (
             <React.Fragment key={step.id}>
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                  done   ? 'bg-[#0061f2] shadow-md shadow-blue-100'
-                  : active ? 'bg-[#0061f2] ring-4 ring-blue-100 shadow-md shadow-blue-100'
+              <div className="flex items-center gap-1.5">
+                <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                  done   ? 'bg-[#0061f2] shadow-sm shadow-blue-200'
+                  : active ? 'bg-[#0061f2] ring-4 ring-blue-100 shadow-sm shadow-blue-200'
                   : 'bg-gray-200'
                 }`}>
                   {done
-                    ? <CheckCircle className="w-3.5 h-3.5 text-white" />
-                    : <span className={`text-[11px] font-black ${active ? 'text-white' : 'text-gray-500'}`}>{step.id}</span>
+                    ? <CheckCircle className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" />
+                    : <span className={`text-[10px] font-black ${active ? 'text-white' : 'text-gray-500'}`}>{step.id}</span>
                   }
                 </div>
-                <div className="flex flex-col leading-tight">
-                  <span className={`text-[10px] font-black uppercase tracking-wide ${done || active ? 'text-[#0061f2]' : 'text-gray-400'}`}>
+                <div className="hidden lg:flex flex-col leading-tight">
+                  <span className={`text-[9px] font-black uppercase tracking-wide ${done || active ? 'text-[#0061f2]' : 'text-gray-400'}`}>
                     {step.label}
                   </span>
                   <span className="text-[8px] text-gray-400 font-bold">{step.sublabel}</span>
                 </div>
               </div>
               {idx < STEPS.length - 1 && (
-                <div className="flex items-center gap-0.5 mx-1.5 mb-3">
-                  <div className={`h-0.5 w-5 rounded-full ${step.id < currentStep ? 'bg-[#0061f2]' : 'bg-gray-200'}`} />
+                <div className="flex items-center gap-0.5 mx-1">
+                  <div className={`h-0.5 w-4 lg:w-5 rounded-full ${step.id < currentStep ? 'bg-[#0061f2]' : 'bg-gray-200'}`} />
                   <ChevronRight className={`w-3 h-3 flex-shrink-0 ${step.id < currentStep ? 'text-[#0061f2]' : 'text-gray-300'}`} />
                 </div>
               )}
@@ -256,51 +278,71 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 }
 
 // ─────────────────────────────────────────────
-// Multi-Select Qualification Dropdown
+// Qualification Multi-Select — FIX: mobile overflow, portal-free positioning
 // ─────────────────────────────────────────────
 function QualificationMultiSelect({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) {
   const [open, setOpen] = useState(false);
-  const toggle = (q: string) => onChange(selected.includes(q) ? selected.filter(s => s !== q) : [...selected, q]);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const toggle = (q: string) =>
+    onChange(selected.includes(q) ? selected.filter(s => s !== q) : [...selected, q]);
   const remove = (q: string) => onChange(selected.filter(s => s !== q));
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button type="button" onClick={() => setOpen(o => !o)}
         className={`${inputCls} flex items-center justify-between gap-2 text-left`}>
-        <span className={selected.length === 0 ? 'text-gray-400' : 'text-gray-700'}>
-          {selected.length === 0 ? '-- Select Qualifications --' : `${selected.length} selected`}
+        <span className={`truncate ${selected.length === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+          {selected.length === 0 ? 'Select qualifications...' : `${selected.length} selected`}
         </span>
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
+
       {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
-            <div className="px-3 py-2 bg-gray-50/60 border-b border-gray-100">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Select all that apply</p>
-            </div>
-            <ul className="max-h-48 overflow-y-auto divide-y divide-gray-50">
-              {QUALIFICATIONS.map(q => {
-                const checked = selected.includes(q);
-                return (
-                  <li key={q} onClick={() => toggle(q)}
-                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-[12px] font-bold transition-colors ${checked ? 'bg-blue-50 text-[#0061f2]' : 'text-gray-600 hover:bg-gray-50'}`}>
-                    <span className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${checked ? 'bg-[#0061f2] border-[#0061f2]' : 'border-gray-300 bg-white'}`}>
-                      {checked && <CheckCircle className="w-3 h-3 text-white" />}
-                    </span>
-                    {q}
-                  </li>
-                );
-              })}
-            </ul>
+        <div className="absolute z-30 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Select all that apply</p>
           </div>
-        </>
+          <ul className="max-h-44 overflow-y-auto divide-y divide-gray-50">
+            {QUALIFICATIONS.map(q => {
+              const checked = selected.includes(q);
+              return (
+                <li key={q} onClick={() => toggle(q)}
+                  className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-xs font-semibold transition-colors ${
+                    checked ? 'bg-blue-50 text-[#0061f2]' : 'text-gray-600 hover:bg-gray-50'
+                  }`}>
+                  <span className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    checked ? 'bg-[#0061f2] border-[#0061f2]' : 'border-gray-300 bg-white'
+                  }`}>
+                    {checked && <CheckCircle className="w-3 h-3 text-white" />}
+                  </span>
+                  {q}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
+
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {selected.map(q => (
-            <span key={q} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black rounded-full uppercase tracking-wide">
+            <span key={q}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black rounded-full uppercase tracking-wide">
               {q}
-              <button type="button" onClick={e => { e.stopPropagation(); remove(q); }} className="text-blue-400 hover:text-blue-700 ml-0.5">
+              <button type="button"
+                onClick={e => { e.stopPropagation(); remove(q); }}
+                className="text-blue-400 hover:text-rose-600 ml-0.5 transition-colors">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -312,39 +354,47 @@ function QualificationMultiSelect({ selected, onChange }: { selected: string[]; 
 }
 
 // ─────────────────────────────────────────────
-// File Upload Widget
+// File Upload Widget — FIX: input key reset so same file can be re-selected
 // ─────────────────────────────────────────────
 function FileUploadBox({ label, icon, accept, file, onChange, required, hint }: {
   label: string; icon: React.ReactNode; accept: string;
   file: File | null; onChange: (f: File | null) => void;
   required?: boolean; hint?: string;
 }) {
+  const [inputKey, setInputKey] = useState(0);
   const ref = useRef<HTMLInputElement>(null);
+
+  const handleRemove = () => {
+    onChange(null);
+    setInputKey(k => k + 1); // reset file input so same file can be re-selected
+  };
+
   return (
     <div className="space-y-2">
       <FieldLabel icon={icon} text={label} required={required} optional={!required} />
       {file ? (
-        <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-lg">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center gap-2 min-w-0">
             <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <div>
-              <p className="text-[11px] font-black text-emerald-700 truncate max-w-[200px]">{file.name}</p>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black text-emerald-700 truncate">{file.name}</p>
               <p className="text-[9px] text-emerald-500 font-bold">{(file.size / 1024).toFixed(1)} KB</p>
             </div>
           </div>
-          <button type="button" onClick={() => onChange(null)} className="text-emerald-400 hover:text-rose-500 transition-colors">
+          <button type="button" onClick={handleRemove}
+            className="text-emerald-400 hover:text-rose-500 transition-colors ml-2 flex-shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
         <button type="button" onClick={() => ref.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-5 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all cursor-pointer">
+          className="w-full flex flex-col items-center justify-center gap-2 px-4 py-4 sm:py-5 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 active:scale-[0.98] transition-all">
           <span className="text-gray-300">{icon}</span>
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Click to Upload</span>
           {hint && <span className="text-[9px] text-gray-300 font-bold">{hint}</span>}
         </button>
       )}
-      <input ref={ref} type="file" accept={accept} className="hidden"
+      <input key={inputKey} ref={ref} type="file" accept={accept} className="hidden"
         onChange={e => onChange(e.target.files?.[0] ?? null)} />
     </div>
   );
@@ -354,12 +404,15 @@ function MultiFileUploadBox({ label, icon, accept, files, onChange, hint }: {
   label: string; icon: React.ReactNode; accept: string;
   files: File[]; onChange: (f: File[]) => void; hint?: string;
 }) {
+  const [inputKey, setInputKey] = useState(0);
   const ref = useRef<HTMLInputElement>(null);
   const addFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
     onChange([...files, ...Array.from(newFiles)]);
+    setInputKey(k => k + 1);
   };
   const remove = (idx: number) => onChange(files.filter((_, i) => i !== idx));
+
   return (
     <div className="space-y-2">
       <FieldLabel icon={icon} text={label} optional />
@@ -367,17 +420,21 @@ function MultiFileUploadBox({ label, icon, accept, files, onChange, hint }: {
         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all text-[10px] font-black text-gray-400 uppercase tracking-widest">
         <Upload className="w-4 h-4" /> Add Files {hint && <span className="normal-case font-bold text-gray-300">({hint})</span>}
       </button>
-      <input ref={ref} type="file" accept={accept} multiple className="hidden" onChange={e => addFiles(e.target.files)} />
+      <input key={inputKey} ref={ref} type="file" accept={accept} multiple className="hidden"
+        onChange={e => addFiles(e.target.files)} />
       {files.length > 0 && (
         <div className="space-y-1.5">
           {files.map((f, i) => (
             <div key={i} className="flex items-center justify-between px-3 py-2 bg-emerald-50 border border-emerald-100 rounded-lg">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-[11px] font-black text-emerald-700 truncate max-w-[220px]">{f.name}</span>
-                <span className="text-[9px] text-emerald-500 font-bold">{(f.size / 1024).toFixed(1)} KB</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span className="text-[11px] font-black text-emerald-700 truncate">{f.name}</span>
+                <span className="text-[9px] text-emerald-500 font-bold flex-shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
               </div>
-              <button type="button" onClick={() => remove(i)} className="text-emerald-400 hover:text-rose-500"><X className="w-3.5 h-3.5" /></button>
+              <button type="button" onClick={() => remove(i)}
+                className="text-emerald-400 hover:text-rose-500 ml-2 flex-shrink-0">
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           ))}
         </div>
@@ -387,24 +444,25 @@ function MultiFileUploadBox({ label, icon, accept, files, onChange, hint }: {
 }
 
 // ─────────────────────────────────────────────
-// Review Field
+// Review helpers
 // ─────────────────────────────────────────────
 function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
+  // FIX: treat empty/whitespace string as falsy
+  const display = typeof value === 'string' ? value.trim() || '—' : (value ?? '—');
   return (
-    <div className="px-4 py-2.5 flex flex-col gap-0.5 border-b border-gray-50 last:border-0">
+    <div className="px-3 sm:px-4 py-2 sm:py-2.5 flex flex-col gap-0.5 border-b border-gray-50 last:border-0">
       <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
-      <span className="text-[12px] font-bold text-gray-700 break-words">{value || '—'}</span>
+      <span className="text-[11px] sm:text-xs font-bold text-gray-700 break-words">{display}</span>
     </div>
   );
 }
 
 function ReviewCard({ title, icon, color, children }: {
-  title: string; icon: React.ReactNode;
-  color: string; children: React.ReactNode;
+  title: string; icon: React.ReactNode; color: string; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden">
-      <div className={`${color} px-4 py-2.5 flex items-center gap-2`}>
+    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+      <div className={`${color} px-3 sm:px-4 py-2.5 flex items-center gap-2`}>
         {icon}
         <span className="text-[10px] font-black uppercase tracking-widest">{title}</span>
       </div>
@@ -416,53 +474,92 @@ function ReviewCard({ title, icon, color, children }: {
 // ─────────────────────────────────────────────
 // STEP 1 — Basic Info
 // ─────────────────────────────────────────────
-function Step1({ fd, ch, qch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>; qch: (v: string[]) => void }) {
+function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }: {
+  fd: EmployeeFormData;
+  ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  qch: (v: string[]) => void;
+  departments: ApiDepartment[];
+  locations: ApiLocation[];
+  depsLoading: boolean;
+  locsLoading: boolean;
+}) {
   return (
     <div>
       <SectionBanner color="blue" icon={<UserPlus className="w-4 h-4" />}
         title="Basic Employee Information"
         desc="Enter the core identity, role, and employment details for this new employee." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
           <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Full Name" required />
-          <input type="text" name="fullName" value={fd.fullName} onChange={ch} placeholder="Enter employee's full name" required className={inputCls} />
+          <input type="text" name="fullName" value={fd.fullName} onChange={ch}
+            placeholder="Employee's full name" required className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Mail className="w-3.5 h-3.5" />} text="Official Email ID" required />
-          <input type="email" name="officialEmail" value={fd.officialEmail} onChange={ch} placeholder="employee@company.com" required className={inputCls} />
-          <p className="text-[9px] text-gray-300 font-bold italic">Used for login and official communications</p>
+          <input type="email" name="officialEmail" value={fd.officialEmail} onChange={ch}
+            placeholder="employee@company.com" required className={inputCls} />
+          <p className="text-[9px] text-gray-400 font-medium italic">Used for login &amp; communications</p>
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Employee Code / ID" optional />
-          <input type="text" name="employeeCode" value={fd.employeeCode} onChange={ch} placeholder="e.g. EMP-001 (auto-generated if blank)" className={inputCls} />
+          <input type="text" name="employeeCode" value={fd.employeeCode} onChange={ch}
+            placeholder="EMP-001 (auto-generated if blank)" className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Joining" required />
-          <input type="date" name="dateOfJoining" value={fd.dateOfJoining} onChange={ch} required className={inputCls} />
+          <input type="date" name="dateOfJoining" value={fd.dateOfJoining} onChange={ch}
+            required className={inputCls} />
         </div>
+
+        {/* Department — from API */}
         <div className="space-y-2">
           <FieldLabel icon={<Building2 className="w-3.5 h-3.5" />} text="Department" required />
-          <NativeSelect name="department" value={fd.department} onChange={ch} required>
-            <option value="">-- Select Department --</option>
-            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-          </NativeSelect>
+          {depsLoading ? (
+            <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
+          ) : (
+            <NativeSelect name="department" value={fd.department} onChange={ch} required>
+              <option value="">-- Select Department --</option>
+              {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+            </NativeSelect>
+          )}
         </div>
+
+        {/* Location — from API */}
+        <div className="space-y-2">
+          <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Location / Branch" optional />
+          {locsLoading ? (
+            <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
+          ) : (
+            <NativeSelect name="location" value={fd.location} onChange={ch}>
+              <option value="">-- Select Location --</option>
+              {locations.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+            </NativeSelect>
+          )}
+        </div>
+
         <div className="space-y-2">
           <FieldLabel icon={<Briefcase className="w-3.5 h-3.5" />} text="Designation / Post" required />
-          <input type="text" name="designation" value={fd.designation} onChange={ch} placeholder="e.g. Software Engineer" required className={inputCls} />
+          <input type="text" name="designation" value={fd.designation} onChange={ch}
+            placeholder="e.g. Software Engineer" required className={inputCls} />
         </div>
-        <div className="space-y-2 md:col-span-2">
-          <FieldLabel icon={<GraduationCap className="w-3.5 h-3.5" />} text="Core Qualification" required />
-          <QualificationMultiSelect selected={fd.coreQualification} onChange={qch} />
-          <p className="text-[9px] text-gray-300 font-bold italic">Select all educational qualifications that apply</p>
-        </div>
+
         <div className="space-y-2">
           <FieldLabel icon={<IndianRupee className="w-3.5 h-3.5" />} text="Annual Salary (₹)" optional />
-          <input type="number" name="annualSalary" value={fd.annualSalary} onChange={ch} placeholder="Gross annual CTC" className={inputCls} />
+          <input type="number" name="annualSalary" value={fd.annualSalary} onChange={ch}
+            placeholder="Gross annual CTC" min="0" className={inputCls} />
         </div>
-        <div className="space-y-2">
+
+        <div className="space-y-2 sm:col-span-2">
+          <FieldLabel icon={<GraduationCap className="w-3.5 h-3.5" />} text="Core Qualification" required />
+          <QualificationMultiSelect selected={fd.coreQualification} onChange={qch} />
+          <p className="text-[9px] text-gray-400 font-medium italic">Select all educational qualifications that apply</p>
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
           <FieldLabel icon={<FileText className="w-3.5 h-3.5" />} text="Remarks / Notes" optional />
-          <textarea name="remarks" value={fd.remarks} onChange={ch} placeholder="Any onboarding notes..." rows={2} className={`${inputCls} resize-none`} />
+          <textarea name="remarks" value={fd.remarks} onChange={ch}
+            placeholder="Any onboarding notes..." rows={2}
+            className={`${inputCls} resize-none`} />
         </div>
       </div>
     </div>
@@ -472,29 +569,37 @@ function Step1({ fd, ch, qch }: { fd: EmployeeFormData; ch: React.ChangeEventHan
 // ─────────────────────────────────────────────
 // STEP 2 — Personal Details
 // ─────────────────────────────────────────────
-function Step2({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> }) {
+function Step2({ fd, ch, categories, catsLoading }: {
+  fd: EmployeeFormData;
+  ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  categories: any[];
+  catsLoading: boolean;
+}) {
   return (
     <div>
       <SectionBanner color="purple" icon={<User className="w-4 h-4" />}
         title="Personal Details"
         desc="Enter complete personal profile information for the employee's record." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
           <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Birth" required />
-          <input type="date" name="dateOfBirth" value={fd.dateOfBirth} onChange={ch} required className={inputCls} />
+          <input type="date" name="dateOfBirth" value={fd.dateOfBirth} onChange={ch}
+            required className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Gender" required />
           <NativeSelect name="gender" value={fd.gender} onChange={ch} required>
             <option value="">-- Select Gender --</option>
-            <option>Male</option><option>Female</option><option>Transgender</option><option>Prefer not to say</option>
+            <option>Male</option><option>Female</option>
+            <option>Transgender</option><option>Prefer not to say</option>
           </NativeSelect>
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Heart className="w-3.5 h-3.5" />} text="Marital Status" required />
           <NativeSelect name="maritalStatus" value={fd.maritalStatus} onChange={ch} required>
             <option value="">-- Select Status --</option>
-            <option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option>
+            <option>Single</option><option>Married</option>
+            <option>Divorced</option><option>Widowed</option>
           </NativeSelect>
         </div>
         <div className="space-y-2">
@@ -513,18 +618,25 @@ function Step2({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<
         </div>
         <div className="space-y-2">
           <FieldLabel text="Category" required />
-          <NativeSelect name="category" value={fd.category} onChange={ch} required>
-            <option value="">-- Select Category --</option>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </NativeSelect>
+          {catsLoading ? (
+            <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
+          ) : (
+            <NativeSelect name="category" value={fd.category} onChange={ch} required>
+              <option value="">-- Select Category --</option>
+              {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+            </NativeSelect>
+          )}
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Mobile Number" required />
-          <input type="tel" name="mobileNumber" value={fd.mobileNumber} onChange={ch} placeholder="10-digit mobile number" maxLength={10} required className={inputCls} />
+          <input type="tel" name="mobileNumber" value={fd.mobileNumber} onChange={ch}
+            placeholder="10-digit mobile number" maxLength={10} required
+            pattern="[0-9]{10}" className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Alternate Number" optional />
-          <input type="tel" name="alternateNumber" value={fd.alternateNumber} onChange={ch} placeholder="Alternate contact number" maxLength={10} className={inputCls} />
+          <input type="tel" name="alternateNumber" value={fd.alternateNumber} onChange={ch}
+            placeholder="Alternate contact number" maxLength={10} className={inputCls} />
         </div>
       </div>
     </div>
@@ -545,61 +657,75 @@ function Step3({ fd, ch, onSameToggle }: {
         title="Address Information"
         desc="Enter current residence and permanent address details." />
 
-      {/* Current Address */}
-      <div className="mb-6">
+      <div className="mb-5 sm:mb-6">
         <h3 className="text-[11px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2 mb-4">
           <Home className="w-4 h-4" /> Current Address
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
-          <div className="space-y-2 md:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2 sm:col-span-2">
             <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required />
-            <textarea name="currentAddressLine" value={fd.currentAddressLine} onChange={ch} placeholder="House No., Street, Area, Locality" rows={2} required className={`${inputCls} resize-none`} />
+            <textarea name="currentAddressLine" value={fd.currentAddressLine} onChange={ch}
+              placeholder="House No., Street, Area, Locality" rows={2} required
+              className={`${inputCls} resize-none`} />
           </div>
           <div className="space-y-2">
             <FieldLabel text="City" required />
-            <input type="text" name="currentCity" value={fd.currentCity} onChange={ch} placeholder="City" required className={inputCls} />
+            <input type="text" name="currentCity" value={fd.currentCity} onChange={ch}
+              placeholder="City" required className={inputCls} />
           </div>
           <div className="space-y-2">
             <FieldLabel text="State" required />
-            <input type="text" name="currentState" value={fd.currentState} onChange={ch} placeholder="State" required className={inputCls} />
+            <input type="text" name="currentState" value={fd.currentState} onChange={ch}
+              placeholder="State" required className={inputCls} />
           </div>
           <div className="space-y-2">
             <FieldLabel text="Pincode" required />
-            <input type="text" name="currentPincode" value={fd.currentPincode} onChange={ch} placeholder="6-digit pincode" maxLength={6} required className={inputCls} />
+            <input type="text" name="currentPincode" value={fd.currentPincode} onChange={ch}
+              placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required className={inputCls} />
           </div>
         </div>
       </div>
 
-      {/* Same as Current toggle */}
-      <div className="flex items-center gap-3 mb-5 p-3 bg-blue-50 border border-blue-100 rounded-lg cursor-pointer" onClick={onSameToggle}>
-        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${fd.sameAsCurrent ? 'bg-[#0061f2] border-[#0061f2]' : 'border-gray-300 bg-white'}`}>
+      {/* Same as Current checkbox */}
+      <button type="button"
+        onClick={onSameToggle}
+        className="w-full flex items-center gap-3 mb-5 p-3 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100/50 transition-colors text-left">
+        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+          fd.sameAsCurrent ? 'bg-[#0061f2] border-[#0061f2]' : 'border-gray-300 bg-white'
+        }`}>
           {fd.sameAsCurrent && <CheckCircle className="w-3.5 h-3.5 text-white" />}
         </div>
-        <span className="text-[11px] font-black text-blue-700 uppercase tracking-widest">Permanent address is same as current address</span>
-      </div>
+        <span className="text-[11px] font-black text-blue-700 uppercase tracking-widest">
+          Permanent address is same as current address
+        </span>
+      </button>
 
-      {/* Permanent Address */}
       {!fd.sameAsCurrent && (
         <div>
           <h3 className="text-[11px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2 mb-4">
             <Home className="w-4 h-4" /> Permanent Address
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
-            <div className="space-y-2 md:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+            <div className="space-y-2 sm:col-span-2">
               <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required />
-              <textarea name="permanentAddressLine" value={fd.permanentAddressLine} onChange={ch} placeholder="House No., Street, Area, Locality" rows={2} required className={`${inputCls} resize-none`} />
+              <textarea name="permanentAddressLine" value={fd.permanentAddressLine} onChange={ch}
+                placeholder="House No., Street, Area, Locality" rows={2} required
+                className={`${inputCls} resize-none`} />
             </div>
             <div className="space-y-2">
               <FieldLabel text="City" required />
-              <input type="text" name="permanentCity" value={fd.permanentCity} onChange={ch} placeholder="City" required className={inputCls} />
+              <input type="text" name="permanentCity" value={fd.permanentCity} onChange={ch}
+                placeholder="City" required className={inputCls} />
             </div>
             <div className="space-y-2">
               <FieldLabel text="State" required />
-              <input type="text" name="permanentState" value={fd.permanentState} onChange={ch} placeholder="State" required className={inputCls} />
+              <input type="text" name="permanentState" value={fd.permanentState} onChange={ch}
+                placeholder="State" required className={inputCls} />
             </div>
             <div className="space-y-2">
               <FieldLabel text="Pincode" required />
-              <input type="text" name="permanentPincode" value={fd.permanentPincode} onChange={ch} placeholder="6-digit pincode" maxLength={6} required className={inputCls} />
+              <input type="text" name="permanentPincode" value={fd.permanentPincode} onChange={ch}
+                placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required className={inputCls} />
             </div>
           </div>
         </div>
@@ -609,48 +735,182 @@ function Step3({ fd, ch, onSameToggle }: {
 }
 
 // ─────────────────────────────────────────────
-// STEP 4 — Government IDs
+// STEP 4 — Government IDs + Uploads
 // ─────────────────────────────────────────────
-function Step4({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> }) {
+function Step4({ fd, ch, docs, setDocs }: {
+  fd: EmployeeFormData;
+  ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  docs: UploadedDocs;
+  setDocs: React.Dispatch<React.SetStateAction<UploadedDocs>>;
+}) {
+  const setDoc = useCallback(<K extends keyof UploadedDocs>(key: K, val: UploadedDocs[K]) => {
+    setDocs(prev => ({ ...prev, [key]: val }));
+  }, [setDocs]);
+
+  // FIX: PAN is stored uppercase in state so submission is correct
+  const handlePanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const syntheticEvent = {
+      ...e,
+      target: { ...e.target, name: 'panNumber', value: e.target.value.toUpperCase() },
+    } as React.ChangeEvent<HTMLInputElement>;
+    ch(syntheticEvent);
+  };
+
   return (
     <div>
       <SectionBanner color="amber" icon={<CreditCard className="w-4 h-4" />}
-        title="Government Identity Documents"
-        desc="Enter all official government-issued identification numbers for this employee." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-        <div className="space-y-2">
-          <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Aadhar Number" required />
-          <input type="text" name="aadharNumber" value={fd.aadharNumber} onChange={ch} placeholder="12-digit Aadhar number" maxLength={12} required className={inputCls} />
-          <p className="text-[9px] text-gray-300 font-bold italic">As per UIDAI issued Aadhar Card</p>
-        </div>
-        <div className="space-y-2">
-          <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="PAN Number" required />
-          <input type="text" name="panNumber" value={fd.panNumber} onChange={ch} placeholder="e.g. ABCDE1234F" maxLength={10} required
-            className={`${inputCls} uppercase`} />
-          <p className="text-[9px] text-gray-300 font-bold italic">10-character PAN issued by Income Tax Department</p>
-        </div>
-        <div className="space-y-2">
-          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="UAN Number" optional />
-          <input type="text" name="uanNumber" value={fd.uanNumber} onChange={ch} placeholder="12-digit UAN (EPFO)" maxLength={12} className={inputCls} />
-          <p className="text-[9px] text-gray-300 font-bold italic">Universal Account Number (PF)</p>
-        </div>
-        <div className="space-y-2">
-          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="ESIC Number" optional />
-          <input type="text" name="esicNumber" value={fd.esicNumber} onChange={ch} placeholder="ESIC Insurance Number" className={inputCls} />
-          <p className="text-[9px] text-gray-300 font-bold italic">Employee State Insurance Corporation</p>
-        </div>
-        <div className="space-y-2">
-          <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Passport Number" optional />
-          <input type="text" name="passportNumber" value={fd.passportNumber} onChange={ch} placeholder="Passport number (if applicable)" className={`${inputCls} uppercase`} />
-        </div>
-        <div className="space-y-2">
-          <FieldLabel icon={<ShieldCheck className="w-3.5 h-3.5" />} text="PVC Number" required />
-          <input type="text" name="pvcNumber" value={fd.pvcNumber} onChange={ch} placeholder="Police Verification Certificate number" required className={inputCls} />
-          <p className="text-[9px] text-gray-300 font-bold italic">Reference number from local police verification authority</p>
+        title="Government IDs & Document Uploads"
+        desc="Enter all official identification numbers and upload corresponding documents on the same page." />
+
+      {/* ── Employee Photo ── */}
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 mb-3 sm:mb-4">
+          <Image className="w-4 h-4" /> Employee Photo
+        </h3>
+        <div className="max-w-xs">
+          {docs.photo ? (
+            <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <img src={URL.createObjectURL(docs.photo)} alt="preview"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-emerald-200 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-emerald-700 truncate">{docs.photo.name}</p>
+                <p className="text-[9px] text-emerald-500 font-bold">{(docs.photo.size / 1024).toFixed(1)} KB</p>
+              </div>
+              <button type="button" onClick={() => setDoc('photo', null)}
+                className="text-emerald-400 hover:text-rose-500 flex-shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="w-full flex flex-col items-center justify-center gap-2 px-4 py-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/30 transition-all cursor-pointer">
+              <Image className="w-8 h-8 text-gray-300" />
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Passport Photo</span>
+              <span className="text-[9px] text-gray-300 font-bold">JPG / PNG · Max 2 MB</span>
+              <input type="file" accept="image/*" className="hidden"
+                onChange={e => setDoc('photo', e.target.files?.[0] ?? null)} />
+            </label>
+          )}
         </div>
       </div>
 
-      <div className="mt-6 bg-amber-50 border border-amber-100 rounded-lg p-4">
+      {/* ── Aadhar ── */}
+      <IDSection color="amber" title="Aadhar Card" icon={<CreditCard className="w-4 h-4" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2">
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Aadhar Number" required />
+            <input type="text" name="aadharNumber" value={fd.aadharNumber} onChange={ch}
+              placeholder="12-digit Aadhar number" maxLength={12} required className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">As per UIDAI issued Aadhar Card</p>
+          </div>
+          <FileUploadBox label="Aadhar Card Document" icon={<CreditCard className="w-3.5 h-3.5" />}
+            accept=".jpg,.jpeg,.png,.pdf" file={docs.aadharCard}
+            onChange={f => setDoc('aadharCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+        </div>
+      </IDSection>
+
+      {/* ── PAN ── */}
+      <IDSection color="amber" title="PAN Card" icon={<CreditCard className="w-4 h-4" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2">
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="PAN Number" required />
+            {/* FIX: stored uppercase in state */}
+            <input type="text" name="panNumber" value={fd.panNumber} onChange={handlePanChange}
+              placeholder="e.g. ABCDE1234F" maxLength={10} required className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">10-character PAN issued by Income Tax Dept</p>
+          </div>
+          <FileUploadBox label="PAN Card Document" icon={<CreditCard className="w-3.5 h-3.5" />}
+            accept=".jpg,.jpeg,.png,.pdf" file={docs.panCard}
+            onChange={f => setDoc('panCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+        </div>
+      </IDSection>
+
+      {/* ── UAN & ESIC ── */}
+      <IDSection color="amber" title="UAN & ESIC Numbers" icon={<Hash className="w-4 h-4" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2">
+            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="UAN Number" optional />
+            <input type="text" name="uanNumber" value={fd.uanNumber} onChange={ch}
+              placeholder="12-digit UAN (EPFO)" maxLength={12} className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">Universal Account Number (PF)</p>
+          </div>
+          <div className="space-y-2">
+            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="ESIC Number" optional />
+            <input type="text" name="esicNumber" value={fd.esicNumber} onChange={ch}
+              placeholder="ESIC Insurance Number" className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">Employee State Insurance Corporation</p>
+          </div>
+        </div>
+      </IDSection>
+
+      {/* ── Passport ── */}
+      <IDSection color="blue" title="Passport" icon={<FileText className="w-4 h-4" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2">
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Passport Number" optional />
+            <input type="text" name="passportNumber" value={fd.passportNumber} onChange={ch}
+              placeholder="Passport number (if applicable)" className={`${inputCls} uppercase`} />
+          </div>
+          <div className="space-y-2">
+            <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Valid Upto" optional />
+            <input type="date" name="passportValidUpto" value={fd.passportValidUpto} onChange={ch}
+              className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">Passport expiry date</p>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <FileUploadBox label="Passport Document" icon={<FileText className="w-3.5 h-3.5" />}
+              accept=".jpg,.jpeg,.png,.pdf" file={docs.passport}
+              onChange={f => setDoc('passport', f)} hint="JPG / PNG / PDF · Max 5 MB" />
+          </div>
+        </div>
+      </IDSection>
+
+      {/* ── PVC ── */}
+      <IDSection color="rose" title="Police Verification Certificate (PVC)" icon={<ShieldCheck className="w-4 h-4" />}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
+          <div className="space-y-2">
+            <FieldLabel icon={<ShieldCheck className="w-3.5 h-3.5" />} text="PVC Number" required />
+            <input type="text" name="pvcNumber" value={fd.pvcNumber} onChange={ch}
+              placeholder="Police Verification Certificate number" required className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">Reference number from local police verification authority</p>
+          </div>
+          <div className="space-y-2">
+            <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Valid Upto" optional />
+            <input type="date" name="pvcValidUpto" value={fd.pvcValidUpto} onChange={ch}
+              className={inputCls} />
+            <p className="text-[9px] text-gray-400 font-medium italic">PVC certificate expiry date</p>
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <FileUploadBox label="PVC Document" icon={<ShieldCheck className="w-3.5 h-3.5" />}
+              accept=".jpg,.jpeg,.png,.pdf" file={docs.pvc}
+              onChange={f => setDoc('pvc', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+          </div>
+        </div>
+      </IDSection>
+
+      {/* ── Additional Documents ── */}
+      <IDSection color="indigo" title="Additional Documents" icon={<Paperclip className="w-4 h-4" />} noBorder>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <FileUploadBox label="Bank Passbook / Cancelled Cheque" icon={<Landmark className="w-3.5 h-3.5" />}
+            accept=".jpg,.jpeg,.png,.pdf" file={docs.bankPassbook}
+            onChange={f => setDoc('bankPassbook', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+          <FileUploadBox label="Offer / Appointment Letter" icon={<FileText className="w-3.5 h-3.5" />}
+            accept=".pdf,.doc,.docx" file={docs.offerLetter}
+            onChange={f => setDoc('offerLetter', f)} hint="PDF / DOC · Max 5 MB" />
+          <FileUploadBox label="Previous Experience Letter" icon={<Briefcase className="w-3.5 h-3.5" />}
+            accept=".pdf,.doc,.docx" file={docs.experienceLetter}
+            onChange={f => setDoc('experienceLetter', f)} hint="PDF / DOC · Max 5 MB" />
+          <MultiFileUploadBox label="Educational Certificates" icon={<GraduationCap className="w-3.5 h-3.5" />}
+            accept=".jpg,.jpeg,.png,.pdf" files={docs.educationCerts}
+            onChange={f => setDoc('educationCerts', f)} hint="Degree / Mark Sheets" />
+          <div className="sm:col-span-2">
+            <MultiFileUploadBox label="Other Supporting Documents" icon={<Paperclip className="w-3.5 h-3.5" />}
+              accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" files={docs.otherDocs}
+              onChange={f => setDoc('otherDocs', f)} hint="Any additional documents" />
+          </div>
+        </div>
+      </IDSection>
+
+      <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3 sm:p-4">
         <div className="flex items-start gap-3 text-amber-800">
           <ShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600" />
           <div>
@@ -663,32 +923,66 @@ function Step4({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<
   );
 }
 
+// Helper component to avoid duplicate section header markup
+function IDSection({ color, title, icon, children, noBorder }: {
+  color: 'amber' | 'blue' | 'rose' | 'indigo';
+  title: string; icon: React.ReactNode; children: React.ReactNode; noBorder?: boolean;
+}) {
+  const colors: Record<string, string> = {
+    amber: 'text-amber-700', blue: 'text-blue-700', rose: 'text-rose-700', indigo: 'text-indigo-700',
+  };
+  return (
+    <div className={`mb-6 sm:mb-8 ${noBorder ? '' : 'pb-6 sm:pb-8 border-b border-gray-100'}`}>
+      <h3 className={`text-[11px] font-black uppercase tracking-widest flex items-center gap-2 mb-3 sm:mb-4 ${colors[color]}`}>
+        {icon} {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────
 // STEP 5 — Bank Details
 // ─────────────────────────────────────────────
-function Step5({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> }) {
+function Step5({ fd, ch, banks, banksLoading }: {
+  fd: EmployeeFormData;
+  ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  banks: any[];
+  banksLoading: boolean;
+}) {
   return (
     <div>
       <SectionBanner color="emerald" icon={<Landmark className="w-4 h-4" />}
         title="Bank Account Details"
         desc="Enter the employee's bank account information for salary disbursement." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
           <FieldLabel icon={<Landmark className="w-3.5 h-3.5" />} text="Bank Name" required />
-          <input type="text" name="bankName" value={fd.bankName} onChange={ch} placeholder="e.g. State Bank of India" required className={inputCls} />
+          {banksLoading ? (
+            <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
+          ) : (
+            <NativeSelect name="bankName" value={fd.bankName} onChange={ch} required>
+              <option value="">-- Select Bank --</option>
+              {banks.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+            </NativeSelect>
+          )}
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Account Number" required />
-          <input type="text" name="accountNumber" value={fd.accountNumber} onChange={ch} placeholder="Bank account number" required className={inputCls} />
+          <input type="text" name="accountNumber" value={fd.accountNumber} onChange={ch}
+            placeholder="Bank account number" required className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="IFSC Code" required />
-          <input type="text" name="ifscCode" value={fd.ifscCode} onChange={ch} placeholder="e.g. SBIN0001234" maxLength={11} required className={`${inputCls} uppercase`} />
-          <p className="text-[9px] text-gray-300 font-bold italic">11-character bank branch IFSC code</p>
+          <input type="text" name="ifscCode" value={fd.ifscCode} onChange={ch}
+            placeholder="e.g. SBIN0001234" maxLength={11} required
+            className={`${inputCls} uppercase`} />
+          <p className="text-[9px] text-gray-400 font-medium italic">11-character bank branch IFSC code</p>
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Branch Name" required />
-          <input type="text" name="branchName" value={fd.branchName} onChange={ch} placeholder="Branch name and city" required className={inputCls} />
+          <input type="text" name="branchName" value={fd.branchName} onChange={ch}
+            placeholder="Branch name and city" required className={inputCls} />
         </div>
         <div className="space-y-2">
           <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Account Type" required />
@@ -703,72 +997,165 @@ function Step5({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<
 }
 
 // ─────────────────────────────────────────────
-// STEP 6 — Emergency & Family
+// STEP 6 — Emergency, Family, Nominee
+// FIX: meal type row full-width on all breakpoints
 // ─────────────────────────────────────────────
-function Step6({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> }) {
+function Step6({ fd, ch, setFd }: {
+  fd: EmployeeFormData;
+  ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+  setFd: React.Dispatch<React.SetStateAction<EmployeeFormData>>;
+}) {
+  const updateMember = (idx: number, field: keyof FamilyMember, value: string) => {
+    setFd(prev => {
+      const updated = [...prev.familyMembers];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, familyMembers: updated };
+    });
+  };
+
+  const addMember = () =>
+    setFd(prev => ({ ...prev, familyMembers: [...prev.familyMembers, { ...EMPTY_FAMILY_MEMBER }] }));
+
+  const removeMember = (idx: number) =>
+    setFd(prev => ({ ...prev, familyMembers: prev.familyMembers.filter((_, i) => i !== idx) }));
+
   return (
     <div>
       <SectionBanner color="rose" icon={<Users className="w-4 h-4" />}
-        title="Emergency Contact & Family Details"
-        desc="Enter emergency contact person and family/nominee information." />
+        title="Emergency Contact, Family Members & Nominee"
+        desc="Enter emergency contact, all family members with meal preferences, and nominee details." />
 
       {/* Emergency Contact */}
-      <div className="mb-7">
-        <h3 className="text-[11px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2 mb-4">
+      <div className="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-100">
+        <h3 className="text-[11px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2 mb-3 sm:mb-4">
           <Phone className="w-4 h-4" /> Emergency Contact
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
           <div className="space-y-2">
             <FieldLabel text="Contact Person Name" required />
-            <input type="text" name="emergencyName" value={fd.emergencyName} onChange={ch} placeholder="Full name" required className={inputCls} />
+            <input type="text" name="emergencyName" value={fd.emergencyName} onChange={ch}
+              placeholder="Full name" required className={inputCls} />
           </div>
           <div className="space-y-2">
             <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Contact Phone" required />
-            <input type="tel" name="emergencyPhone" value={fd.emergencyPhone} onChange={ch} placeholder="Mobile number" maxLength={10} required className={inputCls} />
+            <input type="tel" name="emergencyPhone" value={fd.emergencyPhone} onChange={ch}
+              placeholder="Mobile number" maxLength={10} required className={inputCls} />
           </div>
           <div className="space-y-2">
             <FieldLabel text="Relation" required />
             <NativeSelect name="emergencyRelation" value={fd.emergencyRelation} onChange={ch} required>
               <option value="">-- Select Relation --</option>
               <option>Father</option><option>Mother</option><option>Spouse</option>
-              <option>Sibling</option><option>Son</option><option>Daughter</option><option>Friend</option><option>Other</option>
+              <option>Sibling</option><option>Son</option><option>Daughter</option>
+              <option>Friend</option><option>Other</option>
             </NativeSelect>
           </div>
         </div>
       </div>
 
-      {/* Family Details */}
-      <div className="mb-7">
-        <h3 className="text-[11px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2 mb-4">
-          <Users className="w-4 h-4" /> Family Details
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
-          <div className="space-y-2">
-            <FieldLabel text="Father's Name" required />
-            <input type="text" name="fatherName" value={fd.fatherName} onChange={ch} placeholder="Father's full name" required className={inputCls} />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel text="Mother's Name" required />
-            <input type="text" name="motherName" value={fd.motherName} onChange={ch} placeholder="Mother's full name" required className={inputCls} />
-          </div>
-          {(fd.maritalStatus === 'Married') && (
-            <div className="space-y-2">
-              <FieldLabel text="Spouse Name" optional />
-              <input type="text" name="spouseName" value={fd.spouseName} onChange={ch} placeholder="Spouse's full name" className={inputCls} />
-            </div>
-          )}
+      {/* Family Members */}
+      <div className="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-[11px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2">
+            <Users className="w-4 h-4" /> Family Members
+            <span className="px-2 py-0.5 bg-purple-50 border border-purple-100 text-purple-600 rounded-full text-[9px] font-black">
+              {fd.familyMembers.length}
+            </span>
+          </h3>
+          <button type="button" onClick={addMember}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-[9px] font-black rounded-lg uppercase tracking-widest hover:bg-purple-700 active:scale-95 transition-all">
+            <Plus className="w-3.5 h-3.5" /> Add Member
+          </button>
         </div>
+
+        <div className="space-y-4">
+          {fd.familyMembers.map((member, idx) => (
+            <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <span className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <span className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-black text-[9px]">
+                    {idx + 1}
+                  </span>
+                  Member {idx + 1}
+                </span>
+                {fd.familyMembers.length > 1 && (
+                  <button type="button" onClick={() => removeMember(idx)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-100 rounded-lg text-[9px] font-black uppercase transition-all">
+                    <Trash2 className="w-3 h-3" /> Remove
+                  </button>
+                )}
+              </div>
+
+              {/* FIX: proper responsive grid — name+relation+dob on top, meal below full width */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <FieldLabel icon={<User className="w-3 h-3" />} text="Full Name" required />
+                  <input type="text" value={member.name}
+                    onChange={e => updateMember(idx, 'name', e.target.value)}
+                    placeholder="Member's full name" className={inputCls} />
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel text="Relation" required />
+                  <select value={member.relation}
+                    onChange={e => updateMember(idx, 'relation', e.target.value)}
+                    className={`${inputCls} appearance-none cursor-pointer`}>
+                    <option value="">-- Relation --</option>
+                    {FAMILY_RELATIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel icon={<Calendar className="w-3 h-3" />} text="Date of Birth" optional />
+                  <input type="date" value={member.dateOfBirth}
+                    onChange={e => updateMember(idx, 'dateOfBirth', e.target.value)}
+                    className={inputCls} />
+                </div>
+              </div>
+
+              {/* Meal type — always full width */}
+              <div className="space-y-2">
+                <FieldLabel icon={<Utensils className="w-3 h-3" />} text="Meal Preference" required />
+                <div className="flex flex-wrap gap-3">
+                  {(['Veg', 'Non-Veg'] as const).map(type => (
+                    <button key={type} type="button"
+                      onClick={() => updateMember(idx, 'mealType', type)}
+                      className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl border-2 text-[11px] font-black uppercase tracking-widest transition-all ${
+                        member.mealType === type
+                          ? type === 'Veg'
+                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-100'
+                            : 'bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-100'
+                          : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500'
+                      }`}>
+                      {type === 'Veg' ? <Leaf className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                      {type}
+                    </button>
+                  ))}
+                  {!member.mealType && (
+                    <span className="flex items-center text-[9px] font-bold text-rose-400 italic">
+                      Please select meal preference
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button type="button" onClick={addMember}
+          className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-purple-200 text-purple-500 hover:bg-purple-50 hover:border-purple-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+          <Plus className="w-4 h-4" /> Add Another Family Member
+        </button>
       </div>
 
       {/* Nominee */}
       <div>
-        <h3 className="text-[11px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-4">
+        <h3 className="text-[11px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 mb-3 sm:mb-4">
           <UserCheck className="w-4 h-4" /> Nominee Details
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
           <div className="space-y-2">
             <FieldLabel text="Nominee Name" required />
-            <input type="text" name="nomineeName" value={fd.nomineeName} onChange={ch} placeholder="Nominee's full name" required className={inputCls} />
+            <input type="text" name="nomineeName" value={fd.nomineeName} onChange={ch}
+              placeholder="Nominee's full name" required className={inputCls} />
           </div>
           <div className="space-y-2">
             <FieldLabel text="Relation with Nominee" required />
@@ -780,7 +1167,8 @@ function Step6({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<
           </div>
           <div className="space-y-2">
             <FieldLabel text="Nominee Date of Birth" required />
-            <input type="date" name="nomineeDOB" value={fd.nomineeDOB} onChange={ch} required className={inputCls} />
+            <input type="date" name="nomineeDOB" value={fd.nomineeDOB} onChange={ch}
+              required className={inputCls} />
           </div>
         </div>
       </div>
@@ -789,82 +1177,9 @@ function Step6({ fd, ch }: { fd: EmployeeFormData; ch: React.ChangeEventHandler<
 }
 
 // ─────────────────────────────────────────────
-// STEP 7 — Document Uploads
+// STEP 7 — Credentials
 // ─────────────────────────────────────────────
-function Step7({ docs, setDocs }: { docs: UploadedDocs; setDocs: (d: UploadedDocs) => void }) {
-  const set = (key: keyof UploadedDocs, val: unknown) => setDocs({ ...docs, [key]: val });
-  return (
-    <div>
-      <SectionBanner color="indigo" icon={<Paperclip className="w-4 h-4" />}
-        title="Document Uploads"
-        desc="Upload all required employee documents. Accepted formats: JPG, PNG, PDF. Max 5 MB each." />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Photo */}
-        <div className="space-y-2">
-          <FieldLabel icon={<Image className="w-3.5 h-3.5" />} text="Employee Photo" required />
-          {docs.photo ? (
-            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-lg">
-              <img src={URL.createObjectURL(docs.photo)} alt="preview" className="w-12 h-12 object-cover rounded-lg border border-emerald-200" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black text-emerald-700 truncate">{docs.photo.name}</p>
-                <p className="text-[9px] text-emerald-500 font-bold">{(docs.photo.size / 1024).toFixed(1)} KB</p>
-              </div>
-              <button type="button" onClick={() => set('photo', null)} className="text-emerald-400 hover:text-rose-500"><X className="w-4 h-4" /></button>
-            </div>
-          ) : (
-            <label className="w-full flex flex-col items-center justify-center gap-2 px-4 py-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/30 transition-all cursor-pointer">
-              <Image className="w-8 h-8 text-gray-300" />
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Passport Photo</span>
-              <span className="text-[9px] text-gray-300 font-bold">JPG / PNG · Max 2 MB</span>
-              <input type="file" accept="image/*" className="hidden" onChange={e => set('photo', e.target.files?.[0] ?? null)} />
-            </label>
-          )}
-        </div>
-
-        <FileUploadBox label="Aadhar Card" icon={<CreditCard className="w-3.5 h-3.5" />}
-          accept=".jpg,.jpeg,.png,.pdf" file={docs.aadharCard}
-          onChange={f => set('aadharCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
-
-        <FileUploadBox label="PAN Card" icon={<CreditCard className="w-3.5 h-3.5" />}
-          accept=".jpg,.jpeg,.png,.pdf" file={docs.panCard}
-          onChange={f => set('panCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
-
-        <FileUploadBox label="Bank Passbook / Cancelled Cheque" icon={<Landmark className="w-3.5 h-3.5" />}
-          accept=".jpg,.jpeg,.png,.pdf" file={docs.bankPassbook}
-          onChange={f => set('bankPassbook', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
-
-        <FileUploadBox label="Police Verification Certificate (PVC)" icon={<ShieldCheck className="w-3.5 h-3.5" />}
-          accept=".jpg,.jpeg,.png,.pdf" file={docs.pvc}
-          onChange={f => set('pvc', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
-
-        <FileUploadBox label="Offer / Appointment Letter" icon={<FileText className="w-3.5 h-3.5" />}
-          accept=".pdf,.doc,.docx" file={docs.offerLetter}
-          onChange={f => set('offerLetter', f)} hint="PDF / DOC · Max 5 MB" />
-
-        <FileUploadBox label="Previous Experience Letter" icon={<Briefcase className="w-3.5 h-3.5" />}
-          accept=".pdf,.doc,.docx" file={docs.experienceLetter}
-          onChange={f => set('experienceLetter', f)} hint="PDF / DOC · Max 5 MB" />
-
-        <div className="md:col-span-2">
-          <MultiFileUploadBox label="Educational Certificates" icon={<GraduationCap className="w-3.5 h-3.5" />}
-            accept=".jpg,.jpeg,.png,.pdf" files={docs.educationCerts}
-            onChange={f => set('educationCerts', f)} hint="Degree / Mark Sheets · Multiple allowed" />
-        </div>
-        <div className="md:col-span-2">
-          <MultiFileUploadBox label="Other Documents" icon={<Paperclip className="w-3.5 h-3.5" />}
-            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" files={docs.otherDocs}
-            onChange={f => set('otherDocs', f)} hint="Any additional supporting documents" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// STEP 8 — Credentials
-// ─────────────────────────────────────────────
-function Step8({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onGenerate }: {
+function Step7({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onGenerate }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   showPwd: boolean; showConfPwd: boolean;
@@ -878,7 +1193,7 @@ function Step8({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onG
       <SectionBanner color="blue" icon={<Lock className="w-4 h-4" />}
         title="Login Credentials"
         desc="Set a temporary password for the employee's first login. They will be prompted to change it." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-6">
         <div className="space-y-2">
           <FieldLabel icon={<Lock className="w-3.5 h-3.5" />} text="Temporary Password" required />
           <div className="flex gap-2">
@@ -891,7 +1206,7 @@ function Step8({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onG
               </button>
             </div>
             <button type="button" onClick={onGenerate}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-100 rounded-lg text-blue-500 hover:bg-blue-50 shadow-sm text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-blue-500 hover:bg-blue-50 shadow-sm text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all">
               <Sparkles className="w-4 h-4" /> Generate
             </button>
           </div>
@@ -905,7 +1220,7 @@ function Step8({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onG
           <div className="relative">
             <input type={showConfPwd ? 'text' : 'password'} name="confirmPassword" value={fd.confirmPassword} onChange={ch}
               placeholder="Re-enter password" required
-              className={`${inputCls} pr-10 ${match ? 'border-emerald-400' : mismatch ? 'border-rose-400' : ''}`} />
+              className={`${inputCls} pr-10 ${match ? 'border-emerald-400 focus:border-emerald-500' : mismatch ? 'border-rose-400 focus:border-rose-500' : ''}`} />
             <button type="button" onClick={onToggleConfPwd}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               {showConfPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -920,18 +1235,20 @@ function Step8({ fd, ch, showPwd, showConfPwd, onTogglePwd, onToggleConfPwd, onG
 }
 
 // ─────────────────────────────────────────────
-// STEP 9 — Review & Submit
+// STEP 8 — Review & Submit
+// FIX: ReviewRow handles empty/whitespace values; location shown
 // ─────────────────────────────────────────────
-function Step9({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
+function Step8({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
   const addr = (line: string, city: string, state: string, pin: string) =>
-    [line, city, state, pin].filter(Boolean).join(', ') || '—';
+    [line, city, state, pin].filter(s => s.trim()).join(', ') || '—';
 
   const permanentAddr = fd.sameAsCurrent
-    ? addr(fd.currentAddressLine, fd.currentCity, fd.currentState, fd.currentPincode) + ' (Same as current)'
+    ? addr(fd.currentAddressLine, fd.currentCity, fd.currentState, fd.currentPincode) + ' (same as current)'
     : addr(fd.permanentAddressLine, fd.permanentCity, fd.permanentState, fd.permanentPincode);
 
   const uploadedCount = [
-    docs.photo, docs.aadharCard, docs.panCard, docs.bankPassbook, docs.pvc, docs.offerLetter, docs.experienceLetter,
+    docs.photo, docs.aadharCard, docs.panCard, docs.bankPassbook,
+    docs.passport, docs.pvc, docs.offerLetter, docs.experienceLetter,
     ...docs.educationCerts, ...docs.otherDocs,
   ].filter(Boolean).length;
 
@@ -941,29 +1258,34 @@ function Step9({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
         title="Review & Confirm"
         desc="Please review all entered information carefully before submitting the employee record." />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <ReviewCard title="Basic Info" icon={<UserPlus className="w-3.5 h-3.5 text-blue-700" />} color="bg-blue-50 border-b border-blue-100 text-blue-700">
           <ReviewRow label="Full Name"       value={fd.fullName} />
           <ReviewRow label="Official Email"  value={fd.officialEmail} />
           <ReviewRow label="Employee Code"   value={fd.employeeCode} />
           <ReviewRow label="Date of Joining" value={fd.dateOfJoining} />
           <ReviewRow label="Department"      value={fd.department} />
+          <ReviewRow label="Location"        value={fd.location} />
           <ReviewRow label="Designation"     value={fd.designation} />
           <ReviewRow label="Qualification"
             value={fd.coreQualification.length > 0
-              ? <div className="flex flex-wrap gap-1 mt-0.5">{fd.coreQualification.map(q => <span key={q} className="px-2 py-0.5 bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-black rounded-full">{q}</span>)}</div>
+              ? <div className="flex flex-wrap gap-1 mt-0.5">
+                  {fd.coreQualification.map(q => (
+                    <span key={q} className="px-2 py-0.5 bg-blue-50 border border-blue-100 text-blue-700 text-[9px] font-black rounded-full">{q}</span>
+                  ))}
+                </div>
               : '—'} />
-          <ReviewRow label="Annual Salary" value={fd.annualSalary ? `₹ ${Number(fd.annualSalary).toLocaleString('en-IN')}` : '—'} />
+          <ReviewRow label="Annual Salary" value={fd.annualSalary ? `₹ ${Number(fd.annualSalary).toLocaleString('en-IN')}` : ''} />
         </ReviewCard>
 
         <ReviewCard title="Personal Details" icon={<User className="w-3.5 h-3.5 text-purple-700" />} color="bg-purple-50 border-b border-purple-100 text-purple-700">
-          <ReviewRow label="Date of Birth"    value={fd.dateOfBirth} />
-          <ReviewRow label="Gender"           value={fd.gender} />
-          <ReviewRow label="Marital Status"   value={fd.maritalStatus} />
-          <ReviewRow label="Blood Group"      value={fd.bloodGroup} />
-          <ReviewRow label="Category"         value={fd.category} />
-          <ReviewRow label="Mobile"           value={fd.mobileNumber} />
-          <ReviewRow label="Alternate"        value={fd.alternateNumber} />
+          <ReviewRow label="Date of Birth"  value={fd.dateOfBirth} />
+          <ReviewRow label="Gender"         value={fd.gender} />
+          <ReviewRow label="Marital Status" value={fd.maritalStatus} />
+          <ReviewRow label="Blood Group"    value={fd.bloodGroup} />
+          <ReviewRow label="Category"       value={fd.category} />
+          <ReviewRow label="Mobile"         value={fd.mobileNumber} />
+          <ReviewRow label="Alternate"      value={fd.alternateNumber} />
         </ReviewCard>
 
         <ReviewCard title="Address" icon={<MapPin className="w-3.5 h-3.5 text-teal-700" />} color="bg-teal-50 border-b border-teal-100 text-teal-700">
@@ -972,28 +1294,48 @@ function Step9({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
         </ReviewCard>
 
         <ReviewCard title="Government IDs" icon={<CreditCard className="w-3.5 h-3.5 text-amber-700" />} color="bg-amber-50 border-b border-amber-100 text-amber-700">
-          <ReviewRow label="Aadhar"    value={fd.aadharNumber} />
-          <ReviewRow label="PAN"       value={fd.panNumber} />
-          <ReviewRow label="UAN"       value={fd.uanNumber} />
-          <ReviewRow label="ESIC"      value={fd.esicNumber} />
-          <ReviewRow label="Passport"  value={fd.passportNumber} />
-          <ReviewRow label="PVC Number" value={fd.pvcNumber} />
+          <ReviewRow label="Aadhar"              value={fd.aadharNumber} />
+          <ReviewRow label="PAN"                 value={fd.panNumber} />
+          <ReviewRow label="UAN"                 value={fd.uanNumber} />
+          <ReviewRow label="ESIC"                value={fd.esicNumber} />
+          <ReviewRow label="Passport No."        value={fd.passportNumber} />
+          <ReviewRow label="Passport Valid Upto" value={fd.passportValidUpto} />
+          <ReviewRow label="PVC Number"          value={fd.pvcNumber} />
+          <ReviewRow label="PVC Valid Upto"      value={fd.pvcValidUpto} />
         </ReviewCard>
 
         <ReviewCard title="Bank Details" icon={<Landmark className="w-3.5 h-3.5 text-emerald-700" />} color="bg-emerald-50 border-b border-emerald-100 text-emerald-700">
-          <ReviewRow label="Bank Name"       value={fd.bankName} />
-          <ReviewRow label="Account No."     value={fd.accountNumber} />
-          <ReviewRow label="IFSC Code"       value={fd.ifscCode} />
-          <ReviewRow label="Branch"          value={fd.branchName} />
-          <ReviewRow label="Account Type"    value={fd.accountType} />
+          <ReviewRow label="Bank Name"    value={fd.bankName} />
+          <ReviewRow label="Account No." value={fd.accountNumber} />
+          <ReviewRow label="IFSC Code"   value={fd.ifscCode} />
+          <ReviewRow label="Branch"      value={fd.branchName} />
+          <ReviewRow label="Account Type"value={fd.accountType} />
         </ReviewCard>
 
         <ReviewCard title="Emergency & Family" icon={<Users className="w-3.5 h-3.5 text-rose-700" />} color="bg-rose-50 border-b border-rose-100 text-rose-700">
-          <ReviewRow label="Emergency Contact" value={`${fd.emergencyName} (${fd.emergencyRelation})`} />
+          <ReviewRow label="Emergency Contact" value={[fd.emergencyName, fd.emergencyRelation].filter(Boolean).join(' — ')} />
           <ReviewRow label="Emergency Phone"   value={fd.emergencyPhone} />
-          <ReviewRow label="Father's Name"     value={fd.fatherName} />
-          <ReviewRow label="Mother's Name"     value={fd.motherName} />
-          <ReviewRow label="Nominee"           value={`${fd.nomineeName} (${fd.nomineeRelation})`} />
+          <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-50">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Family Members</span>
+            <div className="mt-1.5 space-y-1.5">
+              {fd.familyMembers.filter(m => m.name.trim()).map((m, i) => (
+                <div key={i} className="flex items-center justify-between flex-wrap gap-1">
+                  <span className="text-[11px] font-bold text-gray-700">
+                    {m.name} {m.relation && <span className="text-gray-400 font-normal">({m.relation})</span>}
+                  </span>
+                  <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase ${
+                    m.mealType === 'Veg' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                    : m.mealType === 'Non-Veg' ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                    : 'bg-gray-50 text-gray-400'
+                  }`}>
+                    {m.mealType || 'Not specified'}
+                  </span>
+                </div>
+              ))}
+              {!fd.familyMembers.some(m => m.name.trim()) && <span className="text-[11px] text-gray-300">—</span>}
+            </div>
+          </div>
+          <ReviewRow label="Nominee" value={[fd.nomineeName, fd.nomineeRelation].filter(Boolean).join(' — ')} />
         </ReviewCard>
 
         <ReviewCard title="Documents Uploaded" icon={<Paperclip className="w-3.5 h-3.5 text-indigo-700" />} color="bg-indigo-50 border-b border-indigo-100 text-indigo-700">
@@ -1001,30 +1343,31 @@ function Step9({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
             { label: 'Photo',              file: docs.photo },
             { label: 'Aadhar Card',        file: docs.aadharCard },
             { label: 'PAN Card',           file: docs.panCard },
+            { label: 'Passport',           file: docs.passport },
             { label: 'Bank Passbook',      file: docs.bankPassbook },
             { label: 'Police Verification (PVC)', file: docs.pvc },
             { label: 'Offer Letter',       file: docs.offerLetter },
             { label: 'Experience Letter',  file: docs.experienceLetter },
           ].map(({ label, file }) => (
-            <div key={label} className="px-4 py-2.5 flex items-center justify-between border-b border-gray-50 last:border-0">
+            <div key={label} className="px-3 sm:px-4 py-2 flex items-center justify-between border-b border-gray-50 last:border-0">
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{label}</span>
               {file
                 ? <span className="text-[10px] font-black text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Uploaded</span>
                 : <span className="text-[10px] font-bold text-gray-300">Not uploaded</span>}
             </div>
           ))}
-          <div className="px-4 py-2.5 flex items-center justify-between">
+          <div className="px-3 sm:px-4 py-2 flex items-center justify-between">
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education Certs</span>
             <span className="text-[10px] font-black text-emerald-600">{docs.educationCerts.length} file(s)</span>
           </div>
-          <div className="px-4 py-2.5 border-t border-gray-50">
+          <div className="px-3 sm:px-4 py-2 border-t border-gray-50">
             <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{uploadedCount} total document(s) attached</span>
           </div>
         </ReviewCard>
 
         <ReviewCard title="Login Credentials" icon={<Lock className="w-3.5 h-3.5 text-gray-700" />} color="bg-gray-100 border-b border-gray-200 text-gray-700">
           <ReviewRow label="Login Email (ID)" value={fd.officialEmail} />
-          <ReviewRow label="Temp Password" value={'•'.repeat(fd.password.length || 0) || '—'} />
+          <ReviewRow label="Temp Password" value={fd.password ? '•'.repeat(fd.password.length) : ''} />
         </ReviewCard>
       </div>
     </div>
@@ -1032,7 +1375,7 @@ function Step9({ fd, docs }: { fd: EmployeeFormData; docs: UploadedDocs }) {
 }
 
 // ─────────────────────────────────────────────
-// Success Screen
+// Success Screen  — FIX: graceful empty dept/designation
 // ─────────────────────────────────────────────
 function SuccessScreen({ fd, onCreateAnother, onNavigate }: {
   fd: EmployeeFormData; onCreateAnother: () => void; onNavigate?: (p: string) => void;
@@ -1043,51 +1386,57 @@ function SuccessScreen({ fd, onCreateAnother, onNavigate }: {
     setCopied(true); setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <div className="p-6 flex flex-col items-center justify-center min-h-[600px] bg-white rounded-2xl shadow-xl border border-blue-50">
-      <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-        <BadgeCheck className="w-12 h-12 text-emerald-600" />
+    <div className="p-4 sm:p-6 flex flex-col items-center justify-center min-h-[500px] sm:min-h-[600px] bg-white rounded-2xl shadow-xl border border-blue-50">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-5 sm:mb-6 animate-bounce">
+        <BadgeCheck className="w-9 h-9 sm:w-12 sm:h-12 text-emerald-600" />
       </div>
-      <h2 className="text-2xl font-black text-gray-800 uppercase tracking-widest mb-1">Employee Created!</h2>
-      <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-2 text-center max-w-sm">
+      <h2 className="text-xl sm:text-2xl font-black text-gray-800 uppercase tracking-widest mb-1 text-center">Employee Created!</h2>
+      <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-3 text-center max-w-sm">
         Full employee record has been created. Share temporary credentials with the employee.
       </p>
-      <div className="flex gap-3 mb-7 mt-3">
-        <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full border border-blue-100 uppercase">{fd.department}</span>
-        <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-black rounded-full border border-purple-100 uppercase">{fd.designation}</span>
+      <div className="flex flex-wrap gap-2 mb-6 mt-2 justify-center">
+        {fd.department && (
+          <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full border border-blue-100 uppercase">{fd.department}</span>
+        )}
+        {fd.designation && (
+          <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-black rounded-full border border-purple-100 uppercase">{fd.designation}</span>
+        )}
       </div>
-      <div className="w-full max-w-md space-y-3 mb-8">
+      <div className="w-full max-w-md space-y-3 mb-7">
         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
           <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">Login Email</p>
-          <p className="text-lg font-black text-gray-700">{fd.officialEmail}</p>
+          <p className="text-base sm:text-lg font-black text-gray-700 break-all">{fd.officialEmail}</p>
         </div>
         <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
           <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Temporary Password</p>
-          <p className="text-lg font-black text-gray-700 tracking-wider font-mono">{fd.password}</p>
+          <p className="text-base sm:text-lg font-black text-gray-700 tracking-wider font-mono pr-10">{fd.password}</p>
           <button onClick={handleCopy}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-sm hover:shadow-md text-blue-600">
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-lg shadow-sm hover:shadow-md text-blue-600 transition-all">
             {copied ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
-      {/* Step status */}
-      <div className="w-full max-w-md mb-8">
+      {/* Workflow */}
+      <div className="w-full max-w-md mb-7 overflow-x-auto">
         <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 text-center">Pending Workflow</p>
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1 min-w-max mx-auto">
           {['HR Submitted', 'IT Approval', 'Account Active', 'Employee Login'].map((label, i) => (
             <React.Fragment key={i}>
               <div className="flex flex-col items-center gap-1">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black ${
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-black ${
                   i === 0 ? 'bg-[#0061f2] text-white shadow-md shadow-blue-100'
-                          : i === 1 ? 'bg-[#0061f2] ring-4 ring-blue-100 text-white' : 'bg-gray-200 text-gray-500'
+                  : i === 1 ? 'bg-[#0061f2] ring-4 ring-blue-100 text-white' : 'bg-gray-200 text-gray-500'
                 }`}>
-                  {i === 0 ? <CheckCircle className="w-4 h-4" /> : i + 1}
+                  {i === 0 ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
                 </div>
-                <span className={`text-[8px] font-black uppercase tracking-tight text-center max-w-[52px] ${i === 0 ? 'text-[#0061f2]' : i === 1 ? 'text-[#0061f2]' : 'text-gray-400'}`}>{label}</span>
+                <span className={`text-[7px] sm:text-[8px] font-black uppercase tracking-tight text-center max-w-[52px] ${
+                  i <= 1 ? 'text-[#0061f2]' : 'text-gray-400'
+                }`}>{label}</span>
               </div>
               {i < 3 && (
                 <div className="flex items-center gap-0.5 mx-0.5 mb-4">
-                  <div className={`h-0.5 w-5 rounded-full ${i === 0 ? 'bg-[#0061f2]' : 'bg-gray-200'}`} />
+                  <div className={`h-0.5 w-4 sm:w-5 rounded-full ${i === 0 ? 'bg-[#0061f2]' : 'bg-gray-200'}`} />
                   <ChevronRight className={`w-3 h-3 ${i === 0 ? 'text-[#0061f2]' : 'text-gray-300'}`} />
                 </div>
               )}
@@ -1096,13 +1445,13 @@ function SuccessScreen({ fd, onCreateAnother, onNavigate }: {
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <button onClick={onCreateAnother}
-          className="px-6 py-3 bg-gray-100 text-gray-600 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-gray-200 transition-all">
+          className="px-5 sm:px-6 py-3 bg-gray-100 text-gray-600 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-gray-200 transition-all">
           Add Another
         </button>
         <button onClick={() => onNavigate?.('/hr/employees')}
-          className="px-6 py-3 bg-[#0061f2] text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+          className="px-5 sm:px-6 py-3 bg-[#0061f2] text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
           Manage Employees
         </button>
       </div>
@@ -1114,16 +1463,90 @@ function SuccessScreen({ fd, onCreateAnother, onNavigate }: {
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
 export function AddEmployee({ onNavigate }: AddEmployeeProps) {
-  const [step, setStep]           = useState(1);
-  const [fd, setFd]               = useState<EmployeeFormData>(EMPTY_FORM);
-  const [docs, setDocs]           = useState<UploadedDocs>(EMPTY_DOCS);
-  const [loading, setLoading]     = useState(false);
-  const [showPwd, setShowPwd]     = useState(false);
-  const [showConf, setShowConf]   = useState(false);
-  const [success, setSuccess]     = useState(false);
-  const [error, setError]         = useState<string | null>(null);
-  const [visible, setVisible]     = useState(true);
-  const [animDir, setAnimDir]     = useState<'f' | 'b'>('f');
+  const [step, setStep]         = useState(1);
+  const [fd, setFd]             = useState<EmployeeFormData>(EMPTY_FORM);
+  const [docs, setDocs]         = useState<UploadedDocs>(EMPTY_DOCS);
+  const [loading, setLoading]   = useState(false);
+  const [showPwd, setShowPwd]   = useState(false);
+  const [showConf, setShowConf] = useState(false);
+  const [success, setSuccess]   = useState(false);
+  const [error, setError]       = useState<string | null>(null);
+  const [visible, setVisible]   = useState(true);
+  const [animDir, setAnimDir]   = useState<'f' | 'b'>('f');
+
+  // API-loaded dropdown data
+  const [departments, setDepartments] = useState<ApiDepartment[]>([]);
+  const [locations,   setLocations]   = useState<ApiLocation[]>([]);
+  const [depsLoading, setDepsLoading] = useState(true);
+  const [locsLoading, setLocsLoading] = useState(true);
+  const [categories,  setCategories]  = useState<any[]>([]);
+  const [banks,       setBanks]       = useState<any[]>([]);
+  const [catsLoading, setCatsLoading] = useState(true);
+  const [banksLoading, setBanksLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API}/api/departments`)
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: any) => setDepartments(Array.isArray(data) ? data : data?.value ?? []))
+      .catch(() => setDepartments([]))
+      .finally(() => setDepsLoading(false));
+
+    fetch(`${API}/api/locations`)
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: any) => setLocations(Array.isArray(data) ? data : data?.value ?? []))
+      .catch(() => setLocations([]))
+      .finally(() => setLocsLoading(false));
+
+    fetch(`${API}/api/categories`)
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: any) => {
+        const raw = Array.isArray(data) ? data : data?.value ?? [];
+        if (raw.length > 0) {
+          setCategories(raw);
+        } else {
+          setCategories(CATEGORIES.map((c, i) => ({ id: i, name: c })));
+        }
+      })
+      .catch(() => setCategories(CATEGORIES.map((c, i) => ({ id: i, name: c }))))
+      .finally(() => setCatsLoading(false));
+
+    fetch(`${API}/api/banks`)
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: any) => {
+        const raw = Array.isArray(data) ? data : data?.value ?? [];
+        if (raw.length > 0) {
+          setBanks(raw);
+        } else {
+          setBanks([
+            { id: 1, name: 'State Bank of India' },
+            { id: 2, name: 'HDFC Bank' },
+            { id: 3, name: 'ICICI Bank' },
+            { id: 4, name: 'Axis Bank' },
+            { id: 5, name: 'Punjab National Bank' }
+          ]);
+        }
+      })
+      .catch(() => setBanks([
+        { id: 1, name: 'State Bank of India' },
+        { id: 2, name: 'HDFC Bank' },
+        { id: 3, name: 'ICICI Bank' },
+        { id: 4, name: 'Axis Bank' },
+        { id: 5, name: 'Punjab National Bank' }
+      ]))
+      .finally(() => setBanksLoading(false));
+  }, []);
 
   const ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> = e => {
     const { name, value } = e.target;
@@ -1137,57 +1560,85 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
     setFd(prev => ({ ...prev, password: pass, confirmPassword: pass }));
   };
 
-  // Validations removed — HR can freely navigate between steps
-  const canProceed = (): boolean => true;
-
   const animateTo = (dir: 'f' | 'b', next: number) => {
     setAnimDir(dir); setVisible(false);
     setTimeout(() => { setStep(next); setVisible(true); }, 200);
   };
 
-  const handleNext = () => { if (step < 9) animateTo('f', step + 1); };
+  // FIX: use TOTAL_STEPS constant instead of magic number
+  const handleNext = () => { if (step < TOTAL_STEPS) animateTo('f', step + 1); };
   const handleBack = () => { if (step > 1) animateTo('b', step - 1); };
 
   const handleSubmit = async () => {
+    if (fd.password !== fd.confirmPassword) {
+      setError('Passwords do not match. Please check Step 7.');
+      return;
+    }
     try {
       setLoading(true); setError(null);
-      const permanent = fd.sameAsCurrent
-        ? { line: fd.currentAddressLine, city: fd.currentCity, state: fd.currentState, pincode: fd.currentPincode }
-        : { line: fd.permanentAddressLine, city: fd.permanentCity, state: fd.permanentState, pincode: fd.permanentPincode };
-
-      const response = await fetch('http://localhost:5076/api/employees', {
+      const response = await fetch(`${API}/api/employees`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: fd.fullName, email: fd.officialEmail, employeeCode: fd.employeeCode,
-          joiningDate: fd.dateOfJoining, department: fd.department, designation: fd.designation,
-          qualification: fd.coreQualification.join(', '), annualSalary: fd.annualSalary, remarks: fd.remarks,
-          dateOfBirth: fd.dateOfBirth, gender: fd.gender, maritalStatus: fd.maritalStatus,
-          bloodGroup: fd.bloodGroup, religion: fd.religion, category: fd.category,
-          mobileNumber: fd.mobileNumber, alternateNumber: fd.alternateNumber,
-          currentAddress: `${fd.currentAddressLine}, ${fd.currentCity}, ${fd.currentState} - ${fd.currentPincode}`,
-          permanentAddress: `${permanent.line}, ${permanent.city}, ${permanent.state} - ${permanent.pincode}`,
-          aadharNumber: fd.aadharNumber, panNumber: fd.panNumber, uanNumber: fd.uanNumber,
-          esicNumber: fd.esicNumber, passportNumber: fd.passportNumber, pvcNumber: fd.pvcNumber,
-          bankName: fd.bankName, accountNumber: fd.accountNumber, ifscCode: fd.ifscCode,
-          branchName: fd.branchName, accountType: fd.accountType,
-          emergencyContactName: fd.emergencyName, emergencyContactPhone: fd.emergencyPhone,
+          name:               fd.fullName,
+          email:              fd.officialEmail,
+          employeeCode:       fd.employeeCode,
+          department:         fd.department,
+          location:           fd.location,
+          designation:        fd.designation,
+          dateOfJoining:      fd.dateOfJoining,
+          qualification:      fd.coreQualification.join(', '),
+          annualSalary:       fd.annualSalary,
+          remarks:            fd.remarks,
+          role:               'Employee',
+          temporaryPassword:  fd.password,
+          dateOfBirth:        fd.dateOfBirth,
+          gender:             fd.gender,
+          maritalStatus:      fd.maritalStatus,
+          bloodGroup:         fd.bloodGroup,
+          religion:           fd.religion,
+          category:           fd.category,
+          mobileNumber:       fd.mobileNumber,
+          alternateNumber:    fd.alternateNumber,
+          currentAddress:   `${fd.currentAddressLine}, ${fd.currentCity}, ${fd.currentState} - ${fd.currentPincode}`,
+          permanentAddress: fd.sameAsCurrent
+            ? `${fd.currentAddressLine}, ${fd.currentCity}, ${fd.currentState} - ${fd.currentPincode}`
+            : `${fd.permanentAddressLine}, ${fd.permanentCity}, ${fd.permanentState} - ${fd.permanentPincode}`,
+          aadharNumber:       fd.aadharNumber,
+          panNumber:          fd.panNumber,
+          uanNumber:          fd.uanNumber,
+          esicNumber:         fd.esicNumber,
+          passportNumber:     fd.passportNumber,
+          passportValidUpto:  fd.passportValidUpto,
+          pvcNumber:          fd.pvcNumber,
+          pvcValidUpto:       fd.pvcValidUpto,
+          bankName:           fd.bankName,
+          accountNumber:      fd.accountNumber,
+          ifscCode:           fd.ifscCode,
+          branchName:         fd.branchName,
+          accountType:        fd.accountType,
+          emergencyContactName:     fd.emergencyName,
+          emergencyContactPhone:    fd.emergencyPhone,
           emergencyContactRelation: fd.emergencyRelation,
-          fatherName: fd.fatherName, motherName: fd.motherName, spouseName: fd.spouseName,
-          nomineeName: fd.nomineeName, nomineeRelation: fd.nomineeRelation, nomineeDOB: fd.nomineeDOB,
-          temporaryPassword: fd.password, role: 'Employee', status: 'Pending',
+          nomineeName:        fd.nomineeName,
+          nomineeRelation:    fd.nomineeRelation,
+          nomineeDOB:         fd.nomineeDOB,
+          familyMembers:      fd.familyMembers
+            .filter(m => m.name.trim())
+            .map(m => ({ name: m.name, relation: m.relation, dateOfBirth: m.dateOfBirth, mealType: m.mealType })),
         }),
       });
       if (response.ok) {
         setSuccess(true);
       } else if (response.status === 409) {
         const data = await response.json();
-        setError(data.message);
+        setError(data.message ?? 'An employee with this email already exists.');
       } else {
-        setError('Failed to create employee. Please check all fields.');
+        const text = await response.text();
+        setError(`Failed to create employee. ${text || 'Please check all fields.'}`);
       }
     } catch {
-      setError('Connection error. Please ensure the backend is running.');
+      setError('Connection error. Please ensure the backend server is running at ' + API);
     } finally {
       setLoading(false);
     }
@@ -1195,126 +1646,127 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
 
   const reset = () => {
     setSuccess(false); setStep(1);
-    setFd(EMPTY_FORM); setDocs(EMPTY_DOCS);
+    setFd(EMPTY_FORM); setDocs(EMPTY_DOCS); setError(null);
   };
 
   if (success) {
     return (
-      <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
+      <div className="p-3 sm:p-4 bg-[#f8f9fc] min-h-screen">
         <SuccessScreen fd={fd} onNavigate={onNavigate} onCreateAnother={reset} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">
+    <div className="p-3 sm:p-4 bg-[#f8f9fc] min-h-screen font-sans">
       {/* ── Top Header ── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-5">
         <div>
-          <h1 className="text-gray-700 font-black text-xl uppercase tracking-widest flex items-center gap-2">
+          <h1 className="text-gray-700 font-black text-lg sm:text-xl uppercase tracking-widest flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-[#0061f2]" /> Add New Employee
           </h1>
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
             HR Onboarding · Complete Employee Registration
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={() => onNavigate?.('/hr/employees')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#6b58d3] text-white text-[10px] font-black rounded shadow-sm uppercase tracking-widest hover:bg-purple-700 transition-all">
-            <ArrowLeft className="w-4 h-4" /> Back to Employees
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-purple-700 transition-all active:scale-95">
+            <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back to Employees</span><span className="sm:hidden">Back</span>
           </button>
           <button onClick={() => onNavigate?.('/hr/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#00cfd5] text-white text-[10px] font-black rounded shadow-sm uppercase tracking-widest hover:bg-cyan-600 transition-all">
-            <Layout className="w-4 h-4" /> HR Dashboard
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#00cfd5] text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-cyan-600 transition-all active:scale-95">
+            <Layout className="w-4 h-4" /> <span className="hidden sm:inline">HR Dashboard</span><span className="sm:hidden">Dashboard</span>
           </button>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4">
         {/* ── Step Indicator Card ── */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="bg-gray-50/50 px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+          <div className="bg-gray-50/50 px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-[11px] font-black text-[#0061f2] uppercase tracking-widest flex items-center gap-2">
               <UserPlus className="w-4 h-4" /> Employee Registration
             </h2>
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Step {step} of {STEPS.length}
+              Step {step} / {TOTAL_STEPS}
             </span>
           </div>
-          <div className="px-4 py-4">
+          <div className="px-3 sm:px-4 py-3 sm:py-4">
             <StepIndicator currentStep={step} />
-            {/* Mobile: step name */}
-            <div className="md:hidden mt-2 text-center">
-              <span className="text-[11px] font-black text-[#0061f2] uppercase tracking-widest">{STEPS[step - 1].label}</span>
-              <span className="text-[9px] text-gray-400 font-bold ml-2">— {STEPS[step - 1].sublabel}</span>
-            </div>
-            {/* Progress bar */}
-            <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#0061f2] rounded-full transition-all duration-500"
-                style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }} />
+            {/* Desktop progress bar */}
+            <div className="hidden md:block mt-2 sm:mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                style={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }} />
             </div>
           </div>
         </div>
 
         {/* ── Error Banner ── */}
         {error && (
-          <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p className="text-[11px] font-black uppercase tracking-widest">{error}</p>
+          <div className="p-3 sm:p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3 text-rose-600">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest">{error}</p>
+              <button onClick={() => setError(null)} className="text-[10px] text-rose-400 underline mt-0.5">Dismiss</button>
+            </div>
           </div>
         )}
 
-        {/* ── Step Content Card ── */}
+        {/* ── Step Content Card — FIX: min-height to prevent layout jump ── */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
           style={{
             opacity: visible ? 1 : 0,
-            transform: visible ? 'translateY(0)' : animDir === 'f' ? 'translateY(12px)' : 'translateY(-12px)',
+            transform: visible ? 'translateY(0)' : animDir === 'f' ? 'translateY(10px)' : 'translateY(-10px)',
             transition: 'opacity 0.2s ease, transform 0.2s ease',
           }}>
-          <div className="p-6 md:p-8">
-            {step === 1 && <Step1 fd={fd} ch={ch} qch={v => setFd(p => ({ ...p, coreQualification: v }))} />}
-            {step === 2 && <Step2 fd={fd} ch={ch} />}
+          <div className="p-4 sm:p-6 md:p-8 min-h-[420px]">
+            {step === 1 && (
+              <Step1 fd={fd} ch={ch} qch={v => setFd(p => ({ ...p, coreQualification: v }))}
+                departments={departments} locations={locations}
+                depsLoading={depsLoading} locsLoading={locsLoading} />
+            )}
+            {step === 2 && <Step2 fd={fd} ch={ch} categories={categories} catsLoading={catsLoading} />}
             {step === 3 && <Step3 fd={fd} ch={ch} onSameToggle={() => setFd(p => ({ ...p, sameAsCurrent: !p.sameAsCurrent }))} />}
-            {step === 4 && <Step4 fd={fd} ch={ch} />}
-            {step === 5 && <Step5 fd={fd} ch={ch} />}
-            {step === 6 && <Step6 fd={fd} ch={ch} />}
-            {step === 7 && <Step7 docs={docs} setDocs={setDocs} />}
-            {step === 8 && (
-              <Step8 fd={fd} ch={ch}
+            {step === 4 && <Step4 fd={fd} ch={ch} docs={docs} setDocs={setDocs} />}
+            {step === 5 && <Step5 fd={fd} ch={ch} banks={banks} banksLoading={banksLoading} />}
+            {step === 6 && <Step6 fd={fd} ch={ch} setFd={setFd} />}
+            {step === 7 && (
+              <Step7 fd={fd} ch={ch}
                 showPwd={showPwd} showConfPwd={showConf}
                 onTogglePwd={() => setShowPwd(p => !p)}
                 onToggleConfPwd={() => setShowConf(p => !p)}
                 onGenerate={generatePassword} />
             )}
-            {step === 9 && <Step9 fd={fd} docs={docs} />}
+            {step === 8 && <Step8 fd={fd} docs={docs} />}
           </div>
 
           {/* ── Bottom Navigation ── */}
-          <div className="px-6 md:px-8 py-5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between gap-3">
+          <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between gap-2 sm:gap-3">
             <button type="button" onClick={handleBack} disabled={step === 1}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-              <ArrowLeft className="w-4 h-4" /> Previous
+              className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-95">
+              <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Previous</span>
             </button>
 
-            {/* Step pills */}
-            <div className="flex items-center gap-1">
+            {/* Step dot pills */}
+            <div className="flex items-center gap-1 flex-1 justify-center">
               {STEPS.map(s => (
                 <div key={s.id} className={`h-1.5 rounded-full transition-all duration-300 ${
-                  s.id < step ? 'bg-[#0061f2] w-1.5' : s.id === step ? 'bg-[#0061f2] w-5' : 'bg-gray-200 w-1.5'
+                  s.id < step ? 'bg-[#0061f2] w-3' : s.id === step ? 'bg-[#0061f2] w-5' : 'bg-gray-200 w-1.5'
                 }`} />
               ))}
             </div>
 
-            {step < 9 ? (
+            {step < TOTAL_STEPS ? (
               <button type="button" onClick={handleNext}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#0061f2] text-white text-[10px] font-black rounded-lg shadow-lg shadow-blue-100 uppercase tracking-widest hover:bg-blue-700 transition-all">
-                Next <ChevronRight className="w-4 h-4" />
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-[#0061f2] text-white text-[10px] font-black rounded-lg shadow-lg shadow-blue-100 uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95">
+                <span className="hidden sm:inline">Next</span> <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button type="button" onClick={handleSubmit} disabled={loading}
-                className="flex items-center gap-2 px-8 py-2.5 bg-emerald-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-emerald-100 uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50">
+                className="flex items-center gap-2 px-4 sm:px-8 py-2 sm:py-2.5 bg-emerald-600 text-white text-[10px] font-black rounded-lg shadow-lg shadow-emerald-100 uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 active:scale-95">
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {loading ? 'Creating...' : 'Create Employee'}
+                {loading ? 'Creating...' : <><span className="hidden sm:inline">Create Employee</span><span className="sm:hidden">Submit</span></>}
               </button>
             )}
           </div>
@@ -1322,7 +1774,7 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
       </div>
 
       {/* Footer */}
-      <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase px-4">
+      <div className="mt-8 sm:mt-10 pt-5 sm:pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-400 font-bold tracking-[0.15em] uppercase gap-2 px-2 sm:px-4">
         <p>Copyright &copy; Digital New Enterprises 2024</p>
         <div className="flex gap-4">
           <a href="#" className="hover:underline hover:text-gray-600 transition-colors">Privacy Policy</a>
