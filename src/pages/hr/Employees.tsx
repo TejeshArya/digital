@@ -16,6 +16,8 @@ interface Employee {
   createdAt: string;
   departmentName?: string;
   locationName?: string;
+  approvedAt?: string;
+  approvedBy?: string;
 }
 
 interface EmployeesProps {
@@ -46,7 +48,17 @@ export function Employees({ onNavigate }: EmployeesProps) {
 
   const handleApprove = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}`, {
+      const savedUser = localStorage.getItem('user');
+      let adminName = 'HR Admin';
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          adminName = u.fullName || u.name || 'HR Admin';
+        } catch (e) {
+          console.error('Error parsing user:', e);
+        }
+      }
+      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}?approvedBy=${encodeURIComponent(adminName)}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -161,16 +173,17 @@ export function Employees({ onNavigate }: EmployeesProps) {
                   <th className="px-6 py-4 text-left">Department</th>
                   <th className="px-6 py-4 text-left">Role</th>
                   <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4 text-center">Approved By</th>
                   <th className="px-6 py-4 text-center">Created</th>
                   <th className="px-6 py-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
-                  <tr><td colSpan={9} className="py-20 text-center"><div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
+                  <tr><td colSpan={10} className="py-20 text-center"><div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-20 text-center">
+                    <td colSpan={10} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center opacity-40">
                         <Users className="w-12 h-12 text-gray-300 mb-4" />
                         <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">No Employee Records Found</h3>
@@ -194,6 +207,16 @@ export function Employees({ onNavigate }: EmployeesProps) {
                         <span className={`w-1.5 h-1.5 rounded-full ${emp.status === 'Pending' ? 'bg-amber-500 animate-pulse' : emp.status === 'Rejected' ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
                         {emp.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-gray-600">
+                      {emp.approvedBy ? (
+                        <div className="flex flex-col items-center">
+                          <span className="font-black text-emerald-700">{emp.approvedBy}</span>
+                          <span className="text-[9px] text-gray-400 font-black lowercase mt-0.5">{emp.approvedAt ? new Date(emp.approvedAt).toLocaleDateString() : ''}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-300 font-bold">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-gray-400">{new Date(emp.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4">

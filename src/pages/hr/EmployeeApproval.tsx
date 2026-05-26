@@ -14,6 +14,8 @@ interface Employee {
   qualification?: string;
   annualSalary?: string;
   createdAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
 }
 
 interface EmployeeApprovalProps {
@@ -44,7 +46,17 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
 
   const handleApprove = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}`, {
+      const savedUser = localStorage.getItem('user');
+      let adminName = 'HR Admin';
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          adminName = u.fullName || u.name || 'HR Admin';
+        } catch (e) {
+          console.error('Error parsing user:', e);
+        }
+      }
+      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}?approvedBy=${encodeURIComponent(adminName)}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -136,15 +148,21 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
                     <th className="px-6 py-4 text-left">Qualification</th>
                     <th className="px-6 py-4 text-left">Salary</th>
                     <th className="px-6 py-4 text-center">Date</th>
+                    {activeTab === 'approved' && (
+                      <>
+                        <th className="px-6 py-4 text-center">Approved At</th>
+                        <th className="px-6 py-4 text-center">Approved By</th>
+                      </>
+                    )}
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {loading ? (
-                    <tr><td colSpan={5} className="py-20 text-center"><div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
+                    <tr><td colSpan={activeTab === 'approved' ? 7 : 5} className="py-20 text-center"><div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 rounded-full border-t-transparent"></div></td></tr>
                   ) : (activeTab === 'pending' ? pending : activeTab === 'approved' ? approved : rejected).length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-20 text-center">
+                      <td colSpan={activeTab === 'approved' ? 7 : 5} className="py-20 text-center">
                         <div className="flex flex-col items-center justify-center">
                           <CheckCircle className="w-12 h-12 text-emerald-500 mb-4 opacity-20" />
                           <h3 className="text-lg font-black text-gray-300 uppercase tracking-widest">No Records Found</h3>
@@ -163,6 +181,16 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
                       <td className="px-6 py-4 font-bold text-gray-500 uppercase tracking-tight">{emp.qualification || 'N/A'}</td>
                       <td className="px-6 py-4 font-black text-gray-600">₹ {emp.annualSalary || '0'}</td>
                       <td className="px-6 py-4 text-center font-bold text-gray-400 uppercase">{new Date(emp.createdAt).toLocaleDateString()}</td>
+                      {activeTab === 'approved' && (
+                        <>
+                          <td className="px-6 py-4 text-center font-bold text-emerald-600 uppercase">
+                            {emp.approvedAt ? new Date(emp.approvedAt).toLocaleString('en-US', { hour12: true }) : '—'}
+                          </td>
+                          <td className="px-6 py-4 text-center font-bold text-gray-600 uppercase">
+                            {emp.approvedBy || '—'}
+                          </td>
+                        </>
+                      )}
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
                           {emp.status === 'Pending' ? (
