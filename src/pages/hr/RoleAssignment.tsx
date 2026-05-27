@@ -111,11 +111,11 @@ export function RoleAssignment() {
     setLoading(true);
     try {
       const [assignmentsRes, rolesRes, postsRes, locationsRes, employeesRes] = await Promise.all([
-        fetch('http://localhost:5076/api/roleassignments'),
-        fetch('http://localhost:5076/api/roles'),
-        fetch('http://localhost:5076/api/posts'),
-        fetch('http://localhost:5076/api/locations'),
-        fetch('http://localhost:5076/api/employees')
+        fetch('https://dee-backend-7x0g.onrender.com/api/roleassignments'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/roles'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/posts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/locations'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/employees')
       ]);
 
       if (assignmentsRes.ok) {
@@ -239,8 +239,8 @@ export function RoleAssignment() {
     setSaveLoading(true);
     try {
       const url = editingId
-        ? 'http://localhost:5076/api/roleassignments/edit'
-        : 'http://localhost:5076/api/roleassignments';
+        ? 'https://dee-backend-7x0g.onrender.com/api/roleassignments/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/roleassignments';
 
       const body = {
         ...formData,
@@ -323,7 +323,7 @@ export function RoleAssignment() {
 
     setDeleteLoadingId(deleteConfirmId);
     try {
-      const response = await fetch(`http://localhost:5076/api/roleassignments/${deleteConfirmId}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/roleassignments/${deleteConfirmId}`, {
         method: 'DELETE'
       });
       if (response.ok) {

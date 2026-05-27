@@ -99,10 +99,10 @@ export function CreatePost({ onNavigate }: CreatePostProps) {
     setLoading(true);
     try {
       const [postsRes, groupsRes, wingsRes, deptsRes] = await Promise.all([
-        fetch('http://localhost:5076/api/posts'),
-        fetch('http://localhost:5076/api/roles'),
-        fetch('http://localhost:5076/api/wings'),
-        fetch('http://localhost:5076/api/departments')
+        fetch('https://dee-backend-7x0g.onrender.com/api/posts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/roles'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/wings'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/departments')
       ]);
 
       if (postsRes.ok) {
@@ -211,8 +211,8 @@ export function CreatePost({ onNavigate }: CreatePostProps) {
     setSaveLoading(true);
     try {
       const url = editingId
-        ? 'http://localhost:5076/api/posts/edit'
-        : 'http://localhost:5076/api/posts';
+        ? 'https://dee-backend-7x0g.onrender.com/api/posts/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/posts';
 
       const body = {
         ...formData,
@@ -256,7 +256,7 @@ export function CreatePost({ onNavigate }: CreatePostProps) {
 
     setDeleteLoadingId(deleteConfirmId);
     try {
-      const response = await fetch(`http://localhost:5076/api/posts/${deleteConfirmId}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/posts/${deleteConfirmId}`, {
         method: 'DELETE'
       });
       if (response.ok) {

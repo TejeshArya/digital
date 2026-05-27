@@ -74,7 +74,7 @@ export function EmployeeFundTracking() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch('http://localhost:5076/api/employees');
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/employees');
       if (res.ok) {
         const data = await res.json();
         // Load active or approved employees
@@ -105,7 +105,7 @@ export function EmployeeFundTracking() {
       }
 
       const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
-      const res = await fetch(`http://localhost:5076/api/employeefunds${queryString}`);
+      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/employeefunds${queryString}`);
       
       if (res.ok) {
         const data = await res.json();
@@ -214,8 +214,8 @@ export function EmployeeFundTracking() {
       };
 
       const url = editingFund 
-        ? `http://localhost:5076/api/employeefunds/${editingFund.id}`
-        : 'http://localhost:5076/api/employeefunds';
+        ? `https://dee-backend-7x0g.onrender.com/api/employeefunds/${editingFund.id}`
+        : 'https://dee-backend-7x0g.onrender.com/api/employeefunds';
       
       const method = editingFund ? 'PUT' : 'POST';
 
@@ -258,7 +258,7 @@ export function EmployeeFundTracking() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`http://localhost:5076/api/employeefunds/${id}`, {
+      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/employeefunds/${id}`, {
         method: 'DELETE'
       });
 

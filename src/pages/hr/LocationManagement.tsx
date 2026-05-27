@@ -64,8 +64,8 @@ export function LocationManagement() {
     try {
       setLoading(true);
       const [locRes, empRes] = await Promise.all([
-        fetch('http://localhost:5076/api/locations'),
-        fetch('http://localhost:5076/api/employees')
+        fetch('https://dee-backend-7x0g.onrender.com/api/locations'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/employees')
       ]);
 
       if (locRes.ok) {
@@ -147,8 +147,8 @@ export function LocationManagement() {
     try {
       setSaveLoading(true);
       const url = editingId
-        ? 'http://localhost:5076/api/locations/edit'
-        : 'http://localhost:5076/api/locations';
+        ? 'https://dee-backend-7x0g.onrender.com/api/locations/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/locations';
 
       const body = {
         id: editingId || 0,
@@ -193,7 +193,7 @@ export function LocationManagement() {
 
     try {
       setSaveLoading(true);
-      const response = await fetch(`http://localhost:5076/api/locations/${selectedLocation.id}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/locations/${selectedLocation.id}`, {
         method: 'DELETE'
       });
 

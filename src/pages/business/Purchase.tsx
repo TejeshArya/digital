@@ -75,7 +75,7 @@ export function Purchase() {
 
   const fetchMasters = async () => {
     try {
-      const fetchCat = (cat: string) => fetch(`http://localhost:5076/api/MasterData/category/${cat}`).then(r => r.json());
+      const fetchCat = (cat: string) => fetch(`https://dee-backend-7x0g.onrender.com/api/MasterData/category/${cat}`).then(r => r.json());
       
       const [catList, subCatList, brandList, denomList, locList, postList] = await Promise.all([
         fetchCat('Category'),
@@ -181,7 +181,7 @@ export function Purchase() {
         formData.append('file', invoiceFile);
       }
 
-      const response = await fetch('http://localhost:5076/api/purchaseinvoices', {
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/purchaseinvoices', {
         method: 'POST',
         body: formData
       });

@@ -73,8 +73,8 @@ export function PostGrouping() {
     try {
       setLoading(true);
       const [groupsRes, postsRes] = await Promise.all([
-        fetch('http://localhost:5076/api/postgroupings'),
-        fetch('http://localhost:5076/api/posts')
+        fetch('https://dee-backend-7x0g.onrender.com/api/postgroupings'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/posts')
       ]);
 
       if (groupsRes.ok) {
@@ -126,7 +126,7 @@ export function PostGrouping() {
         postIds: selectedPosts
       };
 
-      const res = await fetch('http://localhost:5076/api/postgroupings', {
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/postgroupings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -162,7 +162,7 @@ export function PostGrouping() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`http://localhost:5076/api/postgroupings/${id}`, {
+      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/postgroupings/${id}`, {
         method: 'DELETE'
       });
 

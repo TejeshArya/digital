@@ -34,7 +34,7 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/employees');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/employees');
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
@@ -56,7 +56,7 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
           console.error('Error parsing user:', e);
         }
       }
-      const response = await fetch(`http://localhost:5076/api/employees/approve/${id}?approvedBy=${encodeURIComponent(adminName)}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/employees/approve/${id}?approvedBy=${encodeURIComponent(adminName)}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -71,7 +71,7 @@ export function EmployeeApproval({ onNavigate }: EmployeeApprovalProps) {
   const handleReject = async (id: number) => {
     if (!window.confirm('Are you sure you want to reject this request?')) return;
     try {
-      const response = await fetch(`http://localhost:5076/api/employees/reject/${id}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/employees/reject/${id}`, {
         method: 'POST'
       });
       if (response.ok) {

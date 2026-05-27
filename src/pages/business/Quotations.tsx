@@ -25,7 +25,7 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
   const fetchQuotations = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/quotations');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/quotations');
       const result = await response.json();
       setData(result);
     } catch (error) {
@@ -38,7 +38,7 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this quotation?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/quotations/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/quotations/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {
@@ -56,7 +56,7 @@ export function Quotations({ onNavigate, onSelectQuotation }: { onNavigate?: (pa
   const handleApprove = async (id: number) => {
     if (window.confirm('Approve this quotation and generate an invoice?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/quotations/${id}/approve`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/quotations/${id}/approve`, {
           method: 'POST'
         });
         if (response.ok) {

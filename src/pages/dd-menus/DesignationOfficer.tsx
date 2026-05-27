@@ -44,7 +44,7 @@ export function DesignationOfficer() {
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/designationofficers');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/designationofficers');
       const data = await response.json();
       setRecords(data);
     } catch (error) {
@@ -56,7 +56,7 @@ export function DesignationOfficer() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/departments');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/departments');
       const data = await response.json();
       setDepartments(data);
     } catch (error) {
@@ -137,8 +137,8 @@ export function DesignationOfficer() {
 
     try {
       const url = editingId 
-        ? 'http://localhost:5076/api/designationofficers/edit' 
-        : 'http://localhost:5076/api/designationofficers';
+        ? 'https://dee-backend-7x0g.onrender.com/api/designationofficers/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/designationofficers';
       
       const body = {
         ...formData,
@@ -168,7 +168,7 @@ export function DesignationOfficer() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this record?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/designationofficers/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/designationofficers/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

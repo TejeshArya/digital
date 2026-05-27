@@ -46,9 +46,9 @@ export function BankDetails() {
   const fetchMasterData = async () => {
     try {
       const [companiesRes, banksRes, categoriesRes] = await Promise.all([
-        fetch('http://localhost:5076/api/companygsts'),
-        fetch('http://localhost:5076/api/banks'),
-        fetch('http://localhost:5076/api/MasterData/category/Category')
+        fetch('https://dee-backend-7x0g.onrender.com/api/companygsts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/banks'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/Category')
       ]);
       setCompanies(await companiesRes.json());
       setBanks(await banksRes.json());
@@ -61,7 +61,7 @@ export function BankDetails() {
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/bankdetails');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/bankdetails');
       const data = await response.json();
       setRecords(data);
     } catch (error) {
@@ -86,8 +86,8 @@ export function BankDetails() {
 
     try {
       const url = isEditing 
-        ? 'http://localhost:5076/api/bankdetails/edit' 
-        : 'http://localhost:5076/api/bankdetails';
+        ? 'https://dee-backend-7x0g.onrender.com/api/bankdetails/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/bankdetails';
 
       const response = await fetch(url, {
         method: 'POST',
@@ -114,7 +114,7 @@ export function BankDetails() {
   const handleDelete = async (empId: string) => {
     if (window.confirm('Delete this bank record?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/bankdetails/${empId}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/bankdetails/${empId}`, {
           method: 'DELETE'
         });
         if (response.ok) {

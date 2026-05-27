@@ -7,7 +7,7 @@ import {
   FileEdit, Building2, ChevronRight, Activity
 } from 'lucide-react';
 
-const API = 'http://localhost:5076';
+const API = 'https://dee-backend-7x0g.onrender.com';
 
 interface HRStats {
   totalEmployees: number;

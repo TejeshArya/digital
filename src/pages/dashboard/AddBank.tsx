@@ -24,7 +24,7 @@ export function AddBank() {
   const fetchBanks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/banks');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/banks');
       const data = await response.json();
       setBanks(data);
     } catch (error) {
@@ -47,8 +47,8 @@ export function AddBank() {
 
     try {
       const url = isEditing 
-        ? 'http://localhost:5076/api/banks/edit' 
-        : 'http://localhost:5076/api/banks';
+        ? 'https://dee-backend-7x0g.onrender.com/api/banks/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/banks';
 
       const response = await fetch(url, {
         method: 'POST',
@@ -77,7 +77,7 @@ export function AddBank() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this bank?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/banks/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/banks/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

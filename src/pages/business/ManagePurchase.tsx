@@ -15,7 +15,7 @@ export function ManagePurchase() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/purchaseinvoices');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/purchaseinvoices');
       const result = await response.json();
       setData(result);
     } catch (error) {

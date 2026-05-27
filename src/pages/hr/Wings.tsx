@@ -53,7 +53,7 @@ export function Wings() {
   const fetchWings = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5076/api/wings');
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/wings');
       if (res.ok) {
         const data = await res.json();
         setWings(data);
@@ -115,8 +115,8 @@ export function Wings() {
     try {
       setSaveLoading(true);
       const url = editingId 
-        ? 'http://localhost:5076/api/wings/edit' 
-        : 'http://localhost:5076/api/wings';
+        ? 'https://dee-backend-7x0g.onrender.com/api/wings/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/wings';
       
       const payload = {
         ...formData,
@@ -152,7 +152,7 @@ export function Wings() {
   const handleDeleteWing = async (id: number, name: string) => {
     if (window.confirm(`Are you sure you want to permanently delete the wing "${name}"?`)) {
       try {
-        const res = await fetch(`http://localhost:5076/api/wings/${id}`, {
+        const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/wings/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
@@ -171,7 +171,7 @@ export function Wings() {
   const handleToggleStatus = async (wing: Wing) => {
     try {
       const updated = { ...wing, status: !wing.status };
-      const res = await fetch('http://localhost:5076/api/wings/edit', {
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/wings/edit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)

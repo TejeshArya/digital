@@ -73,7 +73,7 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
 
   const fetchMasters = async () => {
     try {
-      const fetchCat = (cat: string) => fetch(`http://localhost:5076/api/MasterData/category/${cat}`).then(r => r.json());
+      const fetchCat = (cat: string) => fetch(`https://dee-backend-7x0g.onrender.com/api/MasterData/category/${cat}`).then(r => r.json());
       
       const [catList, subCatList, brandList, denomList] = await Promise.all([
         fetchCat('Category'),
@@ -93,7 +93,7 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
 
   const fetchDepartments = async () => {
     try {
-      const res = await fetch('http://localhost:5076/api/MasterData/category/Department');
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/Department');
       if (res.ok) setDepartments(await res.json());
     } catch (err) {
       console.error('Dept fetch error:', err);
@@ -181,7 +181,7 @@ export function NewQuotation({ onNavigate }: { onNavigate?: (path: string) => vo
         items: items.map(({ id, ...rest }) => rest)
       };
 
-      const response = await fetch('http://localhost:5076/api/quotations', {
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/quotations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

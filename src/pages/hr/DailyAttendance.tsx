@@ -77,7 +77,7 @@ export function DailyAttendance() {
 
   const fetchLocations = async () => {
     try {
-      const res = await fetch('http://localhost:5076/api/locations');
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/locations');
       if (res.ok) {
         const data = await res.json();
         if (data && data.length > 0) {

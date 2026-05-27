@@ -66,8 +66,8 @@ export function SubLocation() {
     try {
       setLoading(true);
       const [subLocRes, locRes] = await Promise.all([
-        fetch('http://localhost:5076/api/sublocations'),
-        fetch('http://localhost:5076/api/locations')
+        fetch('https://dee-backend-7x0g.onrender.com/api/sublocations'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/locations')
       ]);
 
       if (subLocRes.ok) {
@@ -125,8 +125,8 @@ export function SubLocation() {
     try {
       setSaveLoading(true);
       const url = editingId
-        ? 'http://localhost:5076/api/sublocations/edit'
-        : 'http://localhost:5076/api/sublocations';
+        ? 'https://dee-backend-7x0g.onrender.com/api/sublocations/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/sublocations';
 
       const body = {
         id: editingId || 0,
@@ -190,7 +190,7 @@ export function SubLocation() {
 
     try {
       setSaveLoading(true);
-      const response = await fetch(`http://localhost:5076/api/sublocations/${selectedSubLocation.id}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/sublocations/${selectedSubLocation.id}`, {
         method: 'DELETE'
       });
 

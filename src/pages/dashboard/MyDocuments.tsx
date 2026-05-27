@@ -36,7 +36,7 @@ export function MyDocuments({ onNavigate }: MyDocumentsProps) {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5076/api/documents/employee/${userEmail}`);
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/documents/employee/${userEmail}`);
       if (response.ok) {
         const data = await response.json();
         setDocuments(data);
@@ -54,7 +54,7 @@ export function MyDocuments({ onNavigate }: MyDocumentsProps) {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/documents/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/documents/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {
@@ -77,7 +77,7 @@ export function MyDocuments({ onNavigate }: MyDocumentsProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const API_URL = 'http://localhost:5076';
+  const API_URL = 'https://dee-backend-7x0g.onrender.com';
 
   return (
     <div className="p-4 bg-[#f8f9fc] min-h-screen font-sans">

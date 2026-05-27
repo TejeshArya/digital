@@ -64,9 +64,9 @@ export function LocationHead() {
     try {
       setLoading(true);
       const [headsRes, locRes, empRes] = await Promise.all([
-        fetch('http://localhost:5076/api/locationheads'),
-        fetch('http://localhost:5076/api/locations'),
-        fetch('http://localhost:5076/api/employees')
+        fetch('https://dee-backend-7x0g.onrender.com/api/locationheads'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/locations'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/employees')
       ]);
 
       if (headsRes.ok) {
@@ -119,7 +119,7 @@ export function LocationHead() {
         employeeId: parseInt(selectedEmployeeId)
       };
 
-      const res = await fetch('http://localhost:5076/api/locationheads', {
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/locationheads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -159,7 +159,7 @@ export function LocationHead() {
 
     try {
       setDeletingId(id);
-      const res = await fetch(`http://localhost:5076/api/locationheads/${id}`, {
+      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/locationheads/${id}`, {
         method: 'DELETE'
       });
 

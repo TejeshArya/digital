@@ -28,7 +28,7 @@ export function EmployeePortal({ onNavigate }: { onNavigate?: (path: string) => 
 
   const fetchProfile = async (email: string) => {
     try {
-      const response = await fetch(`http://localhost:5076/api/employees/email/${email}`);
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/employees/email/${email}`);
       if (response.ok) {
         const data = await response.json();
         setProfile(data);

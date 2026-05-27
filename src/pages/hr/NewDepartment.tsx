@@ -82,9 +82,9 @@ export function NewDepartment() {
       
       // Parallel fetches for efficiency
       const [deptRes, compRes, empRes] = await Promise.all([
-        fetch('http://localhost:5076/api/departments'),
-        fetch('http://localhost:5076/api/companygsts'),
-        fetch('http://localhost:5076/api/employees')
+        fetch('https://dee-backend-7x0g.onrender.com/api/departments'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/companygsts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/employees')
       ]);
 
       if (deptRes.ok) {
@@ -187,8 +187,8 @@ export function NewDepartment() {
     try {
       setSaveLoading(true);
       const url = editingId 
-        ? 'http://localhost:5076/api/departments/edit' 
-        : 'http://localhost:5076/api/departments';
+        ? 'https://dee-backend-7x0g.onrender.com/api/departments/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/departments';
       
       // Retain CreatedAt on editing to prevent database timestamp loss
       let originalCreatedAt = new Date().toISOString();
@@ -240,7 +240,7 @@ export function NewDepartment() {
 
     try {
       setSaveLoading(true);
-      const res = await fetch(`http://localhost:5076/api/departments/${selectedDept.id}`, {
+      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/departments/${selectedDept.id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -266,7 +266,7 @@ export function NewDepartment() {
         status: !dept.status 
       };
       
-      const res = await fetch('http://localhost:5076/api/departments/edit', {
+      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/departments/edit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)

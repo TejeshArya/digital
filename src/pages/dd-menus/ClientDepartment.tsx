@@ -31,7 +31,7 @@ export function ClientDepartment() {
   const fetchDepts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/departments');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/departments');
       const data = await response.json();
       setDepts(data);
     } catch (error) {
@@ -43,7 +43,7 @@ export function ClientDepartment() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/companygsts');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/companygsts');
       const data = await response.json();
       setCompanies(data);
     } catch (error) {
@@ -68,8 +68,8 @@ export function ClientDepartment() {
 
     try {
       const url = editingId 
-        ? 'http://localhost:5076/api/departments/edit' 
-        : 'http://localhost:5076/api/departments';
+        ? 'https://dee-backend-7x0g.onrender.com/api/departments/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/departments';
 
       const response = await fetch(url, {
         method: 'POST',
@@ -105,7 +105,7 @@ export function ClientDepartment() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this department?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/departments/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/departments/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

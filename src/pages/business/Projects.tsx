@@ -75,7 +75,7 @@ export function Projects() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/projects');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/projects');
       const data = await response.json();
       setProjectList(data);
     } catch (error) {
@@ -88,11 +88,11 @@ export function Projects() {
   const fetchDropdowns = async () => {
     try {
       const [deptRes, locRes, compRes, empRes, subGstRes] = await Promise.all([
-        fetch('http://localhost:5076/api/departments'),
-        fetch('http://localhost:5076/api/locations'),
-        fetch('http://localhost:5076/api/companygsts'),
-        fetch('http://localhost:5076/api/employees'),
-        fetch('http://localhost:5076/api/subgsts')
+        fetch('https://dee-backend-7x0g.onrender.com/api/departments'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/locations'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/companygsts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/employees'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/subgsts')
       ]);
       
       const depts = await deptRes.json();
@@ -161,7 +161,7 @@ export function Projects() {
     }
 
     try {
-      const response = await fetch('http://localhost:5076/api/projects', {
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/projects', {
         method: 'POST',
         body: data
       });

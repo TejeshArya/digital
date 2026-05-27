@@ -15,7 +15,7 @@ export function AdminDashboard() {
    });
 
    useEffect(() => {
-      fetch('http://localhost:5076/api/dashboard/stats')
+      fetch('https://dee-backend-7x0g.onrender.com/api/dashboard/stats')
          .then(res => res.json())
          .then(data => setDashboardData(data))
          .catch(err => console.error('Error fetching dashboard stats:', err));

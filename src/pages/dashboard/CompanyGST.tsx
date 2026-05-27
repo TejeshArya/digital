@@ -80,9 +80,9 @@ export function CompanyGST() {
   const fetchMasterData = async () => {
     try {
       const [statesRes, citiesRes, gstTypeRes] = await Promise.all([
-        fetch('http://localhost:5076/api/MasterData/category/State'),
-        fetch('http://localhost:5076/api/MasterData/category/City'),
-        fetch('http://localhost:5076/api/MasterData/category/GST Type')
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/State'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/City'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/GST Type')
       ]);
       setStatesList(await statesRes.json());
       setCitiesList(await citiesRes.json());
@@ -95,7 +95,7 @@ export function CompanyGST() {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/companygsts');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/companygsts');
       const data = await response.json();
       setCompanyList(data);
     } catch (error) {
@@ -217,8 +217,8 @@ export function CompanyGST() {
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing
-        ? `http://localhost:5076/api/companygsts/${formData.gstNumber}`
-        : 'http://localhost:5076/api/companygsts';
+        ? `https://dee-backend-7x0g.onrender.com/api/companygsts/${formData.gstNumber}`
+        : 'https://dee-backend-7x0g.onrender.com/api/companygsts';
 
       const formPayload = new FormData();
       formPayload.append('data', JSON.stringify(formData));
@@ -258,7 +258,7 @@ export function CompanyGST() {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this entry?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/companygsts/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/companygsts/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

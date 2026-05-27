@@ -65,7 +65,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/departments');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/departments');
       const data = await response.json();
       setDepartments(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
@@ -76,7 +76,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
 
   const fetchDesignations = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/designationofficers');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/designationofficers');
       const data = await response.json();
       setDesignations(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
@@ -87,7 +87,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/employees');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/employees');
       const data = await response.json();
       setEmployees(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
@@ -99,7 +99,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/subgsts');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/subgsts');
       const data = await response.json();
       const rawList = Array.isArray(data) ? data : data?.value ?? [];
       const mapped = rawList.map((item: any) => ({
@@ -118,7 +118,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('http://localhost:5076/api/companygsts');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/companygsts');
       const data = await response.json();
       setCompanies(Array.isArray(data) ? data : data?.value ?? []);
     } catch (error) {
@@ -352,8 +352,8 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
 
     try {
       const url = editingId
-        ? 'http://localhost:5076/api/subgsts/edit'
-        : 'http://localhost:5076/api/subgsts';
+        ? 'https://dee-backend-7x0g.onrender.com/api/subgsts/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/subgsts';
 
       const body = {
         ...formData,
@@ -380,7 +380,7 @@ export function SubGST({ isMasterPage = false }: SubGSTProps) {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this record?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/subgsts/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/subgsts/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

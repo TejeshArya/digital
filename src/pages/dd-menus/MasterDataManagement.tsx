@@ -59,7 +59,7 @@ export function MasterDataManagement({
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5076/api/MasterData/category/${category}`);
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/MasterData/category/${category}`);
       const result = await response.json();
       setData(result);
     } catch (error) {
@@ -71,7 +71,7 @@ export function MasterDataManagement({
 
   const fetchParents = async () => {
     try {
-      const response = await fetch(`http://localhost:5076/api/MasterData/category/${parentCategory}`);
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/MasterData/category/${parentCategory}`);
       const result = await response.json();
       setParents(result);
     } catch (error) {
@@ -86,7 +86,7 @@ export function MasterDataManagement({
     }
 
     try {
-      const url = isEditing ? `http://localhost:5076/api/MasterData/${formData.id}` : 'http://localhost:5076/api/MasterData';
+      const url = isEditing ? `https://dee-backend-7x0g.onrender.com/api/MasterData/${formData.id}` : 'https://dee-backend-7x0g.onrender.com/api/MasterData';
       const method = isEditing ? 'PUT' : 'POST';
       
       const form = new FormData();
@@ -139,7 +139,7 @@ export function MasterDataManagement({
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this?')) return;
     try {
-      const response = await fetch(`http://localhost:5076/api/MasterData/${id}`, {
+      const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/MasterData/${id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -307,7 +307,7 @@ export function MasterDataManagement({
                          {showPhoto && (
                            <td className="px-8 py-4 border-r border-gray-50 text-center">
                               {item.photoPath ? (
-                                <img src={`http://localhost:5076${item.photoPath}`} alt={item.value} className="w-12 h-12 object-contain mx-auto rounded border border-gray-100" />
+                                <img src={`https://dee-backend-7x0g.onrender.com${item.photoPath}`} alt={item.value} className="w-12 h-12 object-contain mx-auto rounded border border-gray-100" />
                               ) : (
                                 <div className="w-12 h-12 bg-gray-50 rounded border border-dashed border-gray-200 mx-auto flex items-center justify-center text-[8px] text-gray-300 font-bold uppercase">No Image</div>
                               )}

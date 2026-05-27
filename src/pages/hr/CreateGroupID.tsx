@@ -20,7 +20,7 @@ export function CreateGroupID() {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/roles');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/roles');
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
@@ -82,8 +82,8 @@ export function CreateGroupID() {
     try {
       const isEdit = editingId !== null;
       const url = isEdit 
-        ? 'http://localhost:5076/api/roles/edit' 
-        : 'http://localhost:5076/api/roles';
+        ? 'https://dee-backend-7x0g.onrender.com/api/roles/edit' 
+        : 'https://dee-backend-7x0g.onrender.com/api/roles';
       
       const payload = {
         id: isEdit ? editingId : (formData.id ? parseInt(formData.id) : 0),
@@ -140,7 +140,7 @@ export function CreateGroupID() {
   const handleDelete = async (id: number) => {
     if (window.confirm(`Are you sure you want to delete Group ID ${id}?`)) {
       try {
-        const response = await fetch(`http://localhost:5076/api/roles/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/roles/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

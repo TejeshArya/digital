@@ -47,8 +47,8 @@ export function DeliveryDetails() {
   const fetchMasterData = async () => {
     try {
       const [companiesRes, statesRes] = await Promise.all([
-        fetch('http://localhost:5076/api/companygsts'),
-        fetch('http://localhost:5076/api/MasterData/category/State')
+        fetch('https://dee-backend-7x0g.onrender.com/api/companygsts'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/State')
       ]);
       setCompanies(await companiesRes.json());
       setStates(await statesRes.json());
@@ -60,7 +60,7 @@ export function DeliveryDetails() {
   const fetchDeliveries = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5076/api/deliverydetails');
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/deliverydetails');
       const data = await response.json();
       setDeliveries(data);
     } catch (error) {
@@ -132,8 +132,8 @@ export function DeliveryDetails() {
 
     try {
       const url = isEditing
-        ? 'http://localhost:5076/api/deliverydetails/edit'
-        : 'http://localhost:5076/api/deliverydetails';
+        ? 'https://dee-backend-7x0g.onrender.com/api/deliverydetails/edit'
+        : 'https://dee-backend-7x0g.onrender.com/api/deliverydetails';
 
       const response = await fetch(url, {
         method: 'POST',
@@ -162,7 +162,7 @@ export function DeliveryDetails() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this record?')) {
       try {
-        const response = await fetch(`http://localhost:5076/api/deliverydetails/${id}`, {
+        const response = await fetch(`https://dee-backend-7x0g.onrender.com/api/deliverydetails/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

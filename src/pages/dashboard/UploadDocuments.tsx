@@ -31,9 +31,9 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
   const fetchMasterData = async () => {
     try {
       const [catRes, subRes, subSubRes] = await Promise.all([
-        fetch('http://localhost:5076/api/MasterData/category/Document%20Category'),
-        fetch('http://localhost:5076/api/MasterData/category/Sub%20Document%20Category'),
-        fetch('http://localhost:5076/api/MasterData/category/Sub-Sub%20Document%20Category')
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/Document%20Category'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/Sub%20Document%20Category'),
+        fetch('https://dee-backend-7x0g.onrender.com/api/MasterData/category/Sub-Sub%20Document%20Category')
       ]);
       setCategories(await catRes.json());
       setSubCategories(await subRes.json());
@@ -75,7 +75,7 @@ export function UploadDocuments({ onNavigate }: UploadDocumentsProps) {
     data.append('Remarks', formData.remarks);
 
     try {
-      const response = await fetch('http://localhost:5076/api/documents/upload', {
+      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/documents/upload', {
         method: 'POST',
         body: data
       });

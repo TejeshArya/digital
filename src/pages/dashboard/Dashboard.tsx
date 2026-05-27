@@ -17,7 +17,7 @@ export function Dashboard({ onNavigate }: DashboardProps = {}) {
     async function fetchStats() {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:5076/api/dashboard/stats');
+        const res = await fetch('https://dee-backend-7x0g.onrender.com/api/dashboard/stats');
         if (!res.ok) throw new Error('Failed to fetch dashboard stats');
         const json = await res.json();
         setData(json);
