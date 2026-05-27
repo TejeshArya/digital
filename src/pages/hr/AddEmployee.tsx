@@ -131,7 +131,7 @@ interface ApiLocation   { id: number; name: string; }
 // ─────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────
-const API = 'http://localhost:5076';
+const API = 'https://dee-backend-7x0g.onrender.com';
 
 const QUALIFICATIONS = [
   'B.E / B.TECH', 'MBA', 'MCA', 'M.TECH', 'Ph.D',
