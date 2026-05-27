@@ -64,16 +64,16 @@ interface HRDashboardData {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  Active:   'bg-emerald-500',
-  Pending:  'bg-amber-400',
+  Active: 'bg-emerald-500',
+  Pending: 'bg-amber-400',
   Approved: 'bg-blue-500',
   Rejected: 'bg-rose-500',
   Inactive: 'bg-gray-300',
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  Active:   'bg-emerald-50 text-emerald-700 border-emerald-100',
-  Pending:  'bg-amber-50 text-amber-700 border-amber-100',
+  Active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  Pending: 'bg-amber-50 text-amber-700 border-amber-100',
   Approved: 'bg-blue-50 text-blue-700 border-blue-100',
   Rejected: 'bg-rose-50 text-rose-700 border-rose-100',
   Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
@@ -126,11 +126,11 @@ export function HRDashboard() {
 
   const statCards = [
     { label: 'Total Employees', value: stats?.totalEmployees ?? 0, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100', bar: 'bg-[#0061f2]', icon: Users },
-    { label: 'Pending IT',      value: stats?.pendingIT ?? 0,       color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', bar: 'bg-amber-400', icon: Clock },
-    { label: 'Approved by IT',  value: stats?.approvedByIT ?? 0,   color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100', bar: 'bg-emerald-500', icon: ShieldCheck },
-    { label: 'Active Users',    value: stats?.activeUsers ?? 0,    color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-100', bar: 'bg-[#00cfd5]', icon: UserCheck },
-    { label: 'Rejected',        value: stats?.rejected ?? 0,       color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100', bar: 'bg-rose-500', icon: UserMinus },
-    { label: 'Inactive',        value: stats?.inactive ?? 0,       color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100', bar: 'bg-gray-300', icon: UserX },
+    { label: 'Pending IT', value: stats?.pendingIT ?? 0, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', bar: 'bg-amber-400', icon: Clock },
+    { label: 'Approved by IT', value: stats?.approvedByIT ?? 0, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100', bar: 'bg-emerald-500', icon: ShieldCheck },
+    { label: 'Active Users', value: stats?.activeUsers ?? 0, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-100', bar: 'bg-[#00cfd5]', icon: UserCheck },
+    { label: 'Rejected', value: stats?.rejected ?? 0, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100', bar: 'bg-rose-500', icon: UserMinus },
+    { label: 'Inactive', value: stats?.inactive ?? 0, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100', bar: 'bg-gray-300', icon: UserX },
   ];
 
   const SkeletonBar = ({ w = 'w-20' }: { w?: string }) => (
@@ -263,57 +263,57 @@ export function HRDashboard() {
                     </tr>
                   ))
                   : data?.recentEmployees.length === 0
-                  ? (
-                    <tr>
-                      <td colSpan={5} className="px-8 py-16 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
-                            <Users className="w-7 h-7 text-gray-200" />
+                    ? (
+                      <tr>
+                        <td colSpan={5} className="px-8 py-16 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
+                              <Users className="w-7 h-7 text-gray-200" />
+                            </div>
+                            <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest">No employees found.</p>
+                            <button className="flex items-center gap-2 mt-2 px-5 py-2.5 bg-[#0061f2] text-white text-[10px] font-black rounded-full shadow uppercase tracking-widest hover:bg-blue-700 transition-all">
+                              <UserPlus className="w-3.5 h-3.5" /> Add First Employee
+                            </button>
                           </div>
-                          <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest">No employees found.</p>
-                          <button className="flex items-center gap-2 mt-2 px-5 py-2.5 bg-[#0061f2] text-white text-[10px] font-black rounded-full shadow uppercase tracking-widest hover:bg-blue-700 transition-all">
-                            <UserPlus className="w-3.5 h-3.5" /> Add First Employee
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                  : data?.recentEmployees.map(emp => (
-                    <tr key={emp.id} className="border-b border-gray-50 hover:bg-slate-50/40 transition-colors">
-                      <td className="px-5 py-3.5 border-r border-gray-100">
-                        <div className="flex flex-col">
-                          <span className="font-black text-gray-700 uppercase text-[10px]">{emp.name}</span>
-                          <span className="text-[8px] text-[#6b58d3] font-bold">{emp.employeeId ?? `ID-${emp.id}`}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 font-bold text-gray-500 border-r border-gray-100 text-[10px]">
-                        {emp.role || '—'}
-                      </td>
-                      <td className="px-5 py-3.5 border-r border-gray-100">
-                        <div className="flex flex-col gap-0.5">
-                          {emp.departmentName && (
-                            <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500">
-                              <Building2 className="w-3 h-3 text-gray-300" /> {emp.departmentName}
-                            </span>
-                          )}
-                          {emp.locationName && (
-                            <span className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
-                              <MapPin className="w-3 h-3 text-gray-300" /> {emp.locationName}
-                            </span>
-                          )}
-                          {!emp.departmentName && !emp.locationName && <span className="text-gray-300">—</span>}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-center border-r border-gray-100">
-                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${STATUS_BADGE[emp.status] ?? 'bg-gray-50 text-gray-400 border-gray-100'}`}>
-                          {emp.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-[9px] font-bold text-gray-400 whitespace-nowrap">
-                        {formatDate(emp.createdAt)}
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                      </tr>
+                    )
+                    : data?.recentEmployees.map(emp => (
+                      <tr key={emp.id} className="border-b border-gray-50 hover:bg-slate-50/40 transition-colors">
+                        <td className="px-5 py-3.5 border-r border-gray-100">
+                          <div className="flex flex-col">
+                            <span className="font-black text-gray-700 uppercase text-[10px]">{emp.name}</span>
+                            <span className="text-[8px] text-[#6b58d3] font-bold">{emp.employeeId ?? `ID-${emp.id}`}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 font-bold text-gray-500 border-r border-gray-100 text-[10px]">
+                          {emp.role || '—'}
+                        </td>
+                        <td className="px-5 py-3.5 border-r border-gray-100">
+                          <div className="flex flex-col gap-0.5">
+                            {emp.departmentName && (
+                              <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500">
+                                <Building2 className="w-3 h-3 text-gray-300" /> {emp.departmentName}
+                              </span>
+                            )}
+                            {emp.locationName && (
+                              <span className="flex items-center gap-1 text-[9px] font-bold text-gray-400">
+                                <MapPin className="w-3 h-3 text-gray-300" /> {emp.locationName}
+                              </span>
+                            )}
+                            {!emp.departmentName && !emp.locationName && <span className="text-gray-300">—</span>}
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 text-center border-r border-gray-100">
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${STATUS_BADGE[emp.status] ?? 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                            {emp.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-[9px] font-bold text-gray-400 whitespace-nowrap">
+                          {formatDate(emp.createdAt)}
+                        </td>
+                      </tr>
+                    ))
                 }
               </tbody>
             </table>
@@ -340,21 +340,21 @@ export function HRDashboard() {
                   </div>
                 ))
                 : data?.statusDistribution.length === 0
-                ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-6">No data available</p>
-                : data?.statusDistribution.map((s, i) => {
-                  const total = data.stats.totalEmployees || 1;
-                  const pct = Math.round((s.count / total) * 100);
-                  const colorBar = STATUS_COLORS[s.status ?? ''] ?? 'bg-gray-300';
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-[9px] font-black text-gray-500 uppercase w-16 shrink-0 truncate">{s.status}</span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${colorBar} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                  ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-6">No data available</p>
+                  : data?.statusDistribution.map((s, i) => {
+                    const total = data.stats.totalEmployees || 1;
+                    const pct = Math.round((s.count / total) * 100);
+                    const colorBar = STATUS_COLORS[s.status ?? ''] ?? 'bg-gray-300';
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[9px] font-black text-gray-500 uppercase w-16 shrink-0 truncate">{s.status}</span>
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full ${colorBar} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-[9px] font-black text-gray-400 w-6 text-right">{s.count}</span>
                       </div>
-                      <span className="text-[9px] font-black text-gray-400 w-6 text-right">{s.count}</span>
-                    </div>
-                  );
-                })
+                    );
+                  })
               }
             </div>
           </div>
@@ -376,25 +376,25 @@ export function HRDashboard() {
                   </div>
                 ))
                 : data?.pendingProfileUpdates.length === 0
-                ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No pending updates</p>
-                : data?.pendingProfileUpdates.map(upd => (
-                  <div key={upd.id} className="px-5 py-3 hover:bg-amber-50/30 transition-colors">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-black text-gray-700 text-[10px] uppercase">{upd.employeeName}</p>
-                        <p className="text-[8px] text-[#6b58d3] font-bold">{upd.employeeCode}</p>
+                  ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No pending updates</p>
+                  : data?.pendingProfileUpdates.map(upd => (
+                    <div key={upd.id} className="px-5 py-3 hover:bg-amber-50/30 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-black text-gray-700 text-[10px] uppercase">{upd.employeeName}</p>
+                          <p className="text-[8px] text-[#6b58d3] font-bold">{upd.employeeCode}</p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded text-[7px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
+                          {upd.fieldName}
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded text-[7px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-100 shrink-0">
-                        {upd.fieldName}
-                      </span>
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[9px]">
+                        <span className="text-gray-400 italic">{upd.oldValue || 'None'}</span>
+                        <ChevronRight className="w-3 h-3 text-gray-300" />
+                        <span className="font-bold text-gray-600">{upd.newValue}</span>
+                      </div>
                     </div>
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[9px]">
-                      <span className="text-gray-400 italic">{upd.oldValue || 'None'}</span>
-                      <ChevronRight className="w-3 h-3 text-gray-300" />
-                      <span className="font-bold text-gray-600">{upd.newValue}</span>
-                    </div>
-                  </div>
-                ))
+                  ))
               }
             </div>
           </div>
@@ -415,21 +415,21 @@ export function HRDashboard() {
             {loading
               ? [...Array(3)].map((_, i) => <div key={i} className="h-8 bg-gray-50 rounded animate-pulse" />)
               : data?.locationDistribution.length === 0
-              ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No data</p>
-              : data?.locationDistribution.map((l, i) => (
-                <div key={i}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] font-black text-gray-600 uppercase truncate max-w-[120px]">{l.location}</span>
-                    <span className="text-[9px] font-bold text-gray-400">{l.count}</span>
+                ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No data</p>
+                : data?.locationDistribution.map((l, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] font-black text-gray-600 uppercase truncate max-w-[120px]">{l.location}</span>
+                      <span className="text-[9px] font-bold text-gray-400">{l.count}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${BAR_COLORS[i % BAR_COLORS.length]} rounded-full transition-all duration-700`}
+                        style={{ width: `${Math.round((l.count / maxLocCount) * 100)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${BAR_COLORS[i % BAR_COLORS.length]} rounded-full transition-all duration-700`}
-                      style={{ width: `${Math.round((l.count / maxLocCount) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))
+                ))
             }
           </div>
         </div>
@@ -445,21 +445,21 @@ export function HRDashboard() {
             {loading
               ? [...Array(3)].map((_, i) => <div key={i} className="h-8 bg-gray-50 rounded animate-pulse" />)
               : data?.departmentDistribution.length === 0
-              ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No data</p>
-              : data?.departmentDistribution.map((d, i) => (
-                <div key={i}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] font-black text-gray-600 uppercase truncate max-w-[120px]">{d.department}</span>
-                    <span className="text-[9px] font-bold text-gray-400">{d.count}</span>
+                ? <p className="text-[10px] text-gray-300 font-bold uppercase text-center py-8">No data</p>
+                : data?.departmentDistribution.map((d, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] font-black text-gray-600 uppercase truncate max-w-[120px]">{d.department}</span>
+                      <span className="text-[9px] font-bold text-gray-400">{d.count}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${BAR_COLORS[i % BAR_COLORS.length]} rounded-full transition-all duration-700`}
+                        style={{ width: `${Math.round((d.count / maxDeptCount) * 100)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${BAR_COLORS[i % BAR_COLORS.length]} rounded-full transition-all duration-700`}
-                      style={{ width: `${Math.round((d.count / maxDeptCount) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))
+                ))
             }
           </div>
         </div>

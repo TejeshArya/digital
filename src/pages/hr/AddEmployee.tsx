@@ -17,6 +17,42 @@ interface AddEmployeeProps {
   onNavigate?: (path: string) => void;
 }
 
+interface ValidationRules {
+  id: number;
+  fullName: boolean;
+  officialEmail: boolean;
+  employeeCode: boolean;
+  dateOfJoining: boolean;
+  department: boolean;
+  location: boolean;
+  designation: boolean;
+  annualSalary: boolean;
+  coreQualification: boolean;
+  remarks: boolean;
+  dateOfBirth: boolean;
+  gender: boolean;
+  maritalStatus: boolean;
+  bloodGroup: boolean;
+  religion: boolean;
+  category: boolean;
+  mobileNumber: boolean;
+  alternateNumber: boolean;
+  currentAddress: boolean;
+  permanentAddress: boolean;
+  photo: boolean;
+  aadharNumber: boolean;
+  panNumber: boolean;
+  uanNumber: boolean;
+  esicNumber: boolean;
+  passportNumber: boolean;
+  pvcNumber: boolean;
+  bankDetails: boolean;
+  emergencyName: boolean;
+  emergencyPhone: boolean;
+  emergencyRelation: boolean;
+  nomineeDetails: boolean;
+}
+
 interface FamilyMember {
   name: string;
   relation: string;
@@ -95,7 +131,7 @@ interface ApiLocation   { id: number; name: string; }
 // ─────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────
-const API = 'http://localhost:5076';
+const API = 'https://dee-backend-7x0g.onrender.com';
 
 const QUALIFICATIONS = [
   'B.E / B.TECH', 'MBA', 'MCA', 'M.TECH', 'Ph.D',
@@ -126,6 +162,42 @@ const STEPS = [
 const TOTAL_STEPS = STEPS.length;
 
 const EMPTY_FAMILY_MEMBER: FamilyMember = { name: '', relation: '', dateOfBirth: '', mealType: '' };
+
+const DEFAULT_RULES: ValidationRules = {
+  id: 1,
+  fullName: true,
+  officialEmail: true,
+  employeeCode: false,
+  dateOfJoining: true,
+  department: true,
+  location: false,
+  designation: true,
+  annualSalary: false,
+  coreQualification: true,
+  remarks: false,
+  dateOfBirth: true,
+  gender: true,
+  maritalStatus: true,
+  bloodGroup: true,
+  religion: false,
+  category: true,
+  mobileNumber: true,
+  alternateNumber: false,
+  currentAddress: true,
+  permanentAddress: true,
+  photo: true,
+  aadharNumber: true,
+  panNumber: true,
+  uanNumber: false,
+  esicNumber: false,
+  passportNumber: false,
+  pvcNumber: false,
+  bankDetails: true,
+  emergencyName: true,
+  emergencyPhone: true,
+  emergencyRelation: true,
+  nomineeDetails: false
+};
 
 const EMPTY_FORM: EmployeeFormData = {
   fullName: '', officialEmail: '', employeeCode: '', dateOfJoining: '',
@@ -474,7 +546,7 @@ function ReviewCard({ title, icon, color, children }: {
 // ─────────────────────────────────────────────
 // STEP 1 — Basic Info
 // ─────────────────────────────────────────────
-function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }: {
+function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   qch: (v: string[]) => void;
@@ -482,6 +554,7 @@ function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }
   locations: ApiLocation[];
   depsLoading: boolean;
   locsLoading: boolean;
+  rules: ValidationRules;
 }) {
   return (
     <div>
@@ -490,34 +563,34 @@ function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }
         desc="Enter the core identity, role, and employment details for this new employee." />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
-          <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Full Name" required />
+          <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Full Name" required={rules.fullName} optional={!rules.fullName} />
           <input type="text" name="fullName" value={fd.fullName} onChange={ch}
-            placeholder="Employee's full name" required className={inputCls} />
+            placeholder="Employee's full name" required={rules.fullName} className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Mail className="w-3.5 h-3.5" />} text="Official Email ID" required />
+          <FieldLabel icon={<Mail className="w-3.5 h-3.5" />} text="Official Email ID" required={rules.officialEmail} optional={!rules.officialEmail} />
           <input type="email" name="officialEmail" value={fd.officialEmail} onChange={ch}
-            placeholder="employee@company.com" required className={inputCls} />
+            placeholder="employee@company.com" required={rules.officialEmail} className={inputCls} />
           <p className="text-[9px] text-gray-400 font-medium italic">Used for login &amp; communications</p>
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Employee Code / ID" optional />
+          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Employee Code / ID" required={rules.employeeCode} optional={!rules.employeeCode} />
           <input type="text" name="employeeCode" value={fd.employeeCode} onChange={ch}
-            placeholder="EMP-001 (auto-generated if blank)" className={inputCls} />
+            placeholder="EMP-001 (auto-generated if blank)" required={rules.employeeCode} className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Joining" required />
+          <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Joining" required={rules.dateOfJoining} optional={!rules.dateOfJoining} />
           <input type="date" name="dateOfJoining" value={fd.dateOfJoining} onChange={ch}
-            required className={inputCls} />
+            required={rules.dateOfJoining} className={inputCls} />
         </div>
 
         {/* Department — from API */}
         <div className="space-y-2">
-          <FieldLabel icon={<Building2 className="w-3.5 h-3.5" />} text="Department" required />
+          <FieldLabel icon={<Building2 className="w-3.5 h-3.5" />} text="Department" required={rules.department} optional={!rules.department} />
           {depsLoading ? (
             <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
           ) : (
-            <NativeSelect name="department" value={fd.department} onChange={ch} required>
+            <NativeSelect name="department" value={fd.department} onChange={ch} required={rules.department}>
               <option value="">-- Select Department --</option>
               {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
             </NativeSelect>
@@ -526,40 +599,39 @@ function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }
 
         {/* Location — from API */}
         <div className="space-y-2">
-          <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Location / Branch" optional />
+          <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Location / Branch" required={rules.location} optional={!rules.location} />
           {locsLoading ? (
             <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
           ) : (
-            <NativeSelect name="location" value={fd.location} onChange={ch}>
+            <NativeSelect name="location" value={fd.location} onChange={ch} required={rules.location}>
               <option value="">-- Select Location --</option>
               {locations.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
             </NativeSelect>
           )}
         </div>
-
         <div className="space-y-2">
-          <FieldLabel icon={<Briefcase className="w-3.5 h-3.5" />} text="Designation / Post" required />
+          <FieldLabel icon={<Briefcase className="w-3.5 h-3.5" />} text="Designation / Post" required={rules.designation} optional={!rules.designation} />
           <input type="text" name="designation" value={fd.designation} onChange={ch}
-            placeholder="e.g. Software Engineer" required className={inputCls} />
+            placeholder="e.g. Software Engineer" required={rules.designation} className={inputCls} />
         </div>
 
         <div className="space-y-2">
-          <FieldLabel icon={<IndianRupee className="w-3.5 h-3.5" />} text="Annual Salary (₹)" optional />
+          <FieldLabel icon={<IndianRupee className="w-3.5 h-3.5" />} text="Annual Salary (₹)" required={rules.annualSalary} optional={!rules.annualSalary} />
           <input type="number" name="annualSalary" value={fd.annualSalary} onChange={ch}
-            placeholder="Gross annual CTC" min="0" className={inputCls} />
+            placeholder="Gross annual CTC" min="0" required={rules.annualSalary} className={inputCls} />
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <FieldLabel icon={<GraduationCap className="w-3.5 h-3.5" />} text="Core Qualification" required />
+          <FieldLabel icon={<GraduationCap className="w-3.5 h-3.5" />} text="Core Qualification" required={rules.coreQualification} optional={!rules.coreQualification} />
           <QualificationMultiSelect selected={fd.coreQualification} onChange={qch} />
           <p className="text-[9px] text-gray-400 font-medium italic">Select all educational qualifications that apply</p>
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <FieldLabel icon={<FileText className="w-3.5 h-3.5" />} text="Remarks / Notes" optional />
+          <FieldLabel icon={<FileText className="w-3.5 h-3.5" />} text="Remarks / Notes" required={rules.remarks} optional={!rules.remarks} />
           <textarea name="remarks" value={fd.remarks} onChange={ch}
             placeholder="Any onboarding notes..." rows={2}
-            className={`${inputCls} resize-none`} />
+            required={rules.remarks} className={`${inputCls} resize-none`} />
         </div>
       </div>
     </div>
@@ -569,11 +641,12 @@ function Step1({ fd, ch, qch, departments, locations, depsLoading, locsLoading }
 // ─────────────────────────────────────────────
 // STEP 2 — Personal Details
 // ─────────────────────────────────────────────
-function Step2({ fd, ch, categories, catsLoading }: {
+function Step2({ fd, ch, categories, catsLoading, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   categories: any[];
   catsLoading: boolean;
+  rules: ValidationRules;
 }) {
   return (
     <div>
@@ -582,61 +655,61 @@ function Step2({ fd, ch, categories, catsLoading }: {
         desc="Enter complete personal profile information for the employee's record." />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
-          <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Birth" required />
+          <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Date of Birth" required={rules.dateOfBirth} optional={!rules.dateOfBirth} />
           <input type="date" name="dateOfBirth" value={fd.dateOfBirth} onChange={ch}
-            required className={inputCls} />
+            required={rules.dateOfBirth} className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Gender" required />
-          <NativeSelect name="gender" value={fd.gender} onChange={ch} required>
+          <FieldLabel icon={<User className="w-3.5 h-3.5" />} text="Gender" required={rules.gender} optional={!rules.gender} />
+          <NativeSelect name="gender" value={fd.gender} onChange={ch} required={rules.gender}>
             <option value="">-- Select Gender --</option>
             <option>Male</option><option>Female</option>
             <option>Transgender</option><option>Prefer not to say</option>
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Heart className="w-3.5 h-3.5" />} text="Marital Status" required />
-          <NativeSelect name="maritalStatus" value={fd.maritalStatus} onChange={ch} required>
+          <FieldLabel icon={<Heart className="w-3.5 h-3.5" />} text="Marital Status" required={rules.maritalStatus} optional={!rules.maritalStatus} />
+          <NativeSelect name="maritalStatus" value={fd.maritalStatus} onChange={ch} required={rules.maritalStatus}>
             <option value="">-- Select Status --</option>
             <option>Single</option><option>Married</option>
             <option>Divorced</option><option>Widowed</option>
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Heart className="w-3.5 h-3.5" />} text="Blood Group" required />
-          <NativeSelect name="bloodGroup" value={fd.bloodGroup} onChange={ch} required>
+          <FieldLabel icon={<Heart className="w-3.5 h-3.5" />} text="Blood Group" required={rules.bloodGroup} optional={!rules.bloodGroup} />
+          <NativeSelect name="bloodGroup" value={fd.bloodGroup} onChange={ch} required={rules.bloodGroup}>
             <option value="">-- Select Blood Group --</option>
             {BLOOD_GROUPS.map(b => <option key={b} value={b}>{b}</option>)}
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <FieldLabel text="Religion" optional />
-          <NativeSelect name="religion" value={fd.religion} onChange={ch}>
+          <FieldLabel text="Religion" required={rules.religion} optional={!rules.religion} />
+          <NativeSelect name="religion" value={fd.religion} onChange={ch} required={rules.religion}>
             <option value="">-- Select Religion --</option>
             {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </NativeSelect>
         </div>
         <div className="space-y-2">
-          <FieldLabel text="Category" required />
+          <FieldLabel text="Category" required={rules.category} optional={!rules.category} />
           {catsLoading ? (
             <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
           ) : (
-            <NativeSelect name="category" value={fd.category} onChange={ch} required>
+            <NativeSelect name="category" value={fd.category} onChange={ch} required={rules.category}>
               <option value="">-- Select Category --</option>
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </NativeSelect>
           )}
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Mobile Number" required />
+          <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Mobile Number" required={rules.mobileNumber} optional={!rules.mobileNumber} />
           <input type="tel" name="mobileNumber" value={fd.mobileNumber} onChange={ch}
-            placeholder="10-digit mobile number" maxLength={10} required
+            placeholder="10-digit mobile number" maxLength={10} required={rules.mobileNumber}
             pattern="[0-9]{10}" className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Alternate Number" optional />
+          <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Alternate Number" required={rules.alternateNumber} optional={!rules.alternateNumber} />
           <input type="tel" name="alternateNumber" value={fd.alternateNumber} onChange={ch}
-            placeholder="Alternate contact number" maxLength={10} className={inputCls} />
+            placeholder="Alternate contact number" maxLength={10} required={rules.alternateNumber} className={inputCls} />
         </div>
       </div>
     </div>
@@ -646,10 +719,11 @@ function Step2({ fd, ch, categories, catsLoading }: {
 // ─────────────────────────────────────────────
 // STEP 3 — Address
 // ─────────────────────────────────────────────
-function Step3({ fd, ch, onSameToggle }: {
+function Step3({ fd, ch, onSameToggle, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   onSameToggle: () => void;
+  rules: ValidationRules;
 }) {
   return (
     <div>
@@ -663,25 +737,25 @@ function Step3({ fd, ch, onSameToggle }: {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2 sm:col-span-2">
-            <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required />
+            <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required={rules.currentAddress} optional={!rules.currentAddress} />
             <textarea name="currentAddressLine" value={fd.currentAddressLine} onChange={ch}
-              placeholder="House No., Street, Area, Locality" rows={2} required
+              placeholder="House No., Street, Area, Locality" rows={2} required={rules.currentAddress}
               className={`${inputCls} resize-none`} />
           </div>
           <div className="space-y-2">
-            <FieldLabel text="City" required />
+            <FieldLabel text="City" required={rules.currentAddress} optional={!rules.currentAddress} />
             <input type="text" name="currentCity" value={fd.currentCity} onChange={ch}
-              placeholder="City" required className={inputCls} />
+              placeholder="City" required={rules.currentAddress} className={inputCls} />
           </div>
           <div className="space-y-2">
-            <FieldLabel text="State" required />
+            <FieldLabel text="State" required={rules.currentAddress} optional={!rules.currentAddress} />
             <input type="text" name="currentState" value={fd.currentState} onChange={ch}
-              placeholder="State" required className={inputCls} />
+              placeholder="State" required={rules.currentAddress} className={inputCls} />
           </div>
           <div className="space-y-2">
-            <FieldLabel text="Pincode" required />
+            <FieldLabel text="Pincode" required={rules.currentAddress} optional={!rules.currentAddress} />
             <input type="text" name="currentPincode" value={fd.currentPincode} onChange={ch}
-              placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required className={inputCls} />
+              placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required={rules.currentAddress} className={inputCls} />
           </div>
         </div>
       </div>
@@ -707,25 +781,25 @@ function Step3({ fd, ch, onSameToggle }: {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
             <div className="space-y-2 sm:col-span-2">
-              <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required />
+              <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Address Line" required={rules.permanentAddress} optional={!rules.permanentAddress} />
               <textarea name="permanentAddressLine" value={fd.permanentAddressLine} onChange={ch}
-                placeholder="House No., Street, Area, Locality" rows={2} required
+                placeholder="House No., Street, Area, Locality" rows={2} required={rules.permanentAddress}
                 className={`${inputCls} resize-none`} />
             </div>
             <div className="space-y-2">
-              <FieldLabel text="City" required />
+              <FieldLabel text="City" required={rules.permanentAddress} optional={!rules.permanentAddress} />
               <input type="text" name="permanentCity" value={fd.permanentCity} onChange={ch}
-                placeholder="City" required className={inputCls} />
+                placeholder="City" required={rules.permanentAddress} className={inputCls} />
             </div>
             <div className="space-y-2">
-              <FieldLabel text="State" required />
+              <FieldLabel text="State" required={rules.permanentAddress} optional={!rules.permanentAddress} />
               <input type="text" name="permanentState" value={fd.permanentState} onChange={ch}
-                placeholder="State" required className={inputCls} />
+                placeholder="State" required={rules.permanentAddress} className={inputCls} />
             </div>
             <div className="space-y-2">
-              <FieldLabel text="Pincode" required />
+              <FieldLabel text="Pincode" required={rules.permanentAddress} optional={!rules.permanentAddress} />
               <input type="text" name="permanentPincode" value={fd.permanentPincode} onChange={ch}
-                placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required className={inputCls} />
+                placeholder="6-digit pincode" maxLength={6} pattern="[0-9]{6}" required={rules.permanentAddress} className={inputCls} />
             </div>
           </div>
         </div>
@@ -737,11 +811,12 @@ function Step3({ fd, ch, onSameToggle }: {
 // ─────────────────────────────────────────────
 // STEP 4 — Government IDs + Uploads
 // ─────────────────────────────────────────────
-function Step4({ fd, ch, docs, setDocs }: {
+function Step4({ fd, ch, docs, setDocs, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   docs: UploadedDocs;
   setDocs: React.Dispatch<React.SetStateAction<UploadedDocs>>;
+  rules: ValidationRules;
 }) {
   const setDoc = useCallback(<K extends keyof UploadedDocs>(key: K, val: UploadedDocs[K]) => {
     setDocs(prev => ({ ...prev, [key]: val }));
@@ -767,6 +842,9 @@ function Step4({ fd, ch, docs, setDocs }: {
         <h3 className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 mb-3 sm:mb-4">
           <Image className="w-4 h-4" /> Employee Photo
         </h3>
+        <div className="mb-2">
+          <FieldLabel text="Employee Photo Document" required={rules.photo} optional={!rules.photo} />
+        </div>
         <div className="max-w-xs">
           {docs.photo ? (
             <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg">
@@ -797,14 +875,14 @@ function Step4({ fd, ch, docs, setDocs }: {
       <IDSection color="amber" title="Aadhar Card" icon={<CreditCard className="w-4 h-4" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Aadhar Number" required />
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Aadhar Number" required={rules.aadharNumber} optional={!rules.aadharNumber} />
             <input type="text" name="aadharNumber" value={fd.aadharNumber} onChange={ch}
-              placeholder="12-digit Aadhar number" maxLength={12} required className={inputCls} />
+              placeholder="12-digit Aadhar number" maxLength={12} required={rules.aadharNumber} className={inputCls} />
             <p className="text-[9px] text-gray-400 font-medium italic">As per UIDAI issued Aadhar Card</p>
           </div>
           <FileUploadBox label="Aadhar Card Document" icon={<CreditCard className="w-3.5 h-3.5" />}
             accept=".jpg,.jpeg,.png,.pdf" file={docs.aadharCard}
-            onChange={f => setDoc('aadharCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+            onChange={f => setDoc('aadharCard', f)} required={rules.aadharNumber} hint="JPG / PNG / PDF · Max 5 MB" />
         </div>
       </IDSection>
 
@@ -812,15 +890,15 @@ function Step4({ fd, ch, docs, setDocs }: {
       <IDSection color="amber" title="PAN Card" icon={<CreditCard className="w-4 h-4" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="PAN Number" required />
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="PAN Number" required={rules.panNumber} optional={!rules.panNumber} />
             {/* FIX: stored uppercase in state */}
             <input type="text" name="panNumber" value={fd.panNumber} onChange={handlePanChange}
-              placeholder="e.g. ABCDE1234F" maxLength={10} required className={inputCls} />
+              placeholder="e.g. ABCDE1234F" maxLength={10} required={rules.panNumber} className={inputCls} />
             <p className="text-[9px] text-gray-400 font-medium italic">10-character PAN issued by Income Tax Dept</p>
           </div>
           <FileUploadBox label="PAN Card Document" icon={<CreditCard className="w-3.5 h-3.5" />}
             accept=".jpg,.jpeg,.png,.pdf" file={docs.panCard}
-            onChange={f => setDoc('panCard', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+            onChange={f => setDoc('panCard', f)} required={rules.panNumber} hint="JPG / PNG / PDF · Max 5 MB" />
         </div>
       </IDSection>
 
@@ -828,15 +906,15 @@ function Step4({ fd, ch, docs, setDocs }: {
       <IDSection color="amber" title="UAN & ESIC Numbers" icon={<Hash className="w-4 h-4" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="UAN Number" optional />
+            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="UAN Number" required={rules.uanNumber} optional={!rules.uanNumber} />
             <input type="text" name="uanNumber" value={fd.uanNumber} onChange={ch}
-              placeholder="12-digit UAN (EPFO)" maxLength={12} className={inputCls} />
+              placeholder="12-digit UAN (EPFO)" maxLength={12} required={rules.uanNumber} className={inputCls} />
             <p className="text-[9px] text-gray-400 font-medium italic">Universal Account Number (PF)</p>
           </div>
           <div className="space-y-2">
-            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="ESIC Number" optional />
+            <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="ESIC Number" required={rules.esicNumber} optional={!rules.esicNumber} />
             <input type="text" name="esicNumber" value={fd.esicNumber} onChange={ch}
-              placeholder="ESIC Insurance Number" className={inputCls} />
+              placeholder="ESIC Insurance Number" required={rules.esicNumber} className={inputCls} />
             <p className="text-[9px] text-gray-400 font-medium italic">Employee State Insurance Corporation</p>
           </div>
         </div>
@@ -846,9 +924,9 @@ function Step4({ fd, ch, docs, setDocs }: {
       <IDSection color="blue" title="Passport" icon={<FileText className="w-4 h-4" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Passport Number" optional />
+            <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Passport Number" required={rules.passportNumber} optional={!rules.passportNumber} />
             <input type="text" name="passportNumber" value={fd.passportNumber} onChange={ch}
-              placeholder="Passport number (if applicable)" className={`${inputCls} uppercase`} />
+              placeholder="Passport number (if applicable)" required={rules.passportNumber} className={`${inputCls} uppercase`} />
           </div>
           <div className="space-y-2">
             <FieldLabel icon={<Calendar className="w-3.5 h-3.5" />} text="Valid Upto" optional />
@@ -859,7 +937,7 @@ function Step4({ fd, ch, docs, setDocs }: {
           <div className="space-y-2 sm:col-span-2">
             <FileUploadBox label="Passport Document" icon={<FileText className="w-3.5 h-3.5" />}
               accept=".jpg,.jpeg,.png,.pdf" file={docs.passport}
-              onChange={f => setDoc('passport', f)} hint="JPG / PNG / PDF · Max 5 MB" />
+              onChange={f => setDoc('passport', f)} required={rules.passportNumber} hint="JPG / PNG / PDF · Max 5 MB" />
           </div>
         </div>
       </IDSection>
@@ -868,9 +946,9 @@ function Step4({ fd, ch, docs, setDocs }: {
       <IDSection color="rose" title="Police Verification Certificate (PVC)" icon={<ShieldCheck className="w-4 h-4" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel icon={<ShieldCheck className="w-3.5 h-3.5" />} text="PVC Number" required />
+            <FieldLabel icon={<ShieldCheck className="w-3.5 h-3.5" />} text="PVC Number" required={rules.pvcNumber} optional={!rules.pvcNumber} />
             <input type="text" name="pvcNumber" value={fd.pvcNumber} onChange={ch}
-              placeholder="Police Verification Certificate number" required className={inputCls} />
+              placeholder="Police Verification Certificate number" required={rules.pvcNumber} className={inputCls} />
             <p className="text-[9px] text-gray-400 font-medium italic">Reference number from local police verification authority</p>
           </div>
           <div className="space-y-2">
@@ -882,7 +960,7 @@ function Step4({ fd, ch, docs, setDocs }: {
           <div className="space-y-2 sm:col-span-2">
             <FileUploadBox label="PVC Document" icon={<ShieldCheck className="w-3.5 h-3.5" />}
               accept=".jpg,.jpeg,.png,.pdf" file={docs.pvc}
-              onChange={f => setDoc('pvc', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+              onChange={f => setDoc('pvc', f)} required={rules.pvcNumber} hint="JPG / PNG / PDF · Max 5 MB" />
           </div>
         </div>
       </IDSection>
@@ -892,7 +970,7 @@ function Step4({ fd, ch, docs, setDocs }: {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <FileUploadBox label="Bank Passbook / Cancelled Cheque" icon={<Landmark className="w-3.5 h-3.5" />}
             accept=".jpg,.jpeg,.png,.pdf" file={docs.bankPassbook}
-            onChange={f => setDoc('bankPassbook', f)} required hint="JPG / PNG / PDF · Max 5 MB" />
+            onChange={f => setDoc('bankPassbook', f)} required={rules.bankDetails} hint="JPG / PNG / PDF · Max 5 MB" />
           <FileUploadBox label="Offer / Appointment Letter" icon={<FileText className="w-3.5 h-3.5" />}
             accept=".pdf,.doc,.docx" file={docs.offerLetter}
             onChange={f => setDoc('offerLetter', f)} hint="PDF / DOC · Max 5 MB" />
@@ -944,11 +1022,12 @@ function IDSection({ color, title, icon, children, noBorder }: {
 // ─────────────────────────────────────────────
 // STEP 5 — Bank Details
 // ─────────────────────────────────────────────
-function Step5({ fd, ch, banks, banksLoading }: {
+function Step5({ fd, ch, banks, banksLoading, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   banks: any[];
   banksLoading: boolean;
+  rules: ValidationRules;
 }) {
   return (
     <div>
@@ -957,36 +1036,36 @@ function Step5({ fd, ch, banks, banksLoading }: {
         desc="Enter the employee's bank account information for salary disbursement." />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 gap-y-5">
         <div className="space-y-2">
-          <FieldLabel icon={<Landmark className="w-3.5 h-3.5" />} text="Bank Name" required />
+          <FieldLabel icon={<Landmark className="w-3.5 h-3.5" />} text="Bank Name" required={rules.bankDetails} optional={!rules.bankDetails} />
           {banksLoading ? (
             <div className="h-10 sm:h-12 bg-gray-100 rounded-lg animate-pulse" />
           ) : (
-            <NativeSelect name="bankName" value={fd.bankName} onChange={ch} required>
+            <NativeSelect name="bankName" value={fd.bankName} onChange={ch} required={rules.bankDetails}>
               <option value="">-- Select Bank --</option>
               {banks.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
             </NativeSelect>
           )}
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Account Number" required />
+          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="Account Number" required={rules.bankDetails} optional={!rules.bankDetails} />
           <input type="text" name="accountNumber" value={fd.accountNumber} onChange={ch}
-            placeholder="Bank account number" required className={inputCls} />
+            placeholder="Bank account number" required={rules.bankDetails} className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="IFSC Code" required />
+          <FieldLabel icon={<Hash className="w-3.5 h-3.5" />} text="IFSC Code" required={rules.bankDetails} optional={!rules.bankDetails} />
           <input type="text" name="ifscCode" value={fd.ifscCode} onChange={ch}
-            placeholder="e.g. SBIN0001234" maxLength={11} required
+            placeholder="e.g. SBIN0001234" maxLength={11} required={rules.bankDetails}
             className={`${inputCls} uppercase`} />
           <p className="text-[9px] text-gray-400 font-medium italic">11-character bank branch IFSC code</p>
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Branch Name" required />
+          <FieldLabel icon={<MapPin className="w-3.5 h-3.5" />} text="Branch Name" required={rules.bankDetails} optional={!rules.bankDetails} />
           <input type="text" name="branchName" value={fd.branchName} onChange={ch}
-            placeholder="Branch name and city" required className={inputCls} />
+            placeholder="Branch name and city" required={rules.bankDetails} className={inputCls} />
         </div>
         <div className="space-y-2">
-          <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Account Type" required />
-          <NativeSelect name="accountType" value={fd.accountType} onChange={ch} required>
+          <FieldLabel icon={<CreditCard className="w-3.5 h-3.5" />} text="Account Type" required={rules.bankDetails} optional={!rules.bankDetails} />
+          <NativeSelect name="accountType" value={fd.accountType} onChange={ch} required={rules.bankDetails}>
             <option value="">-- Select Account Type --</option>
             {ACCOUNT_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
           </NativeSelect>
@@ -1000,10 +1079,11 @@ function Step5({ fd, ch, banks, banksLoading }: {
 // STEP 6 — Emergency, Family, Nominee
 // FIX: meal type row full-width on all breakpoints
 // ─────────────────────────────────────────────
-function Step6({ fd, ch, setFd }: {
+function Step6({ fd, ch, setFd, rules }: {
   fd: EmployeeFormData;
   ch: React.ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
   setFd: React.Dispatch<React.SetStateAction<EmployeeFormData>>;
+  rules: ValidationRules;
 }) {
   const updateMember = (idx: number, field: keyof FamilyMember, value: string) => {
     setFd(prev => {
@@ -1032,18 +1112,18 @@ function Step6({ fd, ch, setFd }: {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel text="Contact Person Name" required />
+            <FieldLabel text="Contact Person Name" required={rules.emergencyName} optional={!rules.emergencyName} />
             <input type="text" name="emergencyName" value={fd.emergencyName} onChange={ch}
-              placeholder="Full name" required className={inputCls} />
+              placeholder="Full name" required={rules.emergencyName} className={inputCls} />
           </div>
           <div className="space-y-2">
-            <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Contact Phone" required />
+            <FieldLabel icon={<Phone className="w-3.5 h-3.5" />} text="Contact Phone" required={rules.emergencyPhone} optional={!rules.emergencyPhone} />
             <input type="tel" name="emergencyPhone" value={fd.emergencyPhone} onChange={ch}
-              placeholder="Mobile number" maxLength={10} required className={inputCls} />
+              placeholder="Mobile number" maxLength={10} required={rules.emergencyPhone} className={inputCls} />
           </div>
           <div className="space-y-2">
-            <FieldLabel text="Relation" required />
-            <NativeSelect name="emergencyRelation" value={fd.emergencyRelation} onChange={ch} required>
+            <FieldLabel text="Relation" required={rules.emergencyRelation} optional={!rules.emergencyRelation} />
+            <NativeSelect name="emergencyRelation" value={fd.emergencyRelation} onChange={ch} required={rules.emergencyRelation}>
               <option value="">-- Select Relation --</option>
               <option>Father</option><option>Mother</option><option>Spouse</option>
               <option>Sibling</option><option>Son</option><option>Daughter</option>
@@ -1153,22 +1233,22 @@ function Step6({ fd, ch, setFd }: {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
           <div className="space-y-2">
-            <FieldLabel text="Nominee Name" required />
+            <FieldLabel text="Nominee Name" required={rules.nomineeDetails} optional={!rules.nomineeDetails} />
             <input type="text" name="nomineeName" value={fd.nomineeName} onChange={ch}
-              placeholder="Nominee's full name" required className={inputCls} />
+              placeholder="Nominee's full name" required={rules.nomineeDetails} className={inputCls} />
           </div>
           <div className="space-y-2">
-            <FieldLabel text="Relation with Nominee" required />
-            <NativeSelect name="nomineeRelation" value={fd.nomineeRelation} onChange={ch} required>
+            <FieldLabel text="Relation with Nominee" required={rules.nomineeDetails} optional={!rules.nomineeDetails} />
+            <NativeSelect name="nomineeRelation" value={fd.nomineeRelation} onChange={ch} required={rules.nomineeDetails}>
               <option value="">-- Select Relation --</option>
               <option>Father</option><option>Mother</option><option>Spouse</option>
               <option>Son</option><option>Daughter</option><option>Sibling</option><option>Other</option>
             </NativeSelect>
           </div>
           <div className="space-y-2">
-            <FieldLabel text="Nominee Date of Birth" required />
+            <FieldLabel text="Nominee Date of Birth" required={rules.nomineeDetails} optional={!rules.nomineeDetails} />
             <input type="date" name="nomineeDOB" value={fd.nomineeDOB} onChange={ch}
-              required className={inputCls} />
+              required={rules.nomineeDetails} className={inputCls} />
           </div>
         </div>
       </div>
@@ -1474,6 +1554,68 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
   const [visible, setVisible]   = useState(true);
   const [animDir, setAnimDir]   = useState<'f' | 'b'>('f');
 
+  const [rules, setRules] = useState<ValidationRules>(DEFAULT_RULES);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [savingRules, setSavingRules] = useState(false);
+
+  const handleSaveRules = async (updatedRules: ValidationRules) => {
+    try {
+      setSavingRules(true);
+      const response = await fetch(`${API}/api/employeerequiredrules`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedRules)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRules(data);
+        setRulesOpen(false);
+        setError('Validation rules updated successfully!');
+        setTimeout(() => setError(null), 3000);
+      } else {
+        alert('Failed to save validation rules.');
+      }
+    } catch (err) {
+      console.error('Error saving rules:', err);
+      alert('Connection error while saving rules.');
+    } finally {
+      setSavingRules(false);
+    }
+  };
+
+  const ruleKeys = [
+    'fullName', 'officialEmail', 'employeeCode', 'dateOfJoining', 'department', 'location',
+    'designation', 'annualSalary', 'coreQualification', 'remarks', 'dateOfBirth', 'gender',
+    'maritalStatus', 'bloodGroup', 'religion', 'category', 'mobileNumber', 'alternateNumber',
+    'currentAddress', 'permanentAddress', 'photo', 'aadharNumber', 'panNumber', 'uanNumber',
+    'esicNumber', 'passportNumber', 'pvcNumber', 'bankDetails', 'emergencyName', 'emergencyPhone',
+    'emergencyRelation', 'nomineeDetails'
+  ] as const;
+
+  const isAllRequired = ruleKeys.every(k => rules[k]);
+  const isAllOptional = ruleKeys.every(k => !rules[k]);
+
+  const handleMasterChange = (val: string) => {
+    if (val === 'all-required') {
+      setRules(prev => {
+        const next = { ...prev };
+        ruleKeys.forEach(k => { next[k] = true; });
+        return next;
+      });
+    } else if (val === 'all-optional') {
+      setRules(prev => {
+        const next = { ...prev };
+        ruleKeys.forEach(k => { next[k] = false; });
+        return next;
+      });
+    }
+  };
+
+  const handleResetToDefaults = () => {
+    setRules({ ...DEFAULT_RULES });
+  };
+
+
   // API-loaded dropdown data
   const [departments, setDepartments] = useState<ApiDepartment[]>([]);
   const [locations,   setLocations]   = useState<ApiLocation[]>([]);
@@ -1485,6 +1627,14 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
   const [banksLoading, setBanksLoading] = useState(true);
 
   useEffect(() => {
+    fetch(`${API}/api/employeerequiredrules`)
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: any) => setRules(data))
+      .catch((e) => console.error('Error fetching validation rules:', e));
+
     fetch(`${API}/api/departments`)
       .then(r => {
         if (!r.ok) throw new Error();
@@ -1565,13 +1715,142 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
     setTimeout(() => { setStep(next); setVisible(true); }, 200);
   };
 
-  // FIX: use TOTAL_STEPS constant instead of magic number
-  const handleNext = () => { if (step < TOTAL_STEPS) animateTo('f', step + 1); };
+  const validateStep = (s: number) => {
+    // Basic Info (Step 1)
+    if (s === 1) {
+      if (rules.fullName && !fd.fullName.trim()) return 'Full Name is required.';
+      if (rules.officialEmail && !fd.officialEmail.trim()) return 'Official Email ID is required.';
+      if (rules.dateOfJoining && !fd.dateOfJoining) return 'Date of Joining is required.';
+      if (rules.department && !fd.department) return 'Department is required.';
+      if (rules.designation && !fd.designation.trim()) return 'Designation / Post is required.';
+      if (rules.employeeCode && !fd.employeeCode.trim()) return 'Employee Code / ID is required.';
+      if (rules.location && !fd.location) return 'Location / Branch is required.';
+      if (rules.annualSalary && !fd.annualSalary) return 'Annual Salary is required.';
+      if (rules.coreQualification && fd.coreQualification.length === 0) return 'Core Qualification is required.';
+      if (rules.remarks && !fd.remarks.trim()) return 'Remarks / Notes are required.';
+    }
+
+    // Personal Details (Step 2)
+    if (s === 2) {
+      if (rules.dateOfBirth && !fd.dateOfBirth) return 'Date of Birth is required.';
+      if (rules.gender && !fd.gender) return 'Gender is required.';
+      if (rules.maritalStatus && !fd.maritalStatus) return 'Marital Status is required.';
+      if (rules.mobileNumber) {
+        if (!fd.mobileNumber.trim()) return 'Mobile Number is required.';
+        if (fd.mobileNumber.trim().length !== 10) return 'Mobile Number must be exactly 10 digits.';
+      }
+      if (rules.bloodGroup && !fd.bloodGroup) return 'Blood Group is required.';
+      if (rules.religion && !fd.religion) return 'Religion is required.';
+      if (rules.category && !fd.category) return 'Category is required.';
+      if (rules.alternateNumber && !fd.alternateNumber.trim()) return 'Alternate Number is required.';
+    }
+
+    // Address Details (Step 3)
+    if (s === 3) {
+      if (rules.currentAddress) {
+        if (!fd.currentAddressLine.trim()) return 'Current Address Line is required.';
+        if (!fd.currentCity.trim()) return 'Current City is required.';
+        if (!fd.currentState.trim()) return 'Current State is required.';
+        if (!fd.currentPincode.trim()) return 'Current Pincode is required.';
+        if (fd.currentPincode.trim().length !== 6) return 'Current Pincode must be exactly 6 digits.';
+      }
+      
+      if (rules.permanentAddress && !fd.sameAsCurrent) {
+        if (!fd.permanentAddressLine.trim()) return 'Permanent Address Line is required.';
+        if (!fd.permanentCity.trim()) return 'Permanent City is required.';
+        if (!fd.permanentState.trim()) return 'Permanent State is required.';
+        if (!fd.permanentPincode.trim()) return 'Permanent Pincode is required.';
+        if (fd.permanentPincode.trim().length !== 6) return 'Permanent Pincode must be exactly 6 digits.';
+      }
+    }
+
+    // Govt IDs & Docs (Step 4)
+    if (s === 4) {
+      if (rules.photo && !docs.photo) return 'Employee Photo is required.';
+      if (rules.aadharNumber) {
+        if (!fd.aadharNumber.trim()) return 'Aadhar Number is required.';
+        if (fd.aadharNumber.trim().length !== 12) return 'Aadhar Number must be exactly 12 digits.';
+        if (!docs.aadharCard) return 'Aadhar Card Document is required.';
+      }
+      if (rules.panNumber) {
+        if (!fd.panNumber.trim()) return 'PAN Number is required.';
+        if (fd.panNumber.trim().length !== 10) return 'PAN Number must be exactly 10 characters.';
+        if (!docs.panCard) return 'PAN Card Document is required.';
+      }
+      if (rules.uanNumber && !fd.uanNumber.trim()) return 'UAN Number is required.';
+      if (rules.esicNumber && !fd.esicNumber.trim()) return 'ESIC Number is required.';
+      if (rules.passportNumber) {
+        if (!fd.passportNumber.trim()) return 'Passport Number is required.';
+        if (!docs.passport) return 'Passport Document is required.';
+      }
+      if (rules.pvcNumber) {
+        if (!fd.pvcNumber.trim()) return 'PVC Number is required.';
+        if (!docs.pvc) return 'PVC Document is required.';
+      }
+    }
+
+    // Bank Details (Step 5)
+    if (s === 5) {
+      if (rules.bankDetails) {
+        if (!fd.bankName) return 'Bank Name is required.';
+        if (!fd.accountNumber.trim()) return 'Account Number is required.';
+        if (!fd.ifscCode.trim()) return 'IFSC Code is required.';
+        if (!fd.branchName.trim()) return 'Branch Name is required.';
+        if (!fd.accountType) return 'Account Type is required.';
+        if (!docs.bankPassbook) return 'Bank Passbook / Cancelled Cheque is required.';
+      }
+    }
+
+    // Emergency, Family & Nominee (Step 6)
+    if (s === 6) {
+      if (rules.emergencyName && !fd.emergencyName.trim()) return 'Emergency Contact Person Name is required.';
+      if (rules.emergencyPhone && !fd.emergencyPhone.trim()) return 'Emergency Contact Phone is required.';
+      if (rules.emergencyRelation && !fd.emergencyRelation) return 'Emergency Contact Relation is required.';
+      
+      // Validate Family Meal Preferences if any members added
+      for (let i = 0; i < fd.familyMembers.length; i++) {
+        const m = fd.familyMembers[i];
+        if (m.name.trim() || m.relation || m.dateOfBirth || m.mealType) {
+          if (!m.name.trim()) return `Family Member ${i + 1} Name is required.`;
+          if (!m.relation) return `Family Member ${i + 1} Relation is required.`;
+          if (!m.mealType) return `Family Member ${i + 1} Meal Preference is required.`;
+        }
+      }
+
+      if (rules.nomineeDetails) {
+        if (!fd.nomineeName.trim()) return 'Nominee Name is required.';
+        if (!fd.nomineeRelation) return 'Relation with Nominee is required.';
+        if (!fd.nomineeDOB) return 'Nominee Date of Birth is required.';
+      }
+    }
+
+    // Credentials Setup (Step 7)
+    if (s === 7) {
+      if (!fd.password) return 'Temporary Password is required.';
+      if (!fd.confirmPassword) return 'Password Confirmation is required.';
+      if (fd.password !== fd.confirmPassword) return 'Passwords do not match.';
+    }
+
+    return null;
+  };
+
+  const handleNext = () => {
+    const validationError = validateStep(step);
+    if (validationError) {
+      setError(validationError);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setError(null);
+    if (step < TOTAL_STEPS) animateTo('f', step + 1);
+  };
   const handleBack = () => { if (step > 1) animateTo('b', step - 1); };
 
   const handleSubmit = async () => {
-    if (fd.password !== fd.confirmPassword) {
-      setError('Passwords do not match. Please check Step 7.');
+    const validationError = validateStep(step);
+    if (validationError) {
+      setError(validationError);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     try {
@@ -1670,6 +1949,10 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button onClick={() => setRulesOpen(true)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-amber-500 text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-amber-600 transition-all active:scale-95">
+            <ShieldCheck className="w-4 h-4" /> <span>Manage Required</span>
+          </button>
           <button onClick={() => onNavigate?.('/hr/employees')}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-sm uppercase tracking-widest hover:bg-purple-700 transition-all active:scale-95">
             <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back to Employees</span><span className="sm:hidden">Back</span>
@@ -1724,13 +2007,13 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
             {step === 1 && (
               <Step1 fd={fd} ch={ch} qch={v => setFd(p => ({ ...p, coreQualification: v }))}
                 departments={departments} locations={locations}
-                depsLoading={depsLoading} locsLoading={locsLoading} />
+                depsLoading={depsLoading} locsLoading={locsLoading} rules={rules} />
             )}
-            {step === 2 && <Step2 fd={fd} ch={ch} categories={categories} catsLoading={catsLoading} />}
-            {step === 3 && <Step3 fd={fd} ch={ch} onSameToggle={() => setFd(p => ({ ...p, sameAsCurrent: !p.sameAsCurrent }))} />}
-            {step === 4 && <Step4 fd={fd} ch={ch} docs={docs} setDocs={setDocs} />}
-            {step === 5 && <Step5 fd={fd} ch={ch} banks={banks} banksLoading={banksLoading} />}
-            {step === 6 && <Step6 fd={fd} ch={ch} setFd={setFd} />}
+            {step === 2 && <Step2 fd={fd} ch={ch} categories={categories} catsLoading={catsLoading} rules={rules} />}
+            {step === 3 && <Step3 fd={fd} ch={ch} rules={rules} onSameToggle={() => setFd(p => ({ ...p, sameAsCurrent: !p.sameAsCurrent }))} />}
+            {step === 4 && <Step4 fd={fd} ch={ch} docs={docs} setDocs={setDocs} rules={rules} />}
+            {step === 5 && <Step5 fd={fd} ch={ch} banks={banks} banksLoading={banksLoading} rules={rules} />}
+            {step === 6 && <Step6 fd={fd} ch={ch} setFd={setFd} rules={rules} />}
             {step === 7 && (
               <Step7 fd={fd} ch={ch}
                 showPwd={showPwd} showConfPwd={showConf}
@@ -1782,6 +2065,169 @@ export function AddEmployee({ onNavigate }: AddEmployeeProps) {
           <a href="#" className="hover:underline hover:text-gray-600 transition-colors">Terms &amp; Conditions</a>
         </div>
       </div>
+
+      {/* ── Onboarding Rules Modal ── */}
+      {rulesOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5" />
+                <h3 className="font-black text-sm uppercase tracking-widest">Onboarding Required Rules</h3>
+              </div>
+              <button onClick={() => setRulesOpen(false)} className="text-white/80 hover:text-white hover:scale-110 transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider leading-relaxed border-b border-gray-100 pb-3">
+                Configure which data fields are strictly mandatory vs. optional during employee onboarding.
+              </p>
+
+              {/* Master Control Panel */}
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-gray-700 uppercase tracking-widest">Master Rules Controller</h4>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">Quickly apply global presets or clear configs</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <select 
+                    value={isAllRequired ? 'all-required' : isAllOptional ? 'all-optional' : 'custom'} 
+                    onChange={e => handleMasterChange(e.target.value)}
+                    className="flex-1 sm:flex-none px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs font-black uppercase text-gray-700 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 cursor-pointer"
+                  >
+                    <option value="custom">⚙️ Custom Selection</option>
+                    <option value="all-required">🔴 All Fields Required</option>
+                    <option value="all-optional">🟢 All Fields Optional</option>
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={handleResetToDefaults}
+                    className="px-4 py-2 bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black rounded-lg uppercase tracking-widest hover:bg-rose-100 active:scale-95 transition-all flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Clear to Defaults
+                  </button>
+                </div>
+              </div>
+
+              {/* Group 1: Basic Info */}
+              <div>
+                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <UserPlus className="w-3.5 h-3.5" /> 1. Basic Information Step
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <RuleSelect label="Full Name" value={rules.fullName} onChange={v => setRules(p => ({ ...p, fullName: v }))} />
+                  <RuleSelect label="Official Email ID" value={rules.officialEmail} onChange={v => setRules(p => ({ ...p, officialEmail: v }))} />
+                  <RuleSelect label="Employee Code / ID" value={rules.employeeCode} onChange={v => setRules(p => ({ ...p, employeeCode: v }))} />
+                  <RuleSelect label="Date of Joining" value={rules.dateOfJoining} onChange={v => setRules(p => ({ ...p, dateOfJoining: v }))} />
+                  <RuleSelect label="Department" value={rules.department} onChange={v => setRules(p => ({ ...p, department: v }))} />
+                  <RuleSelect label="Location / Branch" value={rules.location} onChange={v => setRules(p => ({ ...p, location: v }))} />
+                  <RuleSelect label="Designation / Post" value={rules.designation} onChange={v => setRules(p => ({ ...p, designation: v }))} />
+                  <RuleSelect label="Annual Salary (CTC)" value={rules.annualSalary} onChange={v => setRules(p => ({ ...p, annualSalary: v }))} />
+                  <RuleSelect label="Core Qualification" value={rules.coreQualification} onChange={v => setRules(p => ({ ...p, coreQualification: v }))} />
+                  <RuleSelect label="Remarks / Notes" value={rules.remarks} onChange={v => setRules(p => ({ ...p, remarks: v }))} />
+                </div>
+              </div>
+
+              {/* Group 2: Personal Details */}
+              <div>
+                <h4 className="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" /> 2. Personal Profile Step
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <RuleSelect label="Date of Birth" value={rules.dateOfBirth} onChange={v => setRules(p => ({ ...p, dateOfBirth: v }))} />
+                  <RuleSelect label="Gender" value={rules.gender} onChange={v => setRules(p => ({ ...p, gender: v }))} />
+                  <RuleSelect label="Marital Status" value={rules.maritalStatus} onChange={v => setRules(p => ({ ...p, maritalStatus: v }))} />
+                  <RuleSelect label="Blood Group" value={rules.bloodGroup} onChange={v => setRules(p => ({ ...p, bloodGroup: v }))} />
+                  <RuleSelect label="Religion" value={rules.religion} onChange={v => setRules(p => ({ ...p, religion: v }))} />
+                  <RuleSelect label="Category" value={rules.category} onChange={v => setRules(p => ({ ...p, category: v }))} />
+                  <RuleSelect label="Mobile Number" value={rules.mobileNumber} onChange={v => setRules(p => ({ ...p, mobileNumber: v }))} />
+                  <RuleSelect label="Alternate Number" value={rules.alternateNumber} onChange={v => setRules(p => ({ ...p, alternateNumber: v }))} />
+                </div>
+              </div>
+
+              {/* Group 3: Address Details */}
+              <div>
+                <h4 className="text-[10px] font-black text-[#00cfd5] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <Home className="w-3.5 h-3.5" /> 3. Address Details Step
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <RuleSelect label="Current Address Line & Info" value={rules.currentAddress} onChange={v => setRules(p => ({ ...p, currentAddress: v }))} />
+                  <RuleSelect label="Permanent Address Line & Info" value={rules.permanentAddress} onChange={v => setRules(p => ({ ...p, permanentAddress: v }))} />
+                </div>
+              </div>
+
+              {/* Group 4: Govt IDs & Docs */}
+              <div>
+                <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" /> 4. Government IDs & Uploads
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <RuleSelect label="Employee Photo File" value={rules.photo} onChange={v => setRules(p => ({ ...p, photo: v }))} />
+                  <RuleSelect label="Aadhar Card" value={rules.aadharNumber} onChange={v => setRules(p => ({ ...p, aadharNumber: v }))} />
+                  <RuleSelect label="PAN Card" value={rules.panNumber} onChange={v => setRules(p => ({ ...p, panNumber: v }))} />
+                  <RuleSelect label="UAN (PF) Number" value={rules.uanNumber} onChange={v => setRules(p => ({ ...p, uanNumber: v }))} />
+                  <RuleSelect label="ESIC Number" value={rules.esicNumber} onChange={v => setRules(p => ({ ...p, esicNumber: v }))} />
+                  <RuleSelect label="Passport & Doc" value={rules.passportNumber} onChange={v => setRules(p => ({ ...p, passportNumber: v }))} />
+                  <RuleSelect label="PVC & Doc" value={rules.pvcNumber} onChange={v => setRules(p => ({ ...p, pvcNumber: v }))} />
+                </div>
+              </div>
+
+              {/* Group 5: Bank & Nominee */}
+              <div>
+                <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <Landmark className="w-3.5 h-3.5" /> 5. Bank Account & Family Onboarding
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <RuleSelect label="Bank account & passbook" value={rules.bankDetails} onChange={v => setRules(p => ({ ...p, bankDetails: v }))} />
+                  <RuleSelect label="Emergency Contact Name" value={rules.emergencyName} onChange={v => setRules(p => ({ ...p, emergencyName: v }))} />
+                  <RuleSelect label="Emergency Contact Phone" value={rules.emergencyPhone} onChange={v => setRules(p => ({ ...p, emergencyPhone: v }))} />
+                  <RuleSelect label="Emergency Contact Relation" value={rules.emergencyRelation} onChange={v => setRules(p => ({ ...p, emergencyRelation: v }))} />
+                  <RuleSelect label="Nominee Details" value={rules.nomineeDetails} onChange={v => setRules(p => ({ ...p, nomineeDetails: v }))} />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+              <button onClick={() => setRulesOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 text-[10px] font-black rounded-lg uppercase tracking-widest hover:bg-gray-300 transition-all active:scale-95">
+                Cancel
+              </button>
+              <button onClick={() => handleSaveRules(rules)} disabled={savingRules}
+                className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white text-[10px] font-black rounded-lg shadow-md shadow-emerald-100 uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 active:scale-95">
+                {savingRules && <RefreshCw className="w-3 h-3 animate-spin" />}
+                {savingRules ? 'Saving...' : 'Save Rules'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Onboarding RuleSelect Select Box Helper Component ──
+function RuleSelect({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+      <span className="text-[11px] font-black text-gray-600 uppercase tracking-wide">{label}</span>
+      <select value={value ? 'required' : 'optional'} onChange={e => onChange(e.target.value === 'required')}
+        className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:border-blue-400">
+        <option value="required">Required</option>
+        <option value="optional">Optional</option>
+      </select>
     </div>
   );
 }
