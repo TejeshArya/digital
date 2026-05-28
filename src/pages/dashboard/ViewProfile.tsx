@@ -19,6 +19,17 @@ interface ProfileData {
   nomineeName: string;
   nomineeRelation: string;
   avatarUrl?: string;
+  employeeId?: string;
+  qualification?: string;
+  role?: string;
+  dateOfJoining?: string;
+  departmentName?: string;
+  locationName?: string;
+  uanNumber?: string;
+  esicNumber?: string;
+  branchName?: string;
+  nomineeAadhar?: string;
+  emergencyContactName?: string;
 }
 
 interface ViewProfileProps {
@@ -45,10 +56,50 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
   });
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem(`profile_data_${user.email}`);
-    if (savedProfile) {
-      setProfileData(JSON.parse(savedProfile));
-    }
+    const fetchDbProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:5076/api/employees/email/${user.email}`);
+        if (response.ok) {
+          const emp = await response.json();
+          setProfileData({
+            phone: emp.mobileNumber || '',
+            emergencyPhone: emp.emergencyContactPhone || '',
+            presentAddress: emp.currentAddress || '',
+            permanentAddress: emp.permanentAddress || '',
+            aadharNumber: emp.aadharNumber || '',
+            panNumber: emp.panNumber || '',
+            bankName: emp.bankName || '',
+            accountNumber: emp.accountNumber || '',
+            ifscCode: emp.ifscCode || '',
+            fathersName: emp.fathersName || emp.emergencyContactName || '',
+            nomineeName: emp.nomineeName || '',
+            nomineeRelation: emp.nomineeRelation || '',
+            avatarUrl: emp.avatarUrl || '',
+            employeeId: emp.employeeId || '',
+            qualification: emp.qualification || '',
+            role: emp.role || '',
+            dateOfJoining: emp.dateOfJoining || '',
+            departmentName: emp.department?.name || emp.departmentName || '',
+            locationName: emp.location?.name || emp.locationName || '',
+            uanNumber: emp.uanNumber || '',
+            esicNumber: emp.esicNumber || '',
+            branchName: emp.branchName || '',
+            nomineeAadhar: emp.nomineeAadhar || 'N/A',
+            emergencyContactName: emp.emergencyContactName || ''
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error fetching employee from DB, falling back:', err);
+      }
+
+      const savedProfile = localStorage.getItem(`profile_data_${user.email}`);
+      if (savedProfile) {
+        setProfileData(JSON.parse(savedProfile));
+      }
+    };
+
+    fetchDbProfile();
   }, [user.email]);
 
   return (
@@ -61,12 +112,20 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
           </h1>
           <p className="text-[11px] text-gray-400 font-bold uppercase tracking-tight">View personal and employment details</p>
         </div>
-        <button 
-          onClick={() => onNavigate && onNavigate('/portal')}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-md uppercase tracking-widest hover:bg-purple-700 transition-all active:scale-95"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </button>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => onNavigate && onNavigate('/portal/profile')}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#0061f2] text-white text-[10px] font-black rounded-lg shadow-md uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 animate-pulse"
+          >
+            Edit Profile
+          </button>
+          <button 
+            onClick={() => onNavigate && onNavigate('/portal')}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#6b58d3] text-white text-[10px] font-black rounded-lg shadow-md uppercase tracking-widest hover:bg-purple-700 transition-all active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+          </button>
+        </div>
       </div>
 
       <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -96,7 +155,7 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             </h3>
             
             <div className="inline-block bg-blue-50 text-blue-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider mb-6">
-              {user.employeeId || 'DEE251225103'}
+              {profileData.employeeId || user.employeeId || 'DEE251225103'}
             </div>
 
             {/* Details List */}
@@ -107,15 +166,17 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">JOINING DATE</span>
-                <span className="text-[12px] font-bold text-gray-600 block">01 Jul, 2025</span>
+                <span className="text-[12px] font-bold text-gray-600 block">
+                  {profileData.dateOfJoining ? new Date(profileData.dateOfJoining).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '01 Jul, 2025'}
+                </span>
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">DEPARTMENT</span>
-                <span className="text-[12px] font-bold text-gray-600 block">P & P</span>
+                <span className="text-[12px] font-bold text-gray-600 block">{profileData.departmentName || 'P & P'}</span>
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">LOCATION</span>
-                <span className="text-[12px] font-bold text-gray-600 block">JAMNAGAR</span>
+                <span className="text-[12px] font-bold text-gray-600 block">{profileData.locationName || 'JAMNAGAR'}</span>
               </div>
             </div>
 
@@ -140,18 +201,26 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             {/* Professional Info Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-[#00ac69]">
               <div className="p-6 space-y-4">
-                <div className="text-[11px] font-black text-[#00ac69] uppercase tracking-widest flex items-center gap-1.5 border-b border-gray-50 pb-3">
-                  <Building2 className="w-4 h-4" /> Professional Info
+                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                  <div className="text-[11px] font-black text-[#00ac69] uppercase tracking-widest flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4" /> Professional Info
+                  </div>
+                  <button 
+                    onClick={() => onNavigate && onNavigate('/portal/profile')}
+                    className="text-[9px] font-black text-[#00ac69] hover:underline uppercase tracking-widest"
+                  >
+                    Edit
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">QUALIFICATION</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.qualification || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">PORTAL ROLE</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">Employee</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.role || 'Employee'}</span>
                   </div>
                 </div>
               </div>
@@ -160,8 +229,16 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             {/* Identification Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-[#f6c23e]">
               <div className="p-6 space-y-4">
-                <div className="text-[11px] font-black text-[#f6c23e] uppercase tracking-widest flex items-center gap-1.5 border-b border-gray-50 pb-3">
-                  <CreditCard className="w-4 h-4" /> Identification
+                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                  <div className="text-[11px] font-black text-[#f6c23e] uppercase tracking-widest flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4" /> Identification
+                  </div>
+                  <button 
+                    onClick={() => onNavigate && onNavigate('/portal/profile')}
+                    className="text-[9px] font-black text-[#f6c23e] hover:underline uppercase tracking-widest"
+                  >
+                    Edit
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
@@ -179,11 +256,11 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">UAN (UNIVERSAL ACCOUNT NUMBER)</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.uanNumber || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">ESIC ID</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.esicNumber || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -192,8 +269,16 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             {/* Bank Details Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-[#323c4e] md:col-span-2">
               <div className="p-6 space-y-4">
-                <div className="text-[11px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 border-b border-gray-50 pb-3">
-                  <Landmark className="w-4 h-4" /> Bank Details
+                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                  <div className="text-[11px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5">
+                    <Landmark className="w-4 h-4" /> Bank Details
+                  </div>
+                  <button 
+                    onClick={() => onNavigate && onNavigate('/portal/profile')}
+                    className="text-[9px] font-black text-gray-500 hover:underline uppercase tracking-widest"
+                  >
+                    Edit
+                  </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,7 +302,7 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">BRANCH</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.branchName || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -226,8 +311,16 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             {/* Nominee & Emergency Contact Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-[#6b58d3] md:col-span-2">
               <div className="p-6 space-y-4">
-                <div className="text-[11px] font-black text-[#6b58d3] uppercase tracking-widest flex items-center gap-1.5 border-b border-gray-50 pb-3">
-                  <UsersIcon className="w-4 h-4" /> Nominee & Emergency Contact
+                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                  <div className="text-[11px] font-black text-[#6b58d3] uppercase tracking-widest flex items-center gap-1.5">
+                    <UsersIcon className="w-4 h-4" /> Nominee & Emergency Contact
+                  </div>
+                  <button 
+                    onClick={() => onNavigate && onNavigate('/portal/profile')}
+                    className="text-[9px] font-black text-[#6b58d3] hover:underline uppercase tracking-widest"
+                  >
+                    Edit
+                  </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -245,11 +338,11 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">NOMINEE AADHAR</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.nomineeAadhar || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">EMERGENCY CONTACT PERSON</span>
-                    <span className="text-[12px] font-bold text-gray-700 block uppercase">N/A</span>
+                    <span className="text-[12px] font-bold text-gray-700 block uppercase">{profileData.emergencyContactName || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">EMERGENCY PHONE</span>
@@ -264,8 +357,16 @@ export function ViewProfile({ onNavigate }: ViewProfileProps) {
             {/* Address Details Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden border-t-4 border-blue-500 md:col-span-2">
               <div className="p-6 space-y-4">
-                <div className="text-[11px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5 border-b border-gray-50 pb-3">
-                  <MapPin className="w-4 h-4" /> Address Details
+                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                  <div className="text-[11px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" /> Address Details
+                  </div>
+                  <button 
+                    onClick={() => onNavigate && onNavigate('/portal/profile')}
+                    className="text-[9px] font-black text-blue-500 hover:underline uppercase tracking-widest"
+                  >
+                    Edit
+                  </button>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

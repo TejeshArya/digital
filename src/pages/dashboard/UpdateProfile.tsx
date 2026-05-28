@@ -47,12 +47,44 @@ export function UpdateProfile({ onNavigate }: UpdateProfileProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string>('');
 
+  const [employeeDbId, setEmployeeDbId] = useState<number | null>(null);
+  const [dbEmployee, setDbEmployee] = useState<any>(null);
+
   useEffect(() => {
-    // Load existing profile details from localStorage
-    const savedProfile = localStorage.getItem(`profile_data_${user.email}`);
-    if (savedProfile) {
-      setFormData(JSON.parse(savedProfile));
-    }
+    const fetchDbProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:5076/api/employees/email/${user.email}`);
+        if (response.ok) {
+          const emp = await response.json();
+          setEmployeeDbId(emp.id);
+          setDbEmployee(emp);
+          setFormData({
+            phone: emp.mobileNumber || '',
+            emergencyPhone: emp.emergencyContactPhone || '',
+            presentAddress: emp.currentAddress || '',
+            permanentAddress: emp.permanentAddress || '',
+            aadharNumber: emp.aadharNumber || '',
+            panNumber: emp.panNumber || '',
+            bankName: emp.bankName || '',
+            accountNumber: emp.accountNumber || '',
+            ifscCode: emp.ifscCode || '',
+            fathersName: emp.fathersName || emp.emergencyContactName || '',
+            nomineeName: emp.nomineeName || '',
+            nomineeRelation: emp.nomineeRelation || ''
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error fetching employee in edit:', err);
+      }
+
+      const savedProfile = localStorage.getItem(`profile_data_${user.email}`);
+      if (savedProfile) {
+        setFormData(JSON.parse(savedProfile));
+      }
+    };
+
+    fetchDbProfile();
   }, [user.email]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -72,7 +104,7 @@ export function UpdateProfile({ onNavigate }: UpdateProfileProps) {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const updatedProfile = {
@@ -81,11 +113,74 @@ export function UpdateProfile({ onNavigate }: UpdateProfileProps) {
     };
 
     localStorage.setItem(`profile_data_${user.email}`, JSON.stringify(updatedProfile));
-    
-    // Trigger success notification
-    alert('Profile update request submitted successfully for approval!');
+
+    if (employeeDbId && dbEmployee) {
+      try {
+        const dbMapping: Record<string, string> = {
+          phone: dbEmployee.mobileNumber || '',
+          emergencyPhone: dbEmployee.emergencyContactPhone || '',
+          presentAddress: dbEmployee.currentAddress || '',
+          permanentAddress: dbEmployee.permanentAddress || '',
+          aadharNumber: dbEmployee.aadharNumber || '',
+          panNumber: dbEmployee.panNumber || '',
+          bankName: dbEmployee.bankName || '',
+          accountNumber: dbEmployee.accountNumber || '',
+          ifscCode: dbEmployee.ifscCode || '',
+          fathersName: dbEmployee.fathersName || dbEmployee.emergencyContactName || '',
+          nomineeName: dbEmployee.nomineeName || '',
+          nomineeRelation: dbEmployee.nomineeRelation || ''
+        };
+
+        const promises = [];
+        for (const key of Object.keys(formData)) {
+          const formVal = (formData as any)[key] || '';
+          const dbVal = dbMapping[key] || '';
+
+          if (formVal.trim() !== dbVal.trim()) {
+            let dbFieldName = key;
+            if (key === 'phone') dbFieldName = 'MobileNumber';
+            else if (key === 'emergencyPhone') dbFieldName = 'EmergencyContactPhone';
+            else if (key === 'presentAddress') dbFieldName = 'CurrentAddress';
+            else if (key === 'panNumber') dbFieldName = 'PanNumber';
+            else if (key === 'aadharNumber') dbFieldName = 'AadharNumber';
+            else if (key === 'ifscCode') dbFieldName = 'IfscCode';
+            else if (key === 'fathersName') dbFieldName = 'FathersName';
+            else if (key === 'nomineeName') dbFieldName = 'NomineeName';
+            else if (key === 'nomineeRelation') dbFieldName = 'NomineeRelation';
+            else if (key === 'bankName') dbFieldName = 'BankName';
+            else if (key === 'accountNumber') dbFieldName = 'AccountNumber';
+
+            promises.push(
+              fetch('http://localhost:5076/api/profileupdaterequests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  employeeId: employeeDbId,
+                  fieldName: dbFieldName,
+                  oldValue: dbVal,
+                  newValue: formVal
+                })
+              })
+            );
+          }
+        }
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+          alert(`${promises.length} profile update requests submitted successfully for approval!`);
+        } else {
+          alert('No changes detected in your profile!');
+        }
+      } catch (err) {
+        console.error('Error submitting profile updates:', err);
+        alert('Profile update request saved locally (Server offline).');
+      }
+    } else {
+      alert('Profile update request submitted successfully! (Saved to local state)');
+    }
+
     if (onNavigate) {
-      onNavigate('/portal');
+      onNavigate('/portal/view-profile');
     }
   };
 
@@ -133,7 +228,7 @@ export function UpdateProfile({ onNavigate }: UpdateProfileProps) {
             </h3>
             
             <div className="inline-block bg-blue-50 text-blue-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider mb-6">
-              {user.employeeId || 'DEE251225103'}
+              {dbEmployee?.employeeId || user.employeeId || 'DEE251225103'}
             </div>
 
             {/* Details List */}
@@ -144,15 +239,17 @@ export function UpdateProfile({ onNavigate }: UpdateProfileProps) {
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">JOINING DATE</span>
-                <span className="text-[12px] font-bold text-gray-600 block">01 Jul, 2025</span>
+                <span className="text-[12px] font-bold text-gray-600 block">
+                  {dbEmployee?.dateOfJoining ? new Date(dbEmployee.dateOfJoining).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '01 Jul, 2025'}
+                </span>
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">DEPARTMENT</span>
-                <span className="text-[12px] font-bold text-gray-600 block">P & P</span>
+                <span className="text-[12px] font-bold text-gray-600 block">{dbEmployee?.department?.name || dbEmployee?.departmentName || 'P & P'}</span>
               </div>
               <div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block">LOCATION</span>
-                <span className="text-[12px] font-bold text-gray-600 block">JAMNAGAR</span>
+                <span className="text-[12px] font-bold text-gray-600 block">{dbEmployee?.location?.name || dbEmployee?.locationName || 'JAMNAGAR'}</span>
               </div>
             </div>
           </div>

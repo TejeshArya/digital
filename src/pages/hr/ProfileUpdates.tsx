@@ -63,7 +63,7 @@ export function ProfileUpdates() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch('https://dee-backend-7x0g.onrender.com/api/profileupdaterequests');
+      const res = await fetch('http://localhost:5076/api/profileupdaterequests');
       if (res.ok) {
         const data = await res.json();
         setRequests(data);
@@ -83,7 +83,7 @@ export function ProfileUpdates() {
 
     try {
       setApprovingId(id);
-      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/profileupdaterequests/${id}/approve`, {
+      const res = await fetch(`http://localhost:5076/api/profileupdaterequests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reviewedBy: 'AMANTU' })
@@ -115,7 +115,7 @@ export function ProfileUpdates() {
     if (!rejectModal) return;
     try {
       setRejectSaving(true);
-      const res = await fetch(`https://dee-backend-7x0g.onrender.com/api/profileupdaterequests/${rejectModal.id}/reject`, {
+      const res = await fetch(`http://localhost:5076/api/profileupdaterequests/${rejectModal.id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rejectionReason: rejectReason.trim(), reviewedBy: 'AMANTU' })

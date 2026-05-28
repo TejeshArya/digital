@@ -75,7 +75,7 @@ export function Projects() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/projects');
+      const response = await fetch('http://localhost:5076/api/projects');
       const data = await response.json();
       setProjectList(data);
     } catch (error) {
@@ -85,14 +85,23 @@ export function Projects() {
     }
   };
 
+  const [designationOfficers, setDesignationOfficers] = useState<any[]>([]);
+  const [deptOfficerSearch, setDeptOfficerSearch] = useState('');
+  const [showDeptOfficerResults, setShowDeptOfficerResults] = useState(false);
+
+  useEffect(() => {
+    setDeptOfficerSearch(formData.department || '');
+  }, [formData.department]);
+
   const fetchDropdowns = async () => {
     try {
-      const [deptRes, locRes, compRes, empRes, subGstRes] = await Promise.all([
-        fetch('https://dee-backend-7x0g.onrender.com/api/departments'),
-        fetch('https://dee-backend-7x0g.onrender.com/api/locations'),
-        fetch('https://dee-backend-7x0g.onrender.com/api/companygsts'),
-        fetch('https://dee-backend-7x0g.onrender.com/api/employees'),
-        fetch('https://dee-backend-7x0g.onrender.com/api/subgsts')
+      const [deptRes, locRes, compRes, empRes, subGstRes, desgRes] = await Promise.all([
+        fetch('http://localhost:5076/api/departments'),
+        fetch('http://localhost:5076/api/locations'),
+        fetch('http://localhost:5076/api/companygsts'),
+        fetch('http://localhost:5076/api/employees'),
+        fetch('http://localhost:5076/api/subgsts'),
+        fetch('http://localhost:5076/api/designationofficers')
       ]);
       
       const depts = await deptRes.json();
@@ -100,11 +109,13 @@ export function Projects() {
       const comps = await compRes.json();
       const emps = await empRes.json();
       const subg = await subGstRes.json();
+      const desgs = await desgRes.json().catch(() => []);
       
       setDepartments(depts);
       setLocations(locs);
       setCompanies(comps);
       setSubGsts(subg);
+      setDesignationOfficers(desgs);
       
       // Extract unique roles/posts from employees
       const uniquePosts = Array.from(new Set(emps.map((e: any) => e.role).filter(Boolean))) as string[];
@@ -161,7 +172,7 @@ export function Projects() {
     }
 
     try {
-      const response = await fetch('https://dee-backend-7x0g.onrender.com/api/projects', {
+      const response = await fetch('http://localhost:5076/api/projects', {
         method: 'POST',
         body: data
       });
@@ -239,6 +250,28 @@ export function Projects() {
   const filteredPosts = availablePosts.filter(p => 
     p.toLowerCase().includes(postSearch.toLowerCase())
   );
+
+  const allDeptOfficerCombinations = React.useMemo(() => {
+    const list = new Set<string>();
+
+    subGsts.forEach((s: any) => {
+      if (s) {
+        const combination = s.departmentOfficer || (s.designation 
+          ? `${s.department.trim()} - ${s.designation.trim()} - ${s.officerName.trim()}` 
+          : `${s.department.trim()} - ${s.officerName.trim()}`);
+        list.add(combination.trim());
+      }
+    });
+
+    return Array.from(list);
+  }, [subGsts]);
+
+  const filteredDeptOfficers = React.useMemo(() => {
+    if (!deptOfficerSearch) return allDeptOfficerCombinations;
+    return allDeptOfficerCombinations.filter(opt =>
+      opt.toLowerCase().includes(deptOfficerSearch.toLowerCase())
+    );
+  }, [allDeptOfficerCombinations, deptOfficerSearch]);
 
   return (
     <div className="p-6 bg-white min-h-screen font-sans">
@@ -383,23 +416,48 @@ export function Projects() {
             </div>
 
             {/* Row 3 */}
-            <div className="space-y-1.5">
-              <label className="block text-[12px] font-bold text-gray-600 uppercase tracking-tight">Department - Designation - Officer <span className="text-red-500">*</span></label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%221.67%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
-              >
-                <option value="">Select</option>
-                {dynamicDeptOfficers.length > 0 ? (
-                  dynamicDeptOfficers.map((opt, i) => (
-                    <option key={i} value={opt}>{opt}</option>
-                  ))
-                ) : (
-                  departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)
-                )}
-              </select>
+            <div className="space-y-1.5 relative">
+              <label className="block text-[12px] font-bold text-gray-600 uppercase tracking-tight">
+                Department - Designation - Officer <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="department"
+                  value={deptOfficerSearch}
+                  onChange={(e) => {
+                    setDeptOfficerSearch(e.target.value);
+                    setFormData(prev => ({ ...prev, department: e.target.value }));
+                    setShowDeptOfficerResults(true);
+                  }}
+                  onFocus={() => setShowDeptOfficerResults(true)}
+                  onBlur={() => setTimeout(() => setShowDeptOfficerResults(false), 200)}
+                  placeholder="Search Dept - Designation - Officer"
+                  autoComplete="off"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400 transition-all placeholder:text-gray-300"
+                />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              
+              {showDeptOfficerResults && filteredDeptOfficers.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-100">
+                  {filteredDeptOfficers.map((opt: string, i: number) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setFormData(prev => ({ ...prev, department: opt }));
+                        setDeptOfficerSearch(opt);
+                        setShowDeptOfficerResults(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs hover:bg-blue-50 font-semibold uppercase transition-colors"
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2 space-y-1.5">
